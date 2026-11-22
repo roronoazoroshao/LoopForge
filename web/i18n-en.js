@@ -1919,3 +1919,5 @@ Object.assign(window.LF_I18N_EN, {
 });
 
 Object.assign(window.LF_I18N_EN, {"请选择运行沙箱":"Select a runtime sandbox"});
+
+Object.assign(window.LF_I18N_EN, {"已保存 Git SSH 主机信任":"Git SSH host trust saved","已移除 Git SSH 主机信任":"Git SSH host trust removed"});

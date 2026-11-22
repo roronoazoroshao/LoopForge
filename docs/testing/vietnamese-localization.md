@@ -115,3 +115,7 @@ Reviewed and added 72 VI and EN entries spanning notification editor helper copy
 ### Upload raw data safety and localized validation
 
 Source-localized upload labels, hints, overflow counts and validation errors in Vietnamese while leaving the Chinese branch unchanged. File-name nodes are tagged `data-i18n-skip` so an uploaded Chinese filename cannot be translated by the broad DOM observer; dynamic rejection messages are prelocalized and likewise protected. An isolated fake DOM fixture reproduced the old Chinese copy, checked localized VI and preserved original filenames. Full Node/browser tests remain deferred.
+
+### SSH trust confirmation safety
+
+Fixed SSH-host removal copy: Vietnamese dialogs now describe removal in Vietnamese while preserving the hostname verbatim, rather than falling back to English with a mixed-language raw host. The trust-fingerprint prompt uses the existing `messageLocalized` dialog boundary, protecting hostnames and server fingerprint lines from fragment translation. Added two success notices to EN/VI dictionaries. Isolated language fixtures confirmed VI, ZH and EN branches; no SSH keys, hosts, API parameters or fingerprint contents were rewritten.

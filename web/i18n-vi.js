@@ -6255,3 +6255,5 @@ Object.assign(window.LF_I18N_VI, {
 });
 
 Object.assign(window.LF_I18N_VI, {"请选择运行沙箱":"Hãy chọn sandbox thực thi"});
+
+Object.assign(window.LF_I18N_VI, {"已保存 Git SSH 主机信任":"Đã lưu máy chủ Git SSH đáng tin cậy","已移除 Git SSH 主机信任":"Đã gỡ tin cậy đối với máy chủ Git SSH"});
