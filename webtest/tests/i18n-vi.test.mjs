@@ -49,12 +49,49 @@ test('Vietnamese catalogue only contains real source keys and nonempty translati
     assert.ok(Object.hasOwn(window.LF_I18N_EN, key), key);
     assert.ok(value.trim(), key);
   }
-  assert.ok(Object.keys(window.LF_I18N_VI).length > 100);
+  assert.deepEqual(Object.keys(window.LF_I18N_VI).sort(), Object.keys(window.LF_I18N_EN).sort());
 });
 
-test('Vietnamese falls back to English for a real untranslated catalogue entry', () => {
+test('Vietnamese dynamic messages preserve values and localize units', () => {
   const { window } = fixture('vi');
-  const key = Object.keys(window.LF_I18N_EN).find(key => !Object.hasOwn(window.LF_I18N_VI, key));
-  // A complete catalogue will have no fallback entry left.
-  if (key) assert.equal(window.lfTranslate(key), window.LF_I18N_EN[key]);
+  for (const [source, expected] of [
+  [
+    "第 12 阶段",
+    "Giai đoạn 12"
+  ],
+  [
+    "第 3 轮",
+    "Lượt 3"
+  ],
+  [
+    "入 123 / 出 456",
+    "Vào 123 / Ra 456"
+  ],
+  [
+    "2026年11月",
+    "Tháng 11/2026"
+  ],
+  [
+    "12月",
+    "Tháng 12"
+  ],
+  [
+    "2026-11-01 至 2026-11-22",
+    "2026-11-01 – 2026-11-22"
+  ],
+  [
+    "3次",
+    "3 lần"
+  ],
+  [
+    "4步",
+    "4 bước"
+  ],
+  [
+    " · 高 · ",
+    " · Cao · "
+  ]
+]) {
+    assert.equal(window.lfTranslate(source), expected);
+  }
 });

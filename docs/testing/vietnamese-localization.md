@@ -4,7 +4,7 @@ This branch is an **incomplete preview**, not a complete Vietnamese release. Sou
 
 ## Current evidence
 
-- The English runtime catalogue contains 4615 distinct source keys. The Vietnamese catalogue contains 535 keys (11.59%); 4080 keys still fall back to English. This measures catalogue entries, not UI or semantic coverage.
+- The English runtime catalogue contains 4615 distinct source keys. The Vietnamese catalogue contains all 4615 source keys (100% key coverage, zero missing, empty, or unknown keys). This measures catalogue entries, not UI or semantic coverage.
 - Preview selection uses the existing `loopforge.lang` storage preference; the document language is `vi-VN`. Existing Chinese and English preferences remain supported.
 - The React workbench uses explicit UI string translations. Agent prompts, user data, identifiers, filenames and API contracts must not be automatically rewritten.
 - Eleven Vietnamese Markdown translations exist, including the README, contribution and security policies, deployment guide, architecture, four Local guides, API overview and shared-schedules API guide. Other linked API and technical documents remain untranslated.
@@ -35,4 +35,4 @@ python3 scripts/check-public.py
 bash scripts/scan-secrets.sh
 ```
 
-The strict catalogue check is intentionally expected to fail for this preview until all missing keys have been translated. Passing it is necessary, not sufficient, for declaring the entire application localized.
+The strict catalogue check now passes on key coverage. Dynamic Vietnamese stage, round, date, quantity and severity formats also have focused regression tests. Passing it is necessary, not sufficient, for declaring the entire application localized.
