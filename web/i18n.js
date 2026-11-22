@@ -104,6 +104,11 @@
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const UNITS = isVi ? {次: ['lần', 'lần'], 步: ['bước', 'bước'], 个: ['', ''], 台: ['máy', 'máy'], 条: ['', '']} : {次: ['time', 'times'], 步: ['step', 'steps'], 个: ['', ''], 台: ['', ''], 条: ['', '']};
   const patterns = [
+    // Vietnamese-only user-facing API validation messages. Never rewrite SOP identifiers.
+    ...(isVi ? [
+      [/^SOP ([A-Za-z0-9._:\/-]+) 不存在$/, (_, id) => `Không tìm thấy SOP ${id}`],
+      [/^SOP ([A-Za-z0-9._:\/-]+) 不属于当前项目$/, (_, id) => `SOP ${id} không thuộc dự án hiện tại`],
+    ] : []),
     [/第\s*(\d+)\s*(?:阶段|Stage)/g, isVi ? 'Giai đoạn $1' : 'Stage $1'],
     [/第\s*(\d+)\s*(?:轮|Round)/g, isVi ? 'Lượt $1' : 'Round $1'],
     [/ · (高|中|低) · /g, (_, p) => ` · ${(isVi ? {高: 'Cao', 中: 'Trung bình', 低: 'Thấp'} : {高: 'High', 中: 'Medium', 低: 'Low'})[p]} · `],

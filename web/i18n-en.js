@@ -1921,3 +1921,5 @@ Object.assign(window.LF_I18N_EN, {
 Object.assign(window.LF_I18N_EN, {"请选择运行沙箱":"Select a runtime sandbox"});
 
 Object.assign(window.LF_I18N_EN, {"已保存 Git SSH 主机信任":"Git SSH host trust saved","已移除 Git SSH 主机信任":"Git SSH host trust removed"});
+
+Object.assign(window.LF_I18N_EN, {"步骤责任人必须是有效用户":"The step assignee must be a valid user","同步到工蜂 Issue 需要先绑定代码仓库":"Link a repository before syncing a Gongfeng issue"});

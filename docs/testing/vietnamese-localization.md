@@ -127,3 +127,7 @@ Localized abandoning a project draft and deleting a linked repository at the dia
 ### Workbench raw-conversation data boundary
 
 Protected user-authored chat bodies, sender names, conversation titles, file attachment names and model-generated replies from DOM fragment replacement. UI copy stays translatable outside those data spans; the path-scrubbing placeholder is authored in Vietnamese in VI mode, with original ZH behavior retained. A source-executed RED/GREEN fixture checked original Chinese messages and file names remain unchanged and path scrubbing still strips raw filesystem paths. Full React/Web/browser tests and vendor VS Code locale remain deferred.
+
+### Narrow localization of API validation errors
+
+Two stable Go issue-validation messages now have exact Vietnamese translations, and two SOP errors with variable identifiers are handled by strictly anchored Vietnamese-only display patterns. The underlying Go strings, API responses, identifiers, status codes and raw diagnostics remain unchanged. Isolated before/after fixtures passed for VI and verified zero output changes for EN and ZH; full test runner/browser validation remains deferred.
