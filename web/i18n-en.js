@@ -1159,7 +1159,7 @@ Object.assign(window.LF_I18N_EN, {
   "-- 个账号": "-- accounts",
   "加载中": "Loading",
   "加载账号失败": "Failed to load accounts",
-  "用户名需 2–64 位，以字母或数字开头，只能包含字母、数字、_ . -": "Username must be 2–64 characters, start with a letter or digit, and contain only letters, digits, _ . -",
+  "用户名需 2–64 位，以字母或数字开头，只能包含字母、数字、_ . -": "Username must be 2–64 characters, start with a letter or digit, and contain only letters, digits, underscores (_), periods (.) and hyphens (-)",
   "加载共享 Key 失败": "Failed to load shared key",
   "浅色": "Light",
   "跟随系统": "System default",

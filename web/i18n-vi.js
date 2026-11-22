@@ -5495,7 +5495,7 @@ Object.assign(window.LF_I18N_VI, {
   "-- 个账号": "-- tài khoản",
   "加载中": "Đang tải",
   "加载账号失败": "Không tải được danh sách tài khoản",
-  "用户名需 2–64 位，以字母或数字开头，只能包含字母、数字、_ . -": "Tên người dùng phải có 2–64 ký tự, bắt đầu bằng chữ cái hoặc chữ số và chỉ chứa chữ cái, chữ số, _ . -",
+  "用户名需 2–64 位，以字母或数字开头，只能包含字母、数字、_ . -": "Tên người dùng phải có 2–64 ký tự, bắt đầu bằng chữ cái hoặc chữ số và chỉ chứa chữ cái, chữ số, dấu gạch dưới (_), dấu chấm (.) và dấu gạch nối (-)",
   "加载共享 Key 失败": "Không tải được khóa dùng chung",
   "浅色": "Sáng",
   "跟随系统": "Theo hệ thống",

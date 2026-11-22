@@ -1003,7 +1003,7 @@ test('Vietnamese translates credential, model, workflow and project wizard label
   ],
   [
     "用户名需 2–64 位，以字母或数字开头，只能包含字母、数字、_ . -",
-    "Tên người dùng phải có 2–64 ký tự, bắt đầu bằng chữ cái hoặc chữ số và chỉ chứa chữ cái, chữ số, _ . -"
+    "Tên người dùng phải có 2–64 ký tự, bắt đầu bằng chữ cái hoặc chữ số và chỉ chứa chữ cái, chữ số, dấu gạch dưới (_), dấu chấm (.) và dấu gạch nối (-)"
   ],
   [
     "加载共享 Key 失败",
