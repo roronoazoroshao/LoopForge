@@ -1,3 +1,4 @@
+import { chatT } from "./locale";
 import React, {
   useCallback,
   useEffect,
@@ -134,7 +135,7 @@ export default function SessionContextMenu({
       id="session-context-menu"
       className="session-context-menu"
       role="menu"
-      aria-label="会话操作"
+      aria-label={chatT("会话操作", "Thao tác cuộc trò chuyện")}
       data-visible={visible}
       style={position}
       onContextMenu={(event) => {
