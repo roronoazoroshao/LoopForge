@@ -21,9 +21,20 @@ function assetFilteredItems(){return assetScopeItems(state[assetScopeKey(state.a
 // Owned assets win over a same-id shared copy so the editable one opens.
 function assetFindVisible(id){if(!id)return null;const owned=assetScopeItems('project').find(x=>x.id===id);if(owned)return {asset:owned,scope:'project'};const shared=assetScopeItems('shared').find(x=>x.id===id);return shared?{asset:shared,scope:'shared'}:null}
 function assetProjectName(a){return (state.data.projects||[]).find(p=>p.id===a?.projectId)?.name||a?.projectId||'平台'}
+// Translate only unedited platform seed names; never rewrite saved resource data.
+const ASSET_SEED_NAMES={
+  'dockerfiles:generic-backend':['公共开发环境','Môi trường phát triển dùng chung'],
+  'sandboxes:generic-docker':['Docker 隔离沙箱','Sandbox cách ly bằng Docker'],
+  'sandboxes:local':['本地执行（仅可信任务）','Thực thi cục bộ (chỉ tác vụ đáng tin cậy)']
+};
+function assetDisplayName(a,type=state.assetType){
+  const seed=ASSET_SEED_NAMES[`${type}:${a?.id||''}`];
+  return assetVI()&&seed&&a?.name===seed[0]?seed[1]:(a?.name||a?.id||'');
+}
+
 function assetIsBuiltin(a,type=state.assetType){return (type==='sandboxes'&&(a?.id==='local'||a?.id==='generic-docker'))||(type==='dockerfiles'&&a?.id==='generic-backend')}
 function assetStatusHTML(a){
-  if(!catalogOwned(a.projectId))return `<span class="asset-status is-from"${assetVI()?' data-i18n-skip':''}><i></i>${assetUICopy(`来自 ${escapeHTML(assetProjectName(a))}`,`Từ dự án ${escapeHTML(assetProjectName(a))}`)}</span>`;
+  if(!catalogOwned(a.projectId))return `<span class="asset-status is-from"${assetVI()?' data-i18n-skip':''}><i></i>${!a?.projectId?assetUICopy('来自平台','Từ nền tảng'):assetUICopy(`来自项目 ${escapeHTML(assetProjectName(a))}`,`Từ dự án ${escapeHTML(assetProjectName(a))}`)}</span>`;
   return `<span class="asset-status ${a.shared?'is-on':''}"><i></i>${a.shared?assetUICopy('已共享','Đã chia sẻ'):assetUICopy('未共享','Chưa chia sẻ')}</span>`;
 }
 function assetMetaHTML(a){
@@ -43,7 +54,7 @@ function assetMetaHTML(a){
 }
 function assetCardHTML(a){
   const readonly=!catalogOwned(a.projectId);const go=readonly?assetUICopy('查看','Xem'):assetUICopy('编辑','Sửa');
-  return `<article class="asset-card" role="link" tabindex="0" data-asset-id="${escapeHTML(a.id)}"${assetVI() ? ' data-i18n-aria-skip' : ''} aria-label="${go} ${escapeHTML(assetUILabel(assetKindLabel()))} “${escapeHTML(a.name||a.id)}”"><div class="asset-card-top"><span class="asset-tile">${huiIcon(assetIconName())}</span><div class="asset-card-name"><h3 data-i18n-skip>${escapeHTML(a.name||a.id)}</h3><code class="asset-mono">${escapeHTML(a.id)}</code></div></div><p class="asset-card-desc" data-i18n-skip>${escapeHTML(a.description||assetUICopy('暂无说明','Chưa có mô tả'))}</p><div class="asset-meta">${assetMetaHTML(a)}</div><div class="asset-card-foot">${assetStatusHTML(a)}<span class="asset-card-go">${go}${huiIcon('chevron-right')}</span></div></article>`;
+  return `<article class="asset-card" role="link" tabindex="0" data-asset-id="${escapeHTML(a.id)}"${assetVI() ? ' data-i18n-aria-skip' : ''} aria-label="${go} ${escapeHTML(assetUILabel(assetKindLabel()))} “${escapeHTML(assetDisplayName(a))}”"><div class="asset-card-top"><span class="asset-tile">${huiIcon(assetIconName())}</span><div class="asset-card-name"><h3 data-i18n-skip>${escapeHTML(assetDisplayName(a))}</h3><code class="asset-mono">${escapeHTML(a.id)}</code></div></div><p class="asset-card-desc" data-i18n-skip>${escapeHTML(a.description||assetUICopy('暂无说明','Chưa có mô tả'))}</p><div class="asset-meta">${assetMetaHTML(a)}</div><div class="asset-card-foot">${assetStatusHTML(a)}<span class="asset-card-go">${go}${huiIcon('chevron-right')}</span></div></article>`;
 }
 function assetGridEmptyHTML(){
   const kind=assetKindLabel(),copy=assetPageCopy();

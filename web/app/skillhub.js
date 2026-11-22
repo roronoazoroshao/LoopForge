@@ -85,14 +85,14 @@ function skillhubProjectName(id){return (state.data?.projects||[]).find(p=>p.id=
 function skillhubCardHTML(item,index){
   const st=skillhubCardState(item);
   const labels=skillhubLabelBadges(item.labels).map(([tone,label])=>skillhubBadge(tone,label)).join('');
-  const status=st.state==='installed'?skillhubBadge('success',`已安装 v${st.version}`,huiIcon('check'))
-    :st.state==='update'?skillhubBadge('warn',`有新版本 v${item.version}`,skillhubLamp())
+  const status=st.state==='installed'?skillhubBadge('success',skillhubText(`已安装 v${st.version}`,`Đã cài đặt v${st.version}`),huiIcon('check'))
+    :st.state==='update'?skillhubBadge('warn',skillhubText(`有新版本 v${item.version}`,`Có phiên bản mới v${item.version}`),skillhubLamp())
     :`<span class="asset-status" data-i18n-skip>${escapeHTML(item.ownerName||item.namespace||'')}</span>`;
   const noProject=!state.projectFilter;
-  const action=st.state==='update'?`<button type="button" class="button small hui-btn-soft" data-skillhub-update="${index}">${huiIcon('refresh')}更新</button>`
-    :st.state==='installed'?`<span class="asset-card-go">详情${huiIcon('chevron-right')}</span>`
-    :`<button type="button" class="button small hui-btn-soft" data-skillhub-install="${index}"${noProject?' disabled title="请先选择项目"':''}>${huiIcon('plus')}安装</button>`;
-  return `<article class="asset-card skillhub-card" role="link" tabindex="0" data-skillhub-open="${index}" aria-label="查看「${escapeHTML(item.name||item.slug)}」"><div class="asset-card-top"><span class="asset-tile skillhub-tile">${skillhubTile(item.name||item.slug)}</span><div class="asset-card-name"><h3 data-i18n-skip>${escapeHTML(item.name||item.slug)}</h3><code class="asset-mono">${escapeHTML(item.slug)}${item.version?` · v${escapeHTML(item.version)}`:''}</code></div></div><p class="asset-card-desc" data-i18n-skip>${escapeHTML(item.description||'暂无说明')}</p><div class="asset-meta"><span>${huiIcon('download')}${escapeHTML(skillhubCount(item.downloads))}</span><span>${huiIcon('star')}${escapeHTML(skillhubCount(item.stars))}</span>${item.category?`<span>${huiIcon('layers')}${escapeHTML(skillhubCategoryName(item.category))}</span>`:''}${labels}</div><div class="asset-card-foot">${status}${action}</div></article>`;
+  const action=st.state==='update'?`<button type="button" class="button small hui-btn-soft" data-skillhub-update="${index}">${huiIcon('refresh')}${skillhubText('更新','Cập nhật')}</button>`
+    :st.state==='installed'?`<span class="asset-card-go">${skillhubText('详情','Chi tiết')}${huiIcon('chevron-right')}</span>`
+    :`<button type="button" class="button small hui-btn-soft" data-skillhub-install="${index}"${noProject?` disabled title="${skillhubText('请先选择项目','Vui lòng chọn dự án trước')}"`:''}>${huiIcon('plus')}${skillhubText('安装','Cài đặt')}</button>`;
+  return `<article class="asset-card skillhub-card" role="link" tabindex="0" data-skillhub-open="${index}"${skillhubVI()?' data-i18n-aria-skip':''} aria-label="${skillhubText('查看','Xem')} “${escapeHTML(item.name||item.slug)}”"><div class="asset-card-top"><span class="asset-tile skillhub-tile">${skillhubTile(item.name||item.slug)}</span><div class="asset-card-name"><h3 data-i18n-skip>${escapeHTML(item.name||item.slug)}</h3><code class="asset-mono">${escapeHTML(item.slug)}${item.version?` · v${escapeHTML(item.version)}`:''}</code></div></div><p class="asset-card-desc" data-i18n-skip>${escapeHTML(item.description||skillhubText('暂无说明','Chưa có mô tả'))}</p><div class="asset-meta"><span>${huiIcon('download')}${escapeHTML(skillhubCount(item.downloads))}</span><span>${huiIcon('star')}${escapeHTML(skillhubCount(item.stars))}</span>${item.category?`<span${skillhubVI()?' data-i18n-skip':''}>${huiIcon('layers')}${escapeHTML(skillhubCategoryName(item.category))}</span>`:''}${labels}</div><div class="asset-card-foot">${status}${action}</div></article>`;
 }
 function skillhubSecurityRows(reports){
   return Object.entries(reports||{}).map(([vendor,r])=>({vendor,status:r?.status||'',text:r?.statusText||r?.status||'未知',url:skillhubSafeURL(r?.reportUrl),safe:!!r?.safe})).sort((a,b)=>a.vendor.localeCompare(b.vendor));
@@ -190,7 +190,7 @@ function renderSkillhubPager(){
   host.hidden=s.loading||!!s.error||!s.items.length||pages<=1;
   if(host.hidden){host.innerHTML='';return}
   const p=Math.min(s.page,pages);
-  host.innerHTML=`<span>第 ${p} / ${pages.toLocaleString('zh-CN')} 页</span><div class="skillhub-pages"><button type="button" data-skillhub-page="${p-1}" aria-label="上一页"${p<=1?' disabled':''}>${huiIcon('chevron-left')}</button>${skillhubPageList(p,pages).map(x=>x==='…'?'<button type="button" disabled>…</button>':`<button type="button" data-skillhub-page="${x}"${x===p?' class="active" aria-current="page"':''}>${x}</button>`).join('')}<button type="button" data-skillhub-page="${p+1}" aria-label="下一页"${p>=pages?' disabled':''}>${huiIcon('chevron-right')}</button></div>`;
+  host.innerHTML=`<span>${skillhubText(`第 ${p} / ${pages.toLocaleString('zh-CN')} 页`,`Trang ${p} / ${pages.toLocaleString('vi-VN')}`)}</span><div class="skillhub-pages"><button type="button" data-skillhub-page="${p-1}" aria-label="${skillhubText('上一页','Trang trước')}"${p<=1?' disabled':''}>${huiIcon('chevron-left')}</button>${skillhubPageList(p,pages).map(x=>x==='…'?'<button type="button" disabled>…</button>':`<button type="button" data-skillhub-page="${x}"${x===p?' class="active" aria-current="page"':''}>${x}</button>`).join('')}<button type="button" data-skillhub-page="${p+1}" aria-label="${skillhubText('下一页','Trang tiếp')}"${p>=pages?' disabled':''}>${huiIcon('chevron-right')}</button></div>`;
 }
 async function loadSkillhubMarket(){
   const s=skillhubState(),seq=++s.seq;
