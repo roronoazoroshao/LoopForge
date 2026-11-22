@@ -204,7 +204,7 @@
     if (S.error) { slots.timeline.innerHTML = `<div class="empty-main"><h2>无法连接 LoopForge 后端</h2><p class="muted">${esc(S.error)}</p></div>`; return; }
     if (!s) { slots.timeline.innerHTML = '<div class="empty-main"><h2>还没有可访问的项目</h2></div>'; return; }
     if (!s.messages.length) {
-      const prompts = ['帮我做一个能在侧边栏打开的页面 demo', '做一页产品介绍 PPT', '跑一个 SOP，并在旁边看进度', '先帮我把这件事理清楚'];
+      const prompts = wbCopy(['帮我做一个能在侧边栏打开的页面 demo', '做一页产品介绍 PPT', '跑一个 SOP，并在旁边看进度', '先帮我把这件事理清楚'], ['Tạo trang demo có thể mở trong thanh bên', 'Tạo bộ slide giới thiệu sản phẩm', 'Chạy SOP và theo dõi tiến độ bên cạnh', 'Giúp tôi làm rõ việc này trước']);
       slots.timeline.innerHTML = `<div class="timeline-inner"><div class="cx-welcome"><h2>${s.draft ? '要做什么？' : '这个会话还没有消息'}</h2><p>直接说。页面、图片和 PPT 会在旁边打开，不会只给你一个云端路径。</p><div class="wl-prompts">${prompts.map((p, i) => `<button type="button" data-prompt="${i}"><span>${esc(p)}</span></button>`).join('')}</div></div></div>`;
       return;
     }

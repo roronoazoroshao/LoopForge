@@ -75,3 +75,7 @@ ECharts labels and tooltip content are constructed outside standard Web UI nodes
 ### Conversation Workbench, rooms, bots, composer and dashboard source audit
 
 Localized Workbench relative-time labels, dynamic room SOP dispatch prompts, rework modal, bot test delivery and project names, TAPD creation feedback, issue owner fallback and option counts, and dashboard health metrics. Protected names and external IDs from second-pass DOM mutation in prelocalized messages. Isolated function checks passed; full runner/browser checks remain deferred.
+
+### Static Web Workbench, bot and collaboration UI pass
+
+Added 59 complete EN/VI catalogue entries covering accessible labels, bot setup, room workflows, Web Workbench states and conversation suggestions. The four predefined example prompts are translated at generation time (not merely in the DOM), so pressing them sends Vietnamese in Vietnamese mode and leaves the original Chinese strings for the other existing mode. Placeholder and catalogue parity checked by isolated execution. Full runner/browser checks remain deferred.
