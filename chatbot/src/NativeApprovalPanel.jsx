@@ -1,3 +1,4 @@
+import { chatT } from "./locale";
 import React, { useEffect, useState } from "react";
 import { api, write, sessionPath } from "./api";
 import HarnessIcon from "./HarnessIcon";
@@ -56,21 +57,21 @@ export default function NativeApprovalPanel({ chat, onChange }) {
   }, [pendingIds]);
   if (!mine.length) return null;
   return (
-    <section className="native-approvals" aria-label="待批准的外部写入" aria-live="polite">
+    <section className="native-approvals" aria-label={chatT("待批准的外部写入", "Thao tác ghi bên ngoài chờ phê duyệt")} aria-live="polite">
       {mine.map((item) => (
         <div className="native-approval" key={item.id}>
           <div className="native-approval-title">
             <HarnessIcon name="warning" size={15} aria-hidden="true" />
-            <strong>批准外部写入{item.summary ? `：${item.summary}` : ""}</strong>
+            <strong>{chatT("批准外部写入", "Phê duyệt thao tác ghi bên ngoài")}{item.summary ? `：${item.summary}` : ""}</strong>
           </div>
           <pre>{commandText(item.input)}</pre>
-          <p>这项操作会写入外部系统。仅批准这一次。停止回复、调用取消或等待超时后，审批会失效。</p>
+          <p>{chatT("这项操作会写入外部系统。仅批准这一次。停止回复、调用取消或等待超时后，审批会失效。", "Thao tác này sẽ ghi vào hệ thống bên ngoài. Chỉ phê duyệt lần này. Phê duyệt hết hiệu lực khi dừng phản hồi, hủy lệnh gọi hoặc hết thời gian chờ.")}</p>
           <div className="native-approval-actions">
             <button type="button" disabled={!!saving} onClick={() => decide(item, "deny")}>
-              拒绝
+              {chatT("拒绝", "Từ chối")}
             </button>
             <button type="button" className="primary" disabled={!!saving} onClick={() => decide(item, "allow")}>
-              批准本次操作
+              {chatT("批准本次操作", "Phê duyệt thao tác này")}
             </button>
           </div>
         </div>

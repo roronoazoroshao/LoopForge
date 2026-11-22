@@ -1,3 +1,4 @@
+import { chatT } from "./locale";
 import React, { useEffect, useRef, useState } from "react";
 import { SelectMenu } from "./ui";
 import HarnessIcon from "./HarnessIcon";
@@ -8,13 +9,13 @@ export function conversationSandboxOptions(sandboxes, project, selected = "") {
     (s) => s.driver === "docker" && (s.projectId === project?.id || s.shared),
   );
   const options = [
-    { value: "", label: "由 Agent 选择" },
+    { value: "", label: chatT("由 Agent 选择", "Để tác tử chọn") },
     ...available.map((s) => ({ value: s.id, label: s.name || s.id })),
   ];
   if (selected && !available.some((s) => s.id === selected)) {
     options.push({
       value: selected,
-      label: `环境已不可用 · ${selected}`,
+      label: chatT(`环境已不可用 · ${selected}`, `Môi trường không còn khả dụng · ${selected}`),
       disabled: true,
     });
   }
@@ -37,10 +38,10 @@ export default function SandboxPicker({ chat, onCreate }) {
     return (
       <span
         className="sandbox-context sandbox-fixed"
-        title="任务会话使用任务的运行环境。"
+        title={chatT("任务会话使用任务的运行环境。", "Cuộc trò chuyện tác vụ dùng môi trường thực thi của tác vụ.")}
       >
         <HarnessIcon name="lock" size={12} interactive={false} />
-        <span>{chat.workspaceSandbox?.name || "任务运行环境"}</span>
+        <span>{chat.workspaceSandbox?.name || chatT("任务运行环境", "Môi trường thực thi tác vụ")}</span>
       </span>
     );
   }
@@ -58,7 +59,7 @@ export default function SandboxPicker({ chat, onCreate }) {
     .map((o) => ({
       id: o.value,
       label: o.label,
-      description: o.value ? "" : "按要改的代码自动选择，拿不准时用平台通用 Docker",
+      description: o.value ? "" : chatT("按要改的代码自动选择，拿不准时用平台通用 Docker", "Tự chọn theo mã cần sửa; nếu chưa rõ thì dùng Docker chung của nền tảng"),
       icon: o.value ? "terminal" : "folder",
     }));
   return (
@@ -67,7 +68,7 @@ export default function SandboxPicker({ chat, onCreate }) {
         ref={trigger}
         type="button"
         className="context-pill sandbox-picker"
-        aria-label={`运行环境：${label}`}
+        aria-label={chatT(`运行环境：${label}`, `Môi trường thực thi: ${label}`)}
         aria-haspopup="listbox"
         aria-expanded={open}
         disabled={disabled}
@@ -79,7 +80,7 @@ export default function SandboxPicker({ chat, onCreate }) {
       </button>
       <SelectMenu
         open={open}
-        label="沙箱"
+        label={chatT("沙箱", "Sandbox")}
         value={chat.sandboxProfileId || ""}
         options={menuOptions}
         onSelect={(id) => void chat.selectSandbox(id)}
@@ -91,7 +92,7 @@ export default function SandboxPicker({ chat, onCreate }) {
             ? [
                 {
                   id: "new-sandbox",
-                  label: "新增沙箱",
+                  label: chatT("新增沙箱", "Thêm sandbox"),
                   icon: "plus",
                   onSelect: onCreate,
                 },

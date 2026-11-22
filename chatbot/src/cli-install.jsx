@@ -1,3 +1,4 @@
+import { chatT } from "./locale.js";
 import { useEffect, useRef, useState } from "react";
 import { api, write } from "./api.js";
 import HarnessIcon from "./HarnessIcon";
@@ -14,7 +15,7 @@ export function cliInstallHint(text) {
 }
 
 export function cliInstallNotice(label) {
-  return `${label} 已安装，请重新发送。`;
+  return chatT(`${label} 已安装，请重新发送。`, `Đã cài ${label}, vui lòng gửi lại.`);
 }
 
 function installMemory(engine) {
@@ -98,7 +99,7 @@ export function CLIInstallAction({ text, onResult }) {
         }
         pending.current = false;
         rememberInstall(hint.engine, false);
-        if (status.status === "failed") setFailure(status.error || "安装失败");
+        if (status.status === "failed") setFailure(status.error || chatT("安装失败", "Cài đặt thất bại"));
         setPhase("ready");
       } catch {
         if (cancelled) return;
@@ -117,7 +118,7 @@ export function CLIInstallAction({ text, onResult }) {
   }, [hint?.engine, hint?.label]);
   if (!hint) return null;
   const installing = phase === "installing";
-  const label = installing ? "自动安装" : `安装 ${hint.label}`;
+  const label = installing ? chatT("自动安装", "Tự động cài đặt") : chatT(`安装 ${hint.label}`, `Cài ${hint.label}`);
   return (
     <span className="credential-action">
       <button
@@ -137,7 +138,7 @@ export function CLIInstallAction({ text, onResult }) {
             .catch((error) => {
               pending.current = false;
               rememberInstall(hint.engine, false);
-              setFailure(error.message || "安装失败");
+              setFailure(error.message || chatT("安装失败", "Cài đặt thất bại"));
               setPhase("ready");
             });
         }}
@@ -145,7 +146,7 @@ export function CLIInstallAction({ text, onResult }) {
         <HarnessIcon name="download" size={13} />
         {label}
       </button>
-      <small>安装在服务器上继续，关闭页面也不会中断。</small>
+      <small>{chatT("安装在服务器上继续，关闭页面也不会中断。", "Cài đặt tiếp tục trên máy chủ; đóng trang không làm gián đoạn.")}</small>
       {failure ? <small>{failure}</small> : null}
     </span>
   );

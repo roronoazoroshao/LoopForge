@@ -1,3 +1,4 @@
+import { chatT } from "./locale";
 import React, { useEffect, useState } from "react";
 import HarnessIcon from "./HarnessIcon";
 import { api } from "./api";
@@ -119,15 +120,15 @@ export default function IssueContext({
             className="context-pill issue-context"
             title={
               chat.session?.shared
-                ? "需求由当前运行关联"
-                : "关联当前会话的主需求；其他 @引用只作用于当前消息"
+                ? chatT("需求由当前运行关联", "Yêu cầu được liên kết bởi lượt chạy hiện tại")
+                : chatT("关联当前会话的主需求；其他 @引用只作用于当前消息", "Liên kết yêu cầu chính của cuộc trò chuyện; các tham chiếu @ khác chỉ áp dụng cho tin nhắn hiện tại")
             }
             disabled={unavailable}
             onClick={() => setInternalOpen(true)}
           >
             <HarnessIcon name="doc" size={14} />
             <span>
-              {chat.issueId ? issue?.title || chat.issueId : "关联需求"}
+              {chat.issueId ? issue?.title || chat.issueId : chatT("关联需求", "Liên kết yêu cầu")}
             </span>
           </button>
           {chat.issueId ? (
@@ -136,8 +137,8 @@ export default function IssueContext({
               href={issueHref(chat.issueId, chat.projectId)}
               target="_blank"
               rel="noreferrer"
-              title="打开关联需求"
-              aria-label="打开关联需求"
+              title={chatT("打开关联需求", "Mở yêu cầu đã liên kết")}
+              aria-label={chatT("打开关联需求", "Mở yêu cầu đã liên kết")}
             >
               <HarnessIcon name="preview-expand" size={13} />
             </a>
@@ -145,14 +146,14 @@ export default function IssueContext({
         </>
       ) : null}
       {open ? (
-        <Dialog title="会话主需求" onClose={close}>
+        <Dialog title={chatT("会话主需求", "Yêu cầu chính của cuộc trò chuyện")} onClose={close}>
           <div className="issue-selector">
             <p>
-              选择此会话持续讨论的主需求。关联后每轮读取最新内容，会话的可见范围不变。
+              {chatT("选择此会话持续讨论的主需求。关联后每轮读取最新内容，会话的可见范围不变。", "Chọn yêu cầu chính để tiếp tục thảo luận trong cuộc trò chuyện này. Sau khi liên kết, mỗi lượt đọc nội dung mới nhất; phạm vi hiển thị cuộc trò chuyện không đổi.")}
             </p>
             {chat.issueId ? (
               <p>
-                已关联：
+                {chatT("已关联：", "Đã liên kết:")}
                 <a
                   href={issueHref(chat.issueId, chat.projectId)}
                   target="_blank"
@@ -164,8 +165,8 @@ export default function IssueContext({
             ) : null}
             <input
               autoFocus
-              aria-label="搜索关联需求"
-              placeholder="搜索当前项目的需求…"
+              aria-label={chatT("搜索关联需求", "Tìm yêu cầu đã liên kết")}
+              placeholder={chatT("搜索当前项目的需求…", "Tìm yêu cầu trong dự án hiện tại…")}
               value={query}
               disabled={unavailable || saving}
               onChange={(e) => setQuery(e.target.value)}
@@ -177,7 +178,7 @@ export default function IssueContext({
                 disabled={unavailable || saving}
                 onClick={() => choose("")}
               >
-                解除关联
+                {chatT("解除关联", "Hủy liên kết")}
               </button>
             ) : null}
             <div className="issue-options">
@@ -194,13 +195,13 @@ export default function IssueContext({
                     {row.name}
                     <small>{row.id}</small>
                   </span>
-                  {chat.issueId === row.id ? "已关联" : ""}
+                  {chat.issueId === row.id ? chatT("已关联", "Đã liên kết") : ""}
                 </button>
               ))}
             </div>
-            {loading ? <p role="status">正在查找…</p> : null}
+            {loading ? <p role="status">{chatT("正在查找…", "Đang tìm…")}</p> : null}
             {!loading && !rows.length && !error ? (
-              <p>没有匹配的需求；可先在聊天中创建或导入。</p>
+              <p>{chatT("没有匹配的需求；可先在聊天中创建或导入。", "Không có yêu cầu phù hợp; có thể tạo hoặc nhập qua trò chuyện trước.")}</p>
             ) : null}
             {error ? <p role="alert">{error}</p> : null}
             {next ? (
@@ -209,7 +210,7 @@ export default function IssueContext({
                 disabled={loading || unavailable || saving}
                 onClick={more}
               >
-                加载更多
+                {chatT("加载更多", "Tải thêm")}
               </button>
             ) : null}
           </div>

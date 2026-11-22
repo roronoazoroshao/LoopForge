@@ -1,3 +1,23 @@
+import { chatT } from "./locale.js";
+const builtinDisplay = (value) => chatT(value, Object.hasOwn(BUILTIN_VI, value) ? BUILTIN_VI[value] : value);
+const BUILTIN_VI = {
+  "需求定型": "Định hình yêu cầu",
+  "方案设计": "Thiết kế giải pháp",
+  "代码实现": "Triển khai mã",
+  "独立评审": "Rà soát độc lập",
+  "测试验证": "Xác minh kiểm thử",
+  "发起 MR": "Mở MR",
+  "交付汇总": "Tổng kết bàn giao",
+  "通用后端交付 SOP": "SOP bàn giao backend chung",
+  "后端交付 SOP": "SOP bàn giao backend",
+  "澄清需求边界与验收标准": "Làm rõ phạm vi yêu cầu và tiêu chí nghiệm thu",
+  "产出技术方案与实现计划": "Tạo phương án kỹ thuật và kế hoạch triển khai",
+  "在工作分支实现并自测": "Triển khai và tự kiểm thử trên nhánh làm việc",
+  "审查改动质量与规范": "Rà soát chất lượng và quy chuẩn thay đổi",
+  "运行测试并给出验收结论": "Chạy kiểm thử và đưa kết luận nghiệm thu",
+  "推送分支并创建合并请求": "Push nhánh và tạo yêu cầu hợp nhất",
+  "汇总产物与沉淀知识": "Tổng hợp sản phẩm đầu ra và lưu tri thức"
+};
 import React, {
   useCallback,
   useEffect,
@@ -18,7 +38,7 @@ import { openCredentialSettings } from "./credentials";
 import "./quick-access-wizard.css";
 
 const DEFAULT_SOP_ID = "generic-backend-delivery";
-const CREDENTIALS_REQUIRED = "请先添加一个 Git 凭据或执行器。";
+const CREDENTIALS_REQUIRED = chatT("请先添加一个 Git 凭据或执行器。", "Trước tiên thêm một thông tin xác thực Git hoặc trình thực thi.");
 
 // Display names for the models users without their own key may use.
 export function sharedModelNames(models, fallback = "") {
@@ -31,23 +51,23 @@ export function sharedModelNames(models, fallback = "") {
 const STEPS = [
   {
     id: "auth",
-    title: "凭据与授权",
-    desc: "仓库访问与执行器",
+    title: chatT("凭据与授权", "Thông tin xác thực và cấp quyền"),
+    desc: chatT("仓库访问与执行器", "Truy cập kho mã và trình thực thi"),
   },
   {
     id: "project",
-    title: "项目与仓库",
-    desc: "选择或新建项目，绑定 Git 仓库",
+    title: chatT("项目与仓库", "Dự án và kho mã"),
+    desc: chatT("选择或新建项目，绑定 Git 仓库", "Chọn hoặc tạo dự án mới, liên kết kho Git"),
   },
   {
     id: "workflow",
-    title: "默认角色与 SOP",
-    desc: "使用平台默认角色与通用交付流程",
+    title: chatT("默认角色与 SOP", "Vai trò và SOP mặc định"),
+    desc: chatT("使用平台默认角色与通用交付流程", "Dùng vai trò mặc định của nền tảng và quy trình bàn giao chung"),
   },
   {
     id: "done",
-    title: "完成",
-    desc: "保存配置，直接开始使用",
+    title: chatT("完成", "Hoàn tất"),
+    desc: chatT("保存配置，直接开始使用", "Lưu cấu hình, bắt đầu sử dụng ngay"),
   },
 ];
 
@@ -121,10 +141,10 @@ const FALLBACK_NODES = [
 ];
 
 const BRANCH_OPTIONS = [
-  { value: "main", label: "main", hint: "GitHub 默认主分支" },
-  { value: "master", label: "master", hint: "传统主分支" },
-  { value: "preview", label: "preview", hint: "预发验证分支" },
-  { value: "develop", label: "develop", hint: "开发集成分支" },
+  { value: "main", label: "main", hint: chatT("GitHub 默认主分支", "Nhánh chính mặc định của GitHub") },
+  { value: "master", label: "master", hint: chatT("传统主分支", "Nhánh chính truyền thống") },
+  { value: "preview", label: "preview", hint: chatT("预发验证分支", "Nhánh xác minh trước phát hành") },
+  { value: "develop", label: "develop", hint: chatT("开发集成分支", "Nhánh tích hợp phát triển") },
 ];
 
 let closeActiveSelect = null;
@@ -138,10 +158,10 @@ export function HarnessSelect({
   value,
   options = [],
   onChange,
-  placeholder = "请选择",
+  placeholder = chatT("请选择", "Vui lòng chọn"),
   ariaLabel,
   searchable = false,
-  searchPlaceholder = "搜索选项…",
+  searchPlaceholder = chatT("搜索选项…", "Tìm tùy chọn…"),
   allowCustom = false,
   disabled = false,
 }) {
@@ -194,8 +214,8 @@ export function HarnessSelect({
       ? [
           {
             value: trimmed,
-            label: `使用 "${trimmed}"`,
-            hint: "自定义",
+            label: chatT(`使用 "${trimmed}"`, `Dùng "${trimmed}"`),
+            hint: chatT("自定义", "Tùy chỉnh"),
             custom: true,
           },
         ]
@@ -439,7 +459,7 @@ export function HarnessSelect({
                     );
                   })
                 ) : (
-                  <p className="qa-select-empty">没有匹配的选项</p>
+                  <p className="qa-select-empty">{chatT("没有匹配的选项", "Không có tùy chọn phù hợp")}</p>
                 )}
               </div>
             </div>,
@@ -470,7 +490,7 @@ export function HarnessSwitch({ checked, onChange, disabled = false, label }) {
 }
 
 /** Pill whose dot pops once each time `ok` flips; alternating keyframe names restart it. */
-function StatusPill({ ok, okLabel = "已就绪", needLabel = "待配置" }) {
+function StatusPill({ ok, okLabel = chatT("已就绪", "Đã sẵn sàng"), needLabel = chatT("待配置", "Chờ cấu hình") }) {
   const previous = useRef(ok);
   const [pops, setPops] = useState(0);
   useEffect(() => {
@@ -491,7 +511,7 @@ function StatusPill({ ok, okLabel = "已就绪", needLabel = "待配置" }) {
 function VerifyMessage({ result, okText }) {
   const text = result.valid
     ? okText
-    : result.error || `缺少权限：${(result.missing || []).join("、")}`;
+    : result.error || chatT(`缺少权限：${(result.missing || []).join("、")}`, `Thiếu quyền: ${(result.missing || []).join(", ")}`);
   return (
     <p
       key={text}
@@ -666,7 +686,7 @@ async function provisionFallbackProjectSOP(projectId, workflowId, owner) {
       revision: 0,
       sopLane: "backend",
       sandboxProfileId: sandboxId,
-      tags: ["快速接入", `generic-source:${DEFAULT_SOP_ID}`],
+      tags: [chatT("快速接入", "Kết nối nhanh"), `generic-source:${DEFAULT_SOP_ID}`],
       description:
         "从需求定型、方案设计、代码实现、独立评审、测试验证到发起 MR 的标准交付流程。",
       nodes,
@@ -828,15 +848,15 @@ export default function QuickAccessWizard({
           (n) => n.type === "agent",
         ).length;
         const scopeLabel = workflow.generic
-          ? "平台默认模板"
+          ? chatT("平台默认模板", "Mẫu mặc định nền tảng")
           : projectMode === "existing" &&
               workflow.projectId === currentProject?.id
-            ? "本项目已有 SOP（直接复用）"
-            : "共享 SOP";
+            ? chatT("本项目已有 SOP（直接复用）", "SOP hiện có của dự án (dùng lại trực tiếp)")
+            : chatT("共享 SOP", "SOP dùng chung");
         return {
           value: workflow.id,
           label: workflow.name,
-          hint: `${stageCount} 个阶段 · ${scopeLabel}`,
+          hint: chatT(`${stageCount} 个阶段 · ${scopeLabel}`, `${stageCount} giai đoạn · ${scopeLabel}`),
         };
       }),
     [availableWorkflows, currentProject, projectMode],
@@ -921,7 +941,7 @@ export default function QuickAccessWizard({
         } else {
           setProjectMode("create");
           const login = loginName || "team";
-          const suggestedName = `${chineseName || login} 的项目`;
+          const suggestedName = chatT(`${chineseName || login} 的项目`, `Dự án của ${chineseName || login}`);
           setNewProjectName(suggestedName);
           setNewProjectId(slugifyProjectId(`${login}-project`) || "my-project");
           setNewProjectKey(deriveProjectKey(login));
@@ -1082,7 +1102,7 @@ export default function QuickAccessWizard({
     if (repo?.provider === "ssh") return { label: "Git SSH", ready: hasSSHKey(repo) };
     if (repo?.provider === "https") return { label: "Git HTTPS", ready: gitHttpHosts.includes(repo.host) };
     if (repo?.provider === "github") return { label: "GitHub", ready: gitHubReady };
-    if (repo?.provider === "gongfeng") return { label: "工蜂", ready: gongfengReady };
+    if (repo?.provider === "gongfeng") return { label: chatT("工蜂", "Gongfeng"), ready: gongfengReady };
     return { label: "Git", ready: hasGit };
   };
   const selectedRepo = (bindRepoNow && parsedRepo) || parseGongfengRepo(defaultRepo?.cloneUrl, gongfengHost);
@@ -1141,7 +1161,7 @@ export default function QuickAccessWizard({
     if (activeStep.id === "auth") {
       if (gitToken.trim()) {
         if (!(await verifyGit())) {
-          setError("GitHub 令牌未保存，请检查校验结果。");
+          setError(chatT("GitHub 令牌未保存，请检查校验结果。", "Token GitHub chưa lưu; kiểm tra kết quả xác minh."));
           return;
         }
       } else if (!hasGit && !cliReady) {
@@ -1155,30 +1175,30 @@ export default function QuickAccessWizard({
       if (projectMode === "create") {
         const id = slugifyProjectId(newProjectId || newProjectName);
         if (!id || !newProjectName.trim()) {
-          setError("请填写项目名称和项目标识。");
+          setError(chatT("请填写项目名称和项目标识。", "Vui lòng điền tên và định danh dự án."));
           return;
         }
         // Saving a project with an existing id replaces it (members, TAPD
         // settings), so "new project" must never land on an existing one.
         if (catalogProjects.some((item) => item.id === id)) {
           setError(
-            `项目标识「${id}」已被现有项目使用。请换一个标识，或切换到「选择已有项目」。`,
+            chatT(`项目标识「${id}」已被现有项目使用。请换一个标识，或切换到「选择已有项目」。`, `Định danh dự án “${id}” đã được dùng. Dùng định danh khác hoặc chuyển sang “Chọn dự án hiện có”.`),
           );
           return;
         }
       } else if (!currentProject) {
-        setError("请选择一个项目，或切换到新建项目。");
+        setError(chatT("请选择一个项目，或切换到新建项目。", "Chọn một dự án hoặc chuyển sang tạo dự án mới."));
         return;
       }
       if (bindRepoNow && repoUrl.trim() && repoBindBlocked) {
         setError(
-          `你不是「${currentProject?.name || "该项目"}」的 Owner，不能为它绑定仓库。请新建自己的项目并绑定，或关闭「绑定仓库」继续体验。`,
+          chatT(`你不是「${currentProject?.name || "该项目"}」的 Owner，不能为它绑定仓库。请新建自己的项目并绑定，或关闭「绑定仓库」继续体验。`, `Bạn không phải chủ sở hữu của “${currentProject?.name || "dự án này"}”, nên không thể liên kết kho mã. Tạo dự án riêng và liên kết, hoặc tắt “Liên kết kho mã” để tiếp tục trải nghiệm.`),
         );
         return;
       }
       if (bindRepoNow && repoUrl.trim() && !parsedRepo) {
         setError(
-          "请输入 Git HTTPS 仓库链接或 Git SSH 克隆地址。",
+          chatT("请输入 Git HTTPS 仓库链接或 Git SSH 克隆地址。", "Nhập liên kết kho Git HTTPS hoặc địa chỉ clone Git SSH."),
         );
         return;
       }
@@ -1203,7 +1223,7 @@ export default function QuickAccessWizard({
         const key = deriveProjectKey(newProjectKey || id);
         if (catalogProjects.some((item) => item.id === id))
           throw new Error(
-            `项目标识「${id}」已被现有项目使用，请换一个标识。`,
+            chatT(`项目标识「${id}」已被现有项目使用，请换一个标识。`, `Định danh dự án “${id}” đã được dùng; chọn định danh khác.`),
           );
         targetProject = await write(
           "/api/projects",
@@ -1372,7 +1392,7 @@ export default function QuickAccessWizard({
       setPhase("success");
       await onCompleted?.(targetProject?.id || "");
     } catch (err) {
-      setError(err.message || "保存快速接入配置失败");
+      setError(err.message || chatT("保存快速接入配置失败", "Lưu cấu hình kết nối nhanh thất bại"));
     } finally {
       setSaving(false);
     }
@@ -1396,13 +1416,13 @@ export default function QuickAccessWizard({
         aria-modal="true"
         aria-labelledby="qa-wizard-title"
       >
-        <aside className="qa-rail" aria-label="快速接入步骤">
+        <aside className="qa-rail" aria-label={chatT("快速接入步骤", "Các bước kết nối nhanh")}>
           <div className="qa-rail-head">
             <div className="qa-brand-mark">
               <HarnessIcon name="sparkles" size={20} />
             </div>
-            <h2 id="qa-wizard-title">快速接入</h2>
-            <p>提供最低限度的鉴权与仓库，直接使用默认角色和 SOP。</p>
+            <h2 id="qa-wizard-title">{chatT("快速接入", "Kết nối nhanh")}</h2>
+            <p>{chatT("提供最低限度的鉴权与仓库，直接使用默认角色和 SOP。", "Cung cấp xác thực và kho mã tối thiểu để dùng ngay vai trò và SOP mặc định.")}</p>
           </div>
           <ol className="qa-steps">
             {STEPS.map((item, index) => {
@@ -1443,14 +1463,14 @@ export default function QuickAccessWizard({
               );
             })}
           </ol>
-          <p className="qa-rail-foot">所有配置之后都能在个人配置与项目配置里修改。</p>
+          <p className="qa-rail-foot">{chatT("所有配置之后都能在个人配置与项目配置里修改。", "Có thể sửa mọi cấu hình sau này trong Cài đặt cá nhân và Cài đặt dự án.")}</p>
         </aside>
 
         <div className="qa-main">
           <button
             type="button"
             className="qa-close"
-            aria-label="关闭快速接入"
+            aria-label={chatT("关闭快速接入", "Đóng kết nối nhanh")}
             disabled={saving || verifyingGit}
             onClick={onClose}
           >
@@ -1484,12 +1504,10 @@ export default function QuickAccessWizard({
                       className="qa-title qa-success-item"
                       style={{ "--i": 0 }}
                     >
-                      快速接入已完成
+                      {chatT("快速接入已完成", "Đã hoàn tất kết nối nhanh")}
                     </h3>
                     <p className="qa-lede qa-success-item" style={{ "--i": 1 }}>
-                      已关联默认角色与「
-                      {completedSummary?.workflow?.name || "通用后端交付 SOP"}
-                      」，现在可以直接在工作台对话或派发需求。
+                      {chatT(`已关联默认角色与「${builtinDisplay(completedSummary?.workflow?.name || "通用后端交付 SOP")}」，现在可以直接在工作台对话或派发需求。`, `Đã liên kết vai trò mặc định và “${completedSummary?.workflow?.name || "SOP bàn giao backend chung"}”; có thể trực tiếp trò chuyện hoặc điều phối yêu cầu trong bàn làm việc.`)}
                     </p>
                   </div>
 
@@ -1498,15 +1516,15 @@ export default function QuickAccessWizard({
                       className="qa-card qa-success-item"
                       style={{ "--i": 2 }}
                     >
-                      <div className="qa-card-title">默认角色与流程</div>
+                      <div className="qa-card-title">{chatT("默认角色与流程", "Vai trò và quy trình mặc định")}</div>
                       <ul className="qa-role-list">
                         {roles.slice(0, 6).map((role) => (
                           <li key={role.id}>
                             <span className="qa-avatar">
                               {(role.name || "角").slice(0, 1)}
                             </span>
-                            <span>{role.name}</span>
-                            <small>默认角色</small>
+                            <span>{builtinDisplay(role.name)}</span>
+                            <small>{chatT("默认角色", "Vai trò mặc định")}</small>
                           </li>
                         ))}
                         <li>
@@ -1514,10 +1532,9 @@ export default function QuickAccessWizard({
                             <HarnessIcon name="workflow" size={13} />
                           </span>
                           <span>
-                            {completedSummary?.workflow?.name ||
-                              "通用后端交付 SOP"}
+                            {builtinDisplay(completedSummary?.workflow?.name || "通用后端交付 SOP")}
                           </span>
-                          <small>已绑定</small>
+                          <small>{chatT("已绑定", "Đã liên kết")}</small>
                         </li>
                       </ul>
                     </section>
@@ -1526,7 +1543,7 @@ export default function QuickAccessWizard({
                       className="qa-card qa-success-item"
                       style={{ "--i": 3 }}
                     >
-                      <div className="qa-card-title">已生效配置</div>
+                      <div className="qa-card-title">{chatT("已生效配置", "Cấu hình đã có hiệu lực")}</div>
                       <ul className="qa-status-list">
                         <li
                           className={
@@ -1538,29 +1555,29 @@ export default function QuickAccessWizard({
                             size={14}
                           />
                           <span>
-                            {completedSummary?.gitAccess.label || "Git"} 访问：
+                            {completedSummary?.gitAccess.label || "Git"} {chatT("访问：", "truy cập:")}
                             {completedSummary?.gitAccess.ready
-                              ? "已就绪"
-                              : "未配置，克隆/推送私有仓库前可在个人配置补齐"}
+                              ? chatT("已就绪", "Đã sẵn sàng")
+                              : chatT("未配置，克隆/推送私有仓库前可在个人配置补齐", "Chưa cấu hình; có thể bổ sung trong Cài đặt cá nhân trước khi clone/push kho riêng")}
                           </span>
                         </li>
                         <li className={completedSummary?.cliNames?.length || sponsoredModel ? "is-ok" : "is-warn"}>
                           <HarnessIcon name={completedSummary?.cliNames?.length ? "check" : "info"} size={14} />
                           <span>
-                            模型 CLI · {completedSummary?.cliNames?.join("、") ||
+                            {chatT("模型 CLI ·", "CLI mô hình ·")} {completedSummary?.cliNames?.join("、") ||
                               (sponsoredModel
-                                ? `平台共享模型（${sharedModelNames(sponsoredModels, sponsoredModel)}）`
-                                : "可在个人配置或执行机器设置中准备")}
+                                ? chatT(`平台共享模型（${sharedModelNames(sponsoredModels, sponsoredModel)}）`, `Mô hình dùng chung nền tảng (${sharedModelNames(sponsoredModels, sponsoredModel)})`)
+                                : chatT("可在个人配置或执行机器设置中准备", "Có thể thiết lập trong Cài đặt cá nhân hoặc cài đặt máy thực thi"))}
                           </span>
                         </li>
                         <li className="is-ok">
                           <HarnessIcon name="check" size={14} />
                           <span>
-                            项目：
-                            {completedSummary?.project?.name || "当前项目"}
+                            {chatT("项目：", "Dự án:")}
+                            {completedSummary?.project?.name || chatT("当前项目", "Dự án hiện tại")}
                             {completedSummary?.repository?.name
-                              ? ` · 仓库 ${completedSummary.repository.name}`
-                              : " · 仓库可在运行时指定"}
+                              ? chatT(` · 仓库 ${completedSummary.repository.name}`, ` · Kho mã ${completedSummary.repository.name}`)
+                              : chatT(" · 仓库可在运行时指定", " · Có thể chỉ định kho mã khi chạy")}
                           </span>
                         </li>
                       </ul>
@@ -1578,9 +1595,9 @@ export default function QuickAccessWizard({
                         <HarnessIcon name="play" size={16} />
                       </span>
                       <span className="qa-action-copy">
-                        <strong>开始第一条需求</strong>
+                        <strong>{chatT("开始第一条需求", "Bắt đầu yêu cầu đầu tiên")}</strong>
                         <small>
-                          回到工作台输入框，直接描述要做的需求或问题
+                          {chatT("回到工作台输入框，直接描述要做的需求或问题", "Quay lại ô nhập bàn làm việc và mô tả trực tiếp yêu cầu hoặc vấn đề cần xử lý")}
                         </small>
                       </span>
                       <HarnessIcon
@@ -1603,9 +1620,9 @@ export default function QuickAccessWizard({
                         <HarnessIcon name="workflow" size={16} />
                       </span>
                       <span className="qa-action-copy">
-                        <strong>查看或修改 SOP</strong>
+                        <strong>{chatT("查看或修改 SOP", "Xem hoặc sửa SOP")}</strong>
                         <small>
-                          在流程模板里查看默认 SOP，或复制到项目自由调整
+                          {chatT("在流程模板里查看默认 SOP，或复制到项目自由调整", "Xem SOP mặc định trong mẫu quy trình hoặc sao chép vào dự án để tùy chỉnh")}
                         </small>
                       </span>
                       <HarnessIcon
@@ -1625,7 +1642,7 @@ export default function QuickAccessWizard({
                   data-hover-ink-control=""
                   onClick={onClose}
                 >
-                  关闭
+                  {chatT("关闭", "Đóng")}
                 </button>
               </footer>
             </>
@@ -1639,8 +1656,8 @@ export default function QuickAccessWizard({
                 >
                   <header className="qa-stage-heading">
                     <div className="qa-kicker">
-                      <span className="qa-kicker-name" aria-hidden="true">快速接入</span>
-                      第 {activeStepIndex + 1} 步，共 {wizardStepCount} 步
+                      <span className="qa-kicker-name" aria-hidden="true">{chatT("快速接入", "Kết nối nhanh")}</span>
+                      {chatT(`第 ${activeStepIndex + 1} 步，共 ${wizardStepCount} 步`, `Bước ${activeStepIndex + 1}/${wizardStepCount}`)}
                     </div>
                     <h3 ref={headingRef} tabIndex={-1} className="qa-title">
                       {activeStep.title}
@@ -1648,10 +1665,10 @@ export default function QuickAccessWizard({
                     {activeStep.id === "auth" ? (
                       <p className="qa-lede">
                         {hasGit || readyCLIs.length
-                          ? "可以继续选择项目和仓库，也可以先补齐下面的配置。"
+                          ? chatT("可以继续选择项目和仓库，也可以先补齐下面的配置。", "Có thể tiếp tục chọn dự án và kho mã hoặc hoàn tất cấu hình bên dưới trước.")
                           : sponsoredModel
-                            ? "平台共享模型可用，可直接继续。需要操作私有仓库时，可以在这里添加 Git 凭据。"
-                            : "配置任意一项即可继续。下一步选择项目和仓库。"}
+                            ? chatT("平台共享模型可用，可直接继续。需要操作私有仓库时，可以在这里添加 Git 凭据。", "Mô hình dùng chung của nền tảng khả dụng, có thể tiếp tục ngay. Khi cần thao tác kho riêng, thêm thông tin xác thực Git tại đây.")
+                            : chatT("配置任意一项即可继续。下一步选择项目和仓库。", "Cấu hình một mục bất kỳ để tiếp tục. Bước tiếp theo chọn dự án và kho mã.")}
                       </p>
                     ) : null}
                   </header>
@@ -1668,51 +1685,51 @@ export default function QuickAccessWizard({
                       <section className="qa-cred-card" aria-labelledby="qa-github-title">
                         <header className="qa-cred-head">
                           <div>
-                            <strong id="qa-github-title">GitHub 代码仓库授权</strong>
-                            <span>用于克隆私有仓库、创建分支、推送代码与发起 PR</span>
+                            <strong id="qa-github-title">{chatT("GitHub 代码仓库授权", "Cấp quyền kho mã GitHub")}</strong>
+                            <span>{chatT("用于克隆私有仓库、创建分支、推送代码与发起 PR", "Dùng clone kho riêng, tạo nhánh, push mã và mở PR")}</span>
                           </div>
                           <StatusPill ok={gitHubReady} />
                         </header>
                         <div className="qa-cred-body">
                           <button type="button" className="qa-btn qa-btn-primary qa-btn-sm" disabled={verifyingGit} onClick={() => openCredentialSettings("gitToken")}>
-                            {gitHubReady ? "管理 GitHub 授权" : "连接 GitHub"}
+                            {gitHubReady ? chatT("管理 GitHub 授权", "Quản lý quyền GitHub") : chatT("连接 GitHub", "Kết nối GitHub")}
                           </button>
-                          <p className="qa-hint">在个人配置中完成授权，返回后继续。</p>
-                          <p className="qa-hint">GitLab 等 SSH 仓库：<button type="button" className="qa-link-btn" disabled={verifyingGit} onClick={() => openCredentialSettings("gitSshKey")}>{storedUser?.gitSshKeyConfigured ? "管理 Git SSH 密钥" : "配置 Git SSH 密钥"}</button></p>
-                          <p className="qa-hint">GitLab、GitHub Enterprise 等 HTTPS 主机：<button type="button" className="qa-link-btn" disabled={verifyingGit} onClick={() => openCredentialSettings("gitHttpCredentials")}>{storedUser?.gitHttpCredentialsConfigured ? "管理 Git 访问令牌" : "配置 Git 访问令牌"}</button></p>
+                          <p className="qa-hint">{chatT("在个人配置中完成授权，返回后继续。", "Hoàn tất cấp quyền trong Cài đặt cá nhân, rồi quay lại tiếp tục.")}</p>
+                          <p className="qa-hint">{chatT("GitLab 等 SSH 仓库：", "Kho SSH như GitLab:")}<button type="button" className="qa-link-btn" disabled={verifyingGit} onClick={() => openCredentialSettings("gitSshKey")}>{storedUser?.gitSshKeyConfigured ? chatT("管理 Git SSH 密钥", "Quản lý khóa Git SSH") : chatT("配置 Git SSH 密钥", "Cấu hình khóa Git SSH")}</button></p>
+                          <p className="qa-hint">{chatT("GitLab、GitHub Enterprise 等 HTTPS 主机：", "Host HTTPS như GitLab, GitHub Enterprise:")}<button type="button" className="qa-link-btn" disabled={verifyingGit} onClick={() => openCredentialSettings("gitHttpCredentials")}>{storedUser?.gitHttpCredentialsConfigured ? chatT("管理 Git 访问令牌", "Quản lý token truy cập Git") : chatT("配置 Git 访问令牌", "Cấu hình token truy cập Git")}</button></p>
                           <details>
-                            <summary>使用访问令牌（高级）</summary>
+                            <summary>{chatT("使用访问令牌（高级）", "Dùng token truy cập (nâng cao)")}</summary>
                             <div className="qa-input-row">
                               <input
                                 type="password"
                                 className="qa-input"
                                 value={gitToken}
                                 onChange={(event) => { setGitToken(event.target.value); setGitVerify(null); }}
-                                placeholder={gitHubReady ? "已配置，留空保持不变" : "GitHub 个人访问令牌（PAT）"}
-                                aria-label="GitHub 个人访问令牌"
+                                placeholder={gitHubReady ? chatT("已配置，留空保持不变", "Đã cấu hình; để trống để giữ nguyên") : chatT("GitHub 个人访问令牌（PAT）", "Token truy cập cá nhân GitHub (PAT)")}
+                                aria-label={chatT("GitHub 个人访问令牌", "Token truy cập cá nhân GitHub")}
                                 autoComplete="new-password"
                                 disabled={verifyingGit}
                               />
                               <button type="button" className="qa-btn qa-btn-outline qa-btn-sm qa-btn-field" data-hover-ink-control="" disabled={!userId || verifyingGit || (!gitToken.trim() && !gitHubReady)} aria-busy={verifyingGit || undefined} onClick={verifyGit}>
-                                <BusyLabel busy={verifyingGit} busyLabel="校验中…">校验</BusyLabel>
+                                <BusyLabel busy={verifyingGit} busyLabel={chatT("校验中…", "Đang xác minh…")}>{chatT("校验", "Xác minh")}</BusyLabel>
                               </button>
-                              <a className="qa-link" data-hover-ink-control="" href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer">申请令牌 ↗</a>
+                              <a className="qa-link" data-hover-ink-control="" href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer">{chatT("申请令牌 ↗", "Lấy token ↗")}</a>
                             </div>
-                            {gitVerify ? <VerifyMessage result={gitVerify} okText={`令牌有效${gitVerify.login ? `（${gitVerify.login}）` : ""}`} /> : null}
+                            {gitVerify ? <VerifyMessage result={gitVerify} okText={chatT(`令牌有效${gitVerify.login ? `（${gitVerify.login}）` : ""}`, `Token hợp lệ${gitVerify.login ? ` (${gitVerify.login})` : ""}`)} /> : null}
                           </details>
                         </div>
                       </section>
                       <section className="qa-cred-card" aria-labelledby="qa-executors-title">
                         <header className="qa-cred-head">
                           <div>
-                            <strong id="qa-executors-title">执行器</strong>
-                            <span>{readyCLIs.length ? readyCLIs.map(cli => cli.label).join("、") : sponsoredModel ? "可使用平台共享模型" : "尚未配置执行器"}</span>
+                            <strong id="qa-executors-title">{chatT("执行器", "Trình thực thi")}</strong>
+                            <span>{readyCLIs.length ? readyCLIs.map(cli => cli.label).join("、") : sponsoredModel ? chatT("可使用平台共享模型", "Có thể dùng mô hình dùng chung của nền tảng") : chatT("尚未配置执行器", "Chưa cấu hình trình thực thi")}</span>
                           </div>
                           <StatusPill ok={cliReady} />
                         </header>
                         <div className="qa-cred-body">
-                          <button type="button" className="qa-btn qa-btn-secondary" disabled={verifyingGit} onClick={() => openCredentialSettings("executors", undefined, { returnToQuickAccess: true })}>执行器配置</button>
-                          <p className="qa-hint">在个人配置中保存后，点击「返回快速接入」继续。</p>
+                          <button type="button" className="qa-btn qa-btn-secondary" disabled={verifyingGit} onClick={() => openCredentialSettings("executors", undefined, { returnToQuickAccess: true })}>{chatT("执行器配置", "Cấu hình trình thực thi")}</button>
+                          <p className="qa-hint">{chatT("在个人配置中保存后，点击「返回快速接入」继续。", "Sau khi lưu trong Cài đặt cá nhân, nhấp “Quay lại kết nối nhanh” để tiếp tục.")}</p>
                         </div>
                       </section>
                     </div>
@@ -1723,7 +1740,7 @@ export default function QuickAccessWizard({
                       {editableProjects.length ? (
                         <SlidingTabs
                           className="qa-sliding-tabs qa-sliding-tabs-inline"
-                          aria-label="项目选择方式"
+                          aria-label={chatT("项目选择方式", "Cách chọn dự án")}
                         >
                           <button
                             type="button"
@@ -1732,7 +1749,7 @@ export default function QuickAccessWizard({
                             onClick={() => setProjectMode("existing")}
                           >
                             <HarnessIcon name="folder" size={14} />
-                            选择已有项目
+                            {chatT("选择已有项目", "Chọn dự án hiện có")}
                             <span className="sliding-tab-count">
                               {editableProjects.length}
                             </span>
@@ -1744,7 +1761,7 @@ export default function QuickAccessWizard({
                             onClick={() => setProjectMode("create")}
                           >
                             <HarnessIcon name="sparkles" size={14} />
-                            新建项目
+                            {chatT("新建项目", "Tạo dự án mới")}
                           </button>
                         </SlidingTabs>
                       ) : null}
@@ -1755,14 +1772,14 @@ export default function QuickAccessWizard({
                           className="qa-section qa-fade-in"
                         >
                           <div className="qa-field">
-                            <span className="qa-label">选择项目</span>
+                            <span className="qa-label">{chatT("选择项目", "Chọn dự án")}</span>
                             <HarnessSelect
                               value={currentProject?.id || ""}
                               options={projectSelectOptions}
                               onChange={setSelectedProjectId}
                               searchable={projectSelectOptions.length > 4}
-                              searchPlaceholder="搜索项目名称或 Key…"
-                              ariaLabel="选择项目"
+                              searchPlaceholder={chatT("搜索项目名称或 Key…", "Tìm tên dự án hoặc key…")}
+                              ariaLabel={chatT("选择项目", "Chọn dự án")}
                             />
                           </div>
                           {projectRepos.length ? (
@@ -1777,7 +1794,7 @@ export default function QuickAccessWizard({
                                     <span
                                       className={`qa-status-pill ${isDef ? "is-ok" : ""}`}
                                     >
-                                      {isDef ? "默认仓库" : "已关联仓库"}
+                                      {isDef ? chatT("默认仓库", "Kho mã mặc định") : chatT("已关联仓库", "Kho mã đã liên kết")}
                                     </span>
                                     <strong>{repo.name}</strong>
                                     <code>
@@ -1804,7 +1821,7 @@ export default function QuickAccessWizard({
                         >
                           <label className="qa-field">
                             <span className="qa-label">
-                              项目名称 <em>*</em>
+                              {chatT("项目名称", "Tên dự án")} <em>*</em>
                             </span>
                             <input
                               className="qa-input"
@@ -1819,12 +1836,12 @@ export default function QuickAccessWizard({
                                 if (!keyTouched)
                                   setNewProjectKey(deriveProjectKey(value));
                               }}
-                              placeholder="例如：智能网关"
+                              placeholder={chatT("例如：智能网关", "Ví dụ: Gateway thông minh")}
                             />
                           </label>
                           <label className="qa-field">
                             <span className="qa-label">
-                              项目标识 <em>*</em>
+                              {chatT("项目标识", "Định danh dự án")} <em>*</em>
                             </span>
                             <input
                               className="qa-input qa-mono"
@@ -1837,7 +1854,7 @@ export default function QuickAccessWizard({
                             />
                           </label>
                           <label className="qa-field">
-                            <span className="qa-label">项目 Key</span>
+                            <span className="qa-label">{chatT("项目 Key", "Key dự án")}</span>
                             <input
                               className="qa-input qa-mono"
                               value={newProjectKey}
@@ -1858,8 +1875,8 @@ export default function QuickAccessWizard({
                           <div>
                             <strong>
                               {projectMode === "existing" && projectRepos.length
-                                ? "为该项目添加 GitHub 仓库"
-                                : "绑定默认 GitHub 仓库"}
+                                ? chatT("为该项目添加 GitHub 仓库", "Thêm kho GitHub cho dự án này")
+                                : chatT("绑定默认 GitHub 仓库", "Liên kết kho GitHub mặc định")}
                             </strong>
                             <span
                               key={String(bindRepoNow)}
@@ -1867,17 +1884,17 @@ export default function QuickAccessWizard({
                             >
                               {projectMode === "existing" && projectRepos.length
                                 ? bindRepoNow
-                                  ? "旧项目可直接追加新仓库，复用已有流程与角色；留空则沿用现有仓库"
-                                  : "沿用项目现有仓库与流程"
+                                  ? chatT("旧项目可直接追加新仓库，复用已有流程与角色；留空则沿用现有仓库", "Dự án cũ có thể thêm trực tiếp kho mã mới, dùng lại quy trình và vai trò hiện có; để trống để dùng kho hiện tại")
+                                  : chatT("沿用项目现有仓库与流程", "Dùng kho mã và quy trình hiện có của dự án")
                                 : bindRepoNow
-                                  ? "粘贴 Git HTTPS 链接或 Git SSH 地址，自动设为项目默认仓库"
-                                  : "已跳过，可在派发需求或项目配置中再绑定"}
+                                  ? chatT("粘贴 Git HTTPS 链接或 Git SSH 地址，自动设为项目默认仓库", "Dán liên kết Git HTTPS hoặc địa chỉ Git SSH, tự đặt làm kho mã mặc định của dự án")
+                                  : chatT("已跳过，可在派发需求或项目配置中再绑定", "Đã bỏ qua; có thể liên kết khi điều phối yêu cầu hoặc trong Cài đặt dự án")}
                             </span>
                           </div>
                           <HarnessSwitch
                             checked={bindRepoNow}
                             onChange={setBindRepoNow}
-                            label="添加或绑定代码仓库"
+                            label={chatT("添加或绑定代码仓库", "Thêm hoặc liên kết kho mã")}
                           />
                         </header>
 
@@ -1906,7 +1923,7 @@ export default function QuickAccessWizard({
                                         setProjectMode("create");
                                       }}
                                     >
-                                      新建自己的项目并绑定
+                                      {chatT("新建自己的项目并绑定", "Tạo dự án riêng và liên kết")}
                                     </button>
                                     <button
                                       type="button"
@@ -1916,7 +1933,7 @@ export default function QuickAccessWizard({
                                         setBindRepoNow(false);
                                       }}
                                     >
-                                      跳过绑定，继续体验
+                                      {chatT("跳过绑定，继续体验", "Bỏ qua liên kết, tiếp tục trải nghiệm")}
                                     </button>
                                   </div>
                                 </div>
@@ -1926,8 +1943,8 @@ export default function QuickAccessWizard({
                                   <span className="qa-label">
                                     {projectMode === "existing" &&
                                     projectRepos.length
-                                      ? "新增仓库地址（可选）"
-                                      : "Git HTTPS 链接或 Git SSH 地址"}
+                                      ? chatT("新增仓库地址（可选）", "Địa chỉ kho mã mới (tùy chọn)")
+                                      : chatT("Git HTTPS 链接或 Git SSH 地址", "Liên kết Git HTTPS hoặc địa chỉ Git SSH")}
                                   </span>
                                   <input
                                     className="qa-input qa-mono"
@@ -1937,15 +1954,15 @@ export default function QuickAccessWizard({
                                   />
                                 </label>
                                 <div className="qa-field">
-                                  <span className="qa-label">默认分支</span>
+                                  <span className="qa-label">{chatT("默认分支", "Nhánh mặc định")}</span>
                                   <HarnessSelect
                                     value={repoBranch}
                                     options={BRANCH_OPTIONS}
                                     onChange={setRepoBranch}
                                     searchable
                                     allowCustom
-                                    searchPlaceholder="选择或输入分支名…"
-                                    ariaLabel="默认分支"
+                                    searchPlaceholder={chatT("选择或输入分支名…", "Chọn hoặc nhập tên nhánh…")}
+                                    ariaLabel={chatT("默认分支", "Nhánh mặc định")}
                                   />
                                 </div>
                               </div>
@@ -1954,13 +1971,13 @@ export default function QuickAccessWizard({
                               parsedRepo ? (
                                 <div className="qa-repo-default-row qa-msg-in">
                                   <span>
-                                    已识别 <code>{parsedRepo.project}</code>
-                                    ，同时设为项目默认仓库
+                                    {chatT("已识别", "Đã nhận diện")} <code>{parsedRepo.project}</code>
+                                    {chatT("，同时设为项目默认仓库", ", đồng thời đặt làm kho mã mặc định của dự án")}
                                   </span>
                                   <HarnessSwitch
                                     checked={makeDefaultRepo}
                                     onChange={setMakeDefaultRepo}
-                                    label="设为项目默认仓库"
+                                    label={chatT("设为项目默认仓库", "Đặt làm kho mã mặc định của dự án")}
                                   />
                                 </div>
                               ) : parsedRepo ? (
@@ -1968,18 +1985,18 @@ export default function QuickAccessWizard({
                                   key="recognized"
                                   className="qa-hint is-ok qa-msg-in"
                                 >
-                                  已识别仓库：
+                                  {chatT("已识别仓库：", "Kho mã đã nhận diện:")}
                                   <code>{parsedRepo.project}</code>
-                                  （仓库名 <code>{parsedRepo.name}</code>）
+                                  {chatT("（仓库名", "(Tên kho mã")} <code>{parsedRepo.name}</code>）
                                 </p>
                               ) : (
                                 <p key="help" className="qa-hint">
-                                  支持 Git HTTPS 链接或 Git SSH 地址，例如 <code>git@gitlab.com:group/repo.git</code>。
+                                  {chatT("支持 Git HTTPS 链接或 Git SSH 地址，例如", "Hỗ trợ liên kết Git HTTPS hoặc địa chỉ Git SSH, ví dụ")} <code>git@gitlab.com:group/repo.git</code>。
                                 </p>
                               )}
                               {selectedRepo?.provider === "ssh" && sshKeysLoaded && !repoAccess.ready ? (
                                 <p className="qa-hint is-error" role="alert">
-                                  {sshCredentials.error ? "无法读取 SSH 密钥配置，请稍后重试。" : `尚未配置 ${selectedRepo.host} 的 SSH 密钥，可返回上一步添加，也可稍后在个人配置中添加。`}
+                                  {sshCredentials.error ? chatT("无法读取 SSH 密钥配置，请稍后重试。", "Không đọc được cấu hình khóa SSH; thử lại sau.") : chatT(`尚未配置 ${selectedRepo.host} 的 SSH 密钥，可返回上一步添加，也可稍后在个人配置中添加。`, `Chưa cấu hình khóa SSH của ${selectedRepo.host}; quay lại bước trước để thêm hoặc thêm sau trong Cài đặt cá nhân.`)}
                                 </p>
                               ) : null}
                             </div>
@@ -1992,12 +2009,12 @@ export default function QuickAccessWizard({
                   {activeStep.id === "workflow" ? (
                     <div className="qa-pane">
                       <div className="qa-field">
-                        <span className="qa-label">默认交付 SOP</span>
+                        <span className="qa-label">{chatT("默认交付 SOP", "SOP bàn giao mặc định")}</span>
                         <HarnessSelect
                           value={activeWorkflow?.id || DEFAULT_SOP_ID}
                           options={sopSelectOptions}
                           onChange={setSelectedWorkflowId}
-                          ariaLabel="默认交付 SOP"
+                          ariaLabel={chatT("默认交付 SOP", "SOP bàn giao mặc định")}
                         />
                       </div>
 
@@ -2005,7 +2022,7 @@ export default function QuickAccessWizard({
                         <div className="qa-canvas-head">
                           <SlidingTabs
                             className="qa-sliding-tabs qa-sliding-tabs-inline"
-                            aria-label="流程与角色预览"
+                            aria-label={chatT("流程与角色预览", "Xem trước quy trình và vai trò")}
                           >
                             <button
                               type="button"
@@ -2014,7 +2031,7 @@ export default function QuickAccessWizard({
                               onClick={() => setPreviewTab("stages")}
                             >
                               <HarnessIcon name="workflow" size={14} />
-                              阶段链路
+                              {chatT("阶段链路", "Chuỗi giai đoạn")}
                               <span className="sliding-tab-count">
                                 {nodes.length}
                               </span>
@@ -2026,7 +2043,7 @@ export default function QuickAccessWizard({
                               onClick={() => setPreviewTab("roles")}
                             >
                               <HarnessIcon name="user" size={14} />
-                              默认角色
+                              {chatT("默认角色", "Vai trò mặc định")}
                               <span className="sliding-tab-count">
                                 {roles.length}
                               </span>
@@ -2038,14 +2055,14 @@ export default function QuickAccessWizard({
                           <div
                             key="stages"
                             className="qa-flow-track qa-stagger"
-                            aria-label="SOP 阶段预览"
+                            aria-label={chatT("SOP 阶段预览", "Xem trước giai đoạn SOP")}
                           >
                             <div
                               className="qa-flow-node is-edge"
                               style={{ "--i": 0 }}
                             >
-                              <strong>开始</strong>
-                              <span>需求输入</span>
+                              <strong>{chatT("开始", "Bắt đầu")}</strong>
+                              <span>{chatT("需求输入", "Đầu vào yêu cầu")}</span>
                             </div>
                             {nodes.map((node, index) => (
                               <React.Fragment key={node.id || index}>
@@ -2060,8 +2077,8 @@ export default function QuickAccessWizard({
                                   className="qa-flow-node"
                                   style={{ "--i": index * 2 + 2 }}
                                 >
-                                  <strong>{node.name}</strong>
-                                  <span>阶段 {index + 1}</span>
+                                  <strong>{builtinDisplay(node.name)}</strong>
+                                  <span>{chatT(`阶段 ${index + 1}`, `Giai đoạn ${index + 1}`)}</span>
                                 </div>
                               </React.Fragment>
                             ))}
@@ -2076,8 +2093,8 @@ export default function QuickAccessWizard({
                               className="qa-flow-node is-edge"
                               style={{ "--i": nodes.length * 2 + 2 }}
                             >
-                              <strong>完成</strong>
-                              <span>MR 与产物</span>
+                              <strong>{chatT("完成", "Hoàn tất")}</strong>
+                              <span>{chatT("MR 与产物", "MR và sản phẩm đầu ra")}</span>
                             </div>
                           </div>
                         ) : (
@@ -2089,9 +2106,9 @@ export default function QuickAccessWizard({
                                 style={{ "--i": index }}
                               >
                                 <i>{(role.name || "角").slice(0, 1)}</i>
-                                <b>{role.name}</b>
+                                <b>{builtinDisplay(role.name)}</b>
                                 {role.description ? (
-                                  <small>{role.description}</small>
+                                  <small>{builtinDisplay(role.description)}</small>
                                 ) : null}
                               </span>
                             ))}
@@ -2100,43 +2117,43 @@ export default function QuickAccessWizard({
                       </section>
 
                       <section className="qa-card">
-                        <div className="qa-card-title">将要生效的配置</div>
+                        <div className="qa-card-title">{chatT("将要生效的配置", "Cấu hình sắp có hiệu lực")}</div>
                         <dl className="qa-summary">
                           <div>
-                            <dt>凭据</dt>
+                            <dt>{chatT("凭据", "Thông tin xác thực")}</dt>
                             <dd>
                               <span
                                 className={`qa-dot ${repoAccess.ready && cliReady ? "is-ok" : ""}`}
                               />
                               <span>
-                                {repoAccess.label} {repoAccess.ready ? "已配置" : "未配置"} ·
+                                {repoAccess.label} {repoAccess.ready ? chatT("已配置", "Đã cấu hình") : chatT("未配置", "Chưa cấu hình")} ·
                                 CLI · {readyCLIs.length ? readyCLIs.map(cli => cli.label).join("、") :
-                                  sponsoredModel ? "使用平台共享模型" : "未配置"}
+                                  sponsoredModel ? chatT("使用平台共享模型", "Dùng mô hình dùng chung của nền tảng") : chatT("未配置", "Chưa cấu hình")}
                               </span>
                             </dd>
                           </div>
                           <div>
-                            <dt>项目与仓库</dt>
+                            <dt>{chatT("项目与仓库", "Dự án và kho mã")}</dt>
                             <dd>
                               <span className="qa-dot is-ok" />
                               <span>
                                 {projectMode === "create"
-                                  ? `新建项目「${newProjectName || "新项目"}」`
-                                  : `使用已有项目「${currentProject?.name || "当前项目"}」`}
+                                  ? chatT(`新建项目「${newProjectName || "新项目"}」`, `Tạo dự án “${newProjectName || "Dự án mới"}”`)
+                                  : chatT(`使用已有项目「${currentProject?.name || "当前项目"}」`, `Dùng dự án hiện có “${currentProject?.name || "Dự án hiện tại"}”`)}
                                 {" · "}
                                 {bindRepoNow && parsedRepo && !repoBindBlocked
-                                  ? `绑定 ${parsedRepo.name}`
-                                  : defaultRepo?.name || "运行时指定仓库"}
+                                  ? chatT(`绑定 ${parsedRepo.name}`, `Liên kết ${parsedRepo.name}`)
+                                  : defaultRepo?.name || chatT("运行时指定仓库", "Chỉ định kho mã khi chạy")}
                               </span>
                             </dd>
                           </div>
                           <div>
-                            <dt>默认 SOP</dt>
+                            <dt>{chatT("默认 SOP", "SOP mặc định")}</dt>
                             <dd>
                               <span className="qa-dot is-ok" />
                               <span>
-                                {activeWorkflow?.name || "通用后端交付 SOP"}（
-                                {roles.length} 个默认角色）
+                                {builtinDisplay(activeWorkflow?.name || "通用后端交付 SOP")}（
+                                {roles.length} {chatT("个默认角色）", "vai trò mặc định)")}
                               </span>
                             </dd>
                           </div>
@@ -2155,7 +2172,7 @@ export default function QuickAccessWizard({
                   disabled={saving}
                   onClick={onClose}
                 >
-                  稍后再说
+                  {chatT("稍后再说", "Để sau")}
                 </button>
                 <div className="qa-footer-spacer" />
                 {step > 0 ? (
@@ -2170,7 +2187,7 @@ export default function QuickAccessWizard({
                     }}
                   >
                     <HarnessIcon name="chevron-left" size={14} />
-                    上一步
+                    {chatT("上一步", "Bước trước")}
                   </button>
                 ) : null}
                 <button
@@ -2180,8 +2197,8 @@ export default function QuickAccessWizard({
                   disabled={verifyingGit || ((loading || (activeStep.id === "auth" && credentialsPending)) && !saving)}
                   onClick={nextStep}
                 >
-                  <BusyLabel busy={saving} busyLabel="正在保存…">
-                    {activeStep.id === "workflow" ? "完成接入" : "下一步"}
+                  <BusyLabel busy={saving} busyLabel={chatT("正在保存…", "Đang lưu…")}>
+                    {activeStep.id === "workflow" ? chatT("完成接入", "Hoàn tất kết nối") : chatT("下一步", "Bước tiếp theo")}
                     <HarnessIcon
                       name={
                         activeStep.id === "workflow"

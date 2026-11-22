@@ -1,3 +1,4 @@
+import { chatT, chatLocale } from "./locale.js";
 import { actionName } from "./platform.js";
 
 const canonical = (value) =>
@@ -23,7 +24,7 @@ export function reviewedOperation(draft, review = {}) {
     JSON.stringify(canonical(actual)) !==
       JSON.stringify(canonical(review.expected))
   )
-    throw Object.assign(Error("操作内容已更新，请重新核对后再确认。"), {
+    throw Object.assign(Error(chatT("操作内容已更新，请重新核对后再确认。", "Nội dung thao tác đã thay đổi, hãy kiểm tra lại trước khi xác nhận.")), {
       draftChanged: true,
     });
   const result =
@@ -43,17 +44,17 @@ export function reviewedOperation(draft, review = {}) {
 }
 
 export function operationValidation(draft) {
-  if (!draft?.tool) return "缺少操作名称，无法执行。";
+  if (!draft?.tool) return chatT("缺少操作名称，无法执行。", "Thiếu tên thao tác, không thể thực thi.");
   if (draft.tool === "issues_import_tapd") {
     if (
       typeof draft.body?.projectId !== "string" ||
       !draft.body.projectId.trim()
     )
-      return "请先指定导入的目标项目。";
+      return chatT("请先指定导入的目标项目。", "Hãy chỉ định dự án đích để nhập.");
     if (typeof draft.body?.url !== "string" || !draft.body.url.trim())
-      return "缺少 TAPD 需求链接。";
+      return chatT("缺少 TAPD 需求链接。", "Thiếu liên kết yêu cầu TAPD.");
     if (!repositoryIds(draft.body).length)
-      return "请至少选择一个代码仓库后再确认导入。";
+      return chatT("请至少选择一个代码仓库后再确认导入。", "Chọn ít nhất một kho mã trước khi xác nhận nhập.");
   }
   return "";
 }
@@ -96,46 +97,46 @@ export function operationSummary(
   const sop = body.workflowId
     ? named("sop", body.workflowId)
     : draft.tool === "projects_save" && !existingProject
-      ? `${references.find((r) => r.type === "sop" && r.id === DEFAULT_PROJECT_WORKFLOW)?.name || "通用后端交付 SOP"}（默认）`
+      ? `${references.find((r) => r.type === "sop" && r.id === DEFAULT_PROJECT_WORKFLOW)?.name || chatT("通用后端交付 SOP", "SOP bàn giao backend dùng chung")}${chatT("（默认）", " (mặc định)")}`
       : "";
   const fields = [
     [
-      "项目",
+      chatT("项目", "Dự án"),
       project ? projects.find((p) => p.id === project)?.name || project : "",
     ],
-    ["名称", body.name || body.title],
-    ["目标", draft.path?.id || body.id],
-    ["TAPD 链接", body.url],
+    [chatT("名称", "Tên"), body.name || body.title],
+    [chatT("目标", "Đích"), draft.path?.id || body.id],
+    [chatT("TAPD 链接", "Liên kết TAPD"), body.url],
     [
-      "代码仓库",
+      chatT("代码仓库", "Kho mã"),
       repositoryIds(body)
         .map((id) => named("repository", id))
         .join("、"),
     ],
     ["SOP", sop],
-    ["节点", body.nodeId],
-    ["说明", body.description || body.reason],
+    [chatT("节点", "Nút"), body.nodeId],
+    [chatT("说明", "Mô tả"), body.description || body.reason],
   ].filter(
     ([, value]) => value !== undefined && value !== null && value !== "",
   );
   const effect =
     {
       issues_import_tapd:
-        "从 TAPD 导入需求并关联所选仓库，导入后继续当前对话。",
-      issues_dispatch: "为这条需求派发 SOP，创建新的运行。",
-      runs_start: "启动一次新的 SOP 运行。",
-      runs_approve: "批准此节点，流程将继续执行后续节点。",
-      runs_reject: "退回此节点，流程将按 SOP 的退回路径继续。",
-      issues_clarification_save: "保存澄清结果，并回写需求的外部来源。",
+        chatT("从 TAPD 导入需求并关联所选仓库，导入后继续当前对话。", "Nhập yêu cầu từ TAPD và liên kết kho mã đã chọn, sau đó tiếp tục hội thoại hiện tại."),
+      issues_dispatch: chatT("为这条需求派发 SOP，创建新的运行。", "Điều phối SOP cho yêu cầu này và tạo lượt chạy mới."),
+      runs_start: chatT("启动一次新的 SOP 运行。", "Khởi tạo lượt chạy SOP mới."),
+      runs_approve: chatT("批准此节点，流程将继续执行后续节点。", "Phê duyệt nút này để quy trình tiếp tục thực thi các nút sau."),
+      runs_reject: chatT("退回此节点，流程将按 SOP 的退回路径继续。", "Trả lại nút này; quy trình tiếp tục theo đường quay lại của SOP."),
+      issues_clarification_save: chatT("保存澄清结果，并回写需求的外部来源。", "Lưu kết quả làm rõ và ghi lại vào nguồn yêu cầu bên ngoài."),
       projects_save: existingProject
-        ? "修改这个项目的设置。"
-        : "新建一个独立项目，不归属当前对话所在的项目。",
-    }[draft.tool] || `${actionName(draft.tool)}，使用下方列出的目标与参数。`;
+        ? chatT("修改这个项目的设置。", "Thay đổi cài đặt dự án này.")
+        : chatT("新建一个独立项目，不归属当前对话所在的项目。", "Tạo dự án độc lập, không thuộc dự án của hội thoại hiện tại."),
+    }[draft.tool] || `${actionName(draft.tool)}${chatT("，使用下方列出的目标与参数。", ": sử dụng đích và tham số được liệt kê bên dưới.")}`;
   return { title: actionName(draft.tool), fields, effect };
 }
 export function operationError(value) {
   const text =
-    value instanceof Error ? value.message : String(value || "操作失败");
+    value instanceof Error ? value.message : String(value || chatT("操作失败", "Thao tác thất bại"));
   try {
     const data = JSON.parse(text);
     if (typeof data.error === "string") return data.error;

@@ -8,6 +8,27 @@ const $ = id => document.getElementById(id);
 const t = window.lfT || ((zh) => zh);
 let mode = 'login', signup = false;
 
+const loginErrorsVi = {
+  "code is required": "Bắt buộc cung cấp mã",
+  "username is required": "Bắt buộc cung cấp tên người dùng",
+  "invalid username": "Tên người dùng không hợp lệ",
+  "photo not found": "Không tìm thấy ảnh",
+  "Invalid username or password": "Tên người dùng hoặc mật khẩu không đúng",
+  "Too many attempts. Try again in a minute.": "Quá nhiều lần thử. Hãy thử lại sau một phút.",
+  "invalid request origin": "Nguồn yêu cầu không hợp lệ",
+  "invalid login request": "Yêu cầu đăng nhập không hợp lệ",
+  "invalid registration request": "Yêu cầu đăng ký không hợp lệ",
+  "用户名需 2–64 位，以字母或数字开头，只能包含字母、数字、_ . -": "Tên người dùng phải có 2–64 ký tự, bắt đầu bằng chữ cái hoặc chữ số và chỉ chứa chữ cái, chữ số, _ . -",
+  "自助注册已关闭，请联系管理员创建账号": "Tự đăng ký đã tắt. Liên hệ quản trị viên để tạo tài khoản.",
+  "该用户名已被使用": "Tên người dùng này đã được sử dụng"
+};
+function displayLoginError(message) {
+  if (window.lfLang?.() !== 'vi') return message;
+  if (Object.hasOwn(loginErrorsVi, message)) return loginErrorsVi[message];
+  const passwordLength = /^密码需 (\d+)–(\d+) 个字符$/.exec(message);
+  return passwordLength ? `Mật khẩu phải có ${passwordLength[1]}–${passwordLength[2]} ký tự` : message;
+}
+
 function render() {
   const creating = mode !== 'login';
   $('loginSubtitle').textContent = mode === 'setup' ? t('创建管理员账号', 'Create the administrator account') : creating ? t('创建你的账号', 'Create your account') : t('登录你的交付工作台', 'Sign in to your delivery workspace');
@@ -51,5 +72,5 @@ $('loginForm').onsubmit = async event => {
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || t('操作失败', 'Request failed'));
     location.replace('/');
-  } catch (err) { error.textContent = err.message; button.disabled = false; }
+  } catch (err) { error.textContent = displayLoginError(err.message); button.disabled = false; }
 };

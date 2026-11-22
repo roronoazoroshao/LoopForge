@@ -1,5 +1,7 @@
 # 参与贡献
 
+[English](CONTRIBUTING.md) · [Tiếng Việt](CONTRIBUTING.vi-VN.md)
+
 平台代码位于仓库根目录，原本地工作流版本位于 `local/`。开始修改前请阅读对应的 `AGENTS.md`。
 
 平台改动应保留上游 engine、repo 与 handler 的分层；身份、外部提供商和部署差异应通过明确适配实现。修复行为问题时附带回归测试，说明 schema 与 runner 协议兼容性。

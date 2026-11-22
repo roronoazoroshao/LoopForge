@@ -5,10 +5,11 @@ window.lfT = window.lfT || ((zh) => zh);
   const root = document.documentElement;
   let lang = 'zh';
   try {
-    lang = localStorage.getItem('loopforge.lang') === 'en' ? 'en' : 'zh';
+    const saved = localStorage.getItem('loopforge.lang');
+    lang = ['zh', 'en', 'vi'].includes(saved) ? saved : 'zh';
   } catch (_) { /* Restricted storage still permits the default interface. */ }
   root.dataset.lang = lang;
-  root.lang = lang === 'en' ? 'en' : 'zh-CN';
+  root.lang = lang === 'vi' ? 'vi-VN' : lang === 'en' ? 'en' : 'zh-CN';
   try {
     if (sessionStorage.getItem('loopforge.lang.motion') === 'in') {
       if (matchMedia('(prefers-reduced-motion: reduce)').matches) sessionStorage.removeItem('loopforge.lang.motion');

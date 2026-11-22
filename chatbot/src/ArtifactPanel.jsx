@@ -1,3 +1,4 @@
+import { chatT } from "./locale";
 import React, { useEffect, useRef, useState } from "react";
 import HarnessIcon from "./HarnessIcon";
 import { api } from "./api";
@@ -88,7 +89,7 @@ function DefinitionPreview({ artifact }) {
         {error}
       </p>
     );
-  if (!data) return <p className="muted">正在读取…</p>;
+  if (!data) return <p className="muted">{chatT("正在读取…", "Đang đọc…")}</p>;
   const target = definitionTarget(artifact);
   if (target)
     return (
@@ -110,16 +111,16 @@ function DefinitionPreview({ artifact }) {
     <section className="definition-preview">
       <div className="definition-summary">
         <span className="artifact-type-label">
-          {artifact.kind === "sop" ? "SOP" : "角色"}
+          {artifact.kind === "sop" ? "SOP" : chatT("角色", "Vai trò")}
         </span>
         <h2>{data.name || artifact.name}</h2>
         <p>{data.description}</p>
         <small>
           {artifact.draft && !artifact.draft.saved
-            ? "待确认"
+            ? chatT("待确认", "Chờ xác nhận")
             : data.status === "published"
-              ? "已发布"
-              : "已保存"}
+              ? chatT("已发布", "Đã phát hành")
+              : chatT("已保存", "Đã lưu")}
         </small>
       </div>
       {artifact.kind === "sop" ? (
@@ -131,14 +132,14 @@ function DefinitionPreview({ artifact }) {
                 <strong>{node.name || node.id}</strong>
                 <small>
                   {node.type === "approval"
-                    ? "人工确认"
+                    ? chatT("人工确认", "Con người xác nhận")
                     : node.type === "script"
-                      ? "脚本"
-                      : "角色执行"}
+                      ? chatT("脚本", "Tập lệnh")
+                      : chatT("角色执行", "Thực thi vai trò")}
                 </small>
                 {node.type === "approval" && node.taskPrompt ? (
                   <details>
-                    <summary>确认要求</summary>
+                    <summary>{chatT("确认要求", "Yêu cầu xác nhận")}</summary>
                     <RichContent message={node.taskPrompt} />
                   </details>
                 ) : null}
@@ -148,12 +149,12 @@ function DefinitionPreview({ artifact }) {
         </ol>
       ) : (
         <>
-          <h3>工作说明</h3>
+          <h3>{chatT("工作说明", "Mô tả công việc")}</h3>
           <RichContent
-            message={data.prompt || data.description || "暂无说明"}
+            message={data.prompt || data.description || chatT("暂无说明", "Chưa có mô tả")}
           />
           {data.model ? (
-            <small className="muted">模型 · {data.model}</small>
+            <small className="muted">{chatT("模型 ·", "Mô hình ·")} {data.model}</small>
           ) : null}
         </>
       )}
@@ -170,7 +171,7 @@ function OperationPreview({ artifact, runs }) {
     <section className="operation-preview">
       {run ? (
         <p>
-          {run.workflowSnapshot?.name || "SOP 运行"}
+          {run.workflowSnapshot?.name || chatT("SOP 运行", "Lượt chạy SOP")}
           {node ? ` · ${node.name || node.id}` : ""}
         </p>
       ) : null}
@@ -337,7 +338,7 @@ export default function ArtifactPanel({
         item.id,
         item.name,
       ]),
-      "SOP 运行",
+      chatT("SOP 运行", "Lượt chạy SOP"),
     ),
   );
   const visibleSubagents = subagents.filter((agent) =>
@@ -350,7 +351,7 @@ export default function ArtifactPanel({
       agent.model,
       subagentStatus(agent, live).label,
       ...agent.dispatches.map((step) => step.detail),
-      "子 Agent",
+      chatT("子 Agent", "Tác tử con"),
     ),
   );
   const matchCount =
@@ -370,7 +371,7 @@ export default function ArtifactPanel({
     const title = target
       ? `${artifact.name} · ${target.label}`
       : artifact.external
-        ? `${artifact.name} · 在代码仓库打开`
+        ? chatT(`${artifact.name} · 在代码仓库打开`, `${artifact.name} · Mở trong kho mã`)
         : artifact.name;
     return (
       <Row
@@ -389,7 +390,7 @@ export default function ArtifactPanel({
           <strong>{artifact.name}</strong>
           <small>
             {target
-              ? `${artifact.kind === "sop" ? "SOP" : "角色"} · ${artifact.asset?.status === "published" ? "已发布" : "已保存"}`
+              ? `${artifact.kind === "sop" ? "SOP" : chatT("角色", "Vai trò")} · ${artifact.asset?.status === "published" ? chatT("已发布", "Đã phát hành") : chatT("已保存", "Đã lưu")}`
               : artifact.source}
             {artifact.size
               ? ` · ${artifact.size < 1024 ? `${artifact.size} B` : `${Math.ceil(artifact.size / 1024)} KB`}`
@@ -413,7 +414,7 @@ export default function ArtifactPanel({
           aria-valuemin={0}
           aria-valuemax={layout.maxWidth}
           aria-valuenow={layout.width}
-          aria-label="调整产物侧栏宽度"
+          aria-label={chatT("调整产物侧栏宽度", "Điều chỉnh chiều rộng thanh bên đầu ra")}
           tabIndex={open ? 0 : -1}
           aria-hidden={!open || undefined}
           inert={!open}
@@ -432,7 +433,7 @@ export default function ArtifactPanel({
         id="conversation-artifacts"
         role={layout.compact ? "dialog" : "complementary"}
         aria-modal={layout.compact && open ? "true" : undefined}
-        aria-label={view === "changes" ? "会话改动" : browsing ? "Agent 浏览器" : coding ? "工作区 IDE" : "会话产物"}
+        aria-label={view === "changes" ? chatT("会话改动", "Thay đổi cuộc trò chuyện") : browsing ? chatT("Agent 浏览器", "Trình duyệt tác tử") : coding ? chatT("工作区 IDE", "IDE workspace") : chatT("会话产物", "Sản phẩm đầu ra cuộc trò chuyện")}
         aria-hidden={!open || undefined}
         inert={!open}
         data-compact={layout.compact || undefined}
@@ -440,7 +441,7 @@ export default function ArtifactPanel({
         data-resizing={layout.dragging || undefined}
       >
         <header className="artifact-panel-header">
-          <div className="artifact-panel-tabs" role="tablist" aria-label="侧栏内容">
+          <div className="artifact-panel-tabs" role="tablist" aria-label={chatT("侧栏内容", "Nội dung thanh bên")}>
             <button
               type="button"
               role="tab"
@@ -449,7 +450,7 @@ export default function ArtifactPanel({
               onClick={() => onViewChange("artifacts")}
             >
               <HarnessIcon name="artifact" size={14} />
-              <span>产物</span>
+              <span>{chatT("产物", "Sản phẩm đầu ra")}</span>
               <small>{count}</small>
             </button>
             <button
@@ -461,12 +462,12 @@ export default function ArtifactPanel({
               disabled={!workspaceRunId}
               title={
                 workspaceRunId
-                  ? "查看本次会话写入工作区的改动"
-                  : "本次会话还没有工作区"
+                  ? chatT("查看本次会话写入工作区的改动", "Xem thay đổi được ghi vào workspace trong cuộc trò chuyện này")
+                  : chatT("本次会话还没有工作区", "Cuộc trò chuyện này chưa có workspace")
               }
             >
               <HarnessIcon name="edit" size={14} />
-              <span>改动</span>
+              <span>{chatT("改动", "Thay đổi")}</span>
               <small>{workspaceChanges?.files?.length || 0}</small>
             </button>
             <button
@@ -478,12 +479,12 @@ export default function ArtifactPanel({
               disabled={!workspaceRunId}
               title={
                 workspaceRunId
-                  ? "实时查看并操作 Agent 正在用的浏览器"
-                  : "本次会话还没有工作区"
+                  ? chatT("实时查看并操作 Agent 正在用的浏览器", "Xem và thao tác trực tiếp trình duyệt mà tác tử đang dùng")
+                  : chatT("本次会话还没有工作区", "Cuộc trò chuyện này chưa có workspace")
               }
             >
               <HarnessIcon name="stage-browser" size={14} />
-              <span>浏览器</span>
+              <span>{chatT("浏览器", "Trình duyệt")}</span>
             </button>
             <button
               type="button"
@@ -494,8 +495,8 @@ export default function ArtifactPanel({
               disabled={!workspaceRunId}
               title={
                 workspaceRunId
-                  ? "在 VS Code 里浏览、编辑本次会话的工作区"
-                  : "本次会话还没有工作区"
+                  ? chatT("在 VS Code 里浏览、编辑本次会话的工作区", "Duyệt và sửa workspace của cuộc trò chuyện này trong VS Code")
+                  : chatT("本次会话还没有工作区", "Cuộc trò chuyện này chưa có workspace")
               }
             >
               <HarnessIcon name="stage-ide" size={14} />
@@ -507,14 +508,14 @@ export default function ArtifactPanel({
               <button
                 type="button"
                 className="artifact-panel-back-to-chat"
-                aria-label="返回聊天"
+                aria-label={chatT("返回聊天", "Quay lại trò chuyện")}
                 onClick={onClose}
               >
                 <HarnessIcon name="arrow-left" size={16} />
-                <span>返回聊天</span>
+                <span>{chatT("返回聊天", "Quay lại trò chuyện")}</span>
               </button>
             ) : (
-              <IconButton label="关闭产物侧栏" onClick={onClose}>
+              <IconButton label={chatT("关闭产物侧栏", "Đóng thanh bên đầu ra")} onClick={onClose}>
                 <X size={16} />
               </IconButton>
             )}
@@ -528,7 +529,7 @@ export default function ArtifactPanel({
               onClick={() => (nodeId ? setNodeId(null) : setSelected(null))}
             >
               <ChevronLeft size={14} />
-              <span>{nodeId ? "返回流程节点" : "返回产物列表"}</span>
+              <span>{nodeId ? chatT("返回流程节点", "Quay lại bước quy trình") : chatT("返回产物列表", "Quay lại danh sách đầu ra")}</span>
             </button>
             {nodeId ? <span className="artifact-node-title">{nodeDefinition?.name || nodeId}</span> : null}
             {selectedAgent ? (
@@ -557,8 +558,8 @@ export default function ArtifactPanel({
               <input
                 ref={searchInput}
                 type="search"
-                aria-label="搜索产物"
-                placeholder="搜索产物"
+                aria-label={chatT("搜索产物", "Tìm sản phẩm đầu ra")}
+                placeholder={chatT("搜索产物", "Tìm sản phẩm đầu ra")}
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 onKeyDown={(event) => {
@@ -571,7 +572,7 @@ export default function ArtifactPanel({
               />
               {search ? (
                 <IconButton
-                  label="清空产物搜索"
+                  label={chatT("清空产物搜索", "Xóa tìm kiếm đầu ra")}
                   onClick={() => {
                     setSearch("");
                     searchInput.current?.focus();
@@ -583,7 +584,7 @@ export default function ArtifactPanel({
             </label>
             {query ? (
               <span className="artifact-search-count" role="status">
-                {matchCount} 项
+                {matchCount} {chatT("项", "mục")}
               </span>
             ) : null}
           </div>
@@ -604,7 +605,7 @@ export default function ArtifactPanel({
             ) : (
               <div className="agent-browser-empty" role="status">
                 <HarnessIcon name="stage-ide" size={28} />
-                <p>本次会话还没有工作区。让助手打开工作区后，可以在这里用 VS Code 浏览和编辑它的代码。</p>
+                <p>{chatT("本次会话还没有工作区。让助手打开工作区后，可以在这里用 VS Code 浏览和编辑它的代码。", "Cuộc trò chuyện này chưa có workspace. Sau khi trợ lý mở workspace, có thể dùng VS Code tại đây để duyệt và sửa mã.")}</p>
               </div>
             )}
           </div>
@@ -630,7 +631,7 @@ export default function ArtifactPanel({
             ) : (
               <div className="agent-browser-empty" role="status">
                 <HarnessIcon name="stage-browser" size={28} />
-                <p>本次会话还没有工作区。让助手打开工作区或网页后，可以在这里实时查看和操作它用的浏览器。</p>
+                <p>{chatT("本次会话还没有工作区。让助手打开工作区或网页后，可以在这里实时查看和操作它用的浏览器。", "Cuộc trò chuyện này chưa có workspace. Sau khi trợ lý mở workspace hoặc trang web, có thể xem và thao tác trực tiếp trình duyệt của nó tại đây.")}</p>
               </div>
             )}
           </div>
@@ -656,7 +657,7 @@ export default function ArtifactPanel({
           ) : selected?.kind === "subagent" ? (
             <div className="artifact-panel-empty" role="status">
               <HarnessIcon name="user" size={28} />
-              <p>这个子 Agent 的记录已不在当前对话里。</p>
+              <p>{chatT("这个子 Agent 的记录已不在当前对话里。", "Bản ghi tác tử con này không còn trong cuộc trò chuyện hiện tại.")}</p>
             </div>
           ) : selected ? (
             <div className="artifact-panel-preview">
@@ -689,25 +690,25 @@ export default function ArtifactPanel({
             <>
               {visibleMergeRequests.length ? (
                 <section className="artifact-section">
-                  <h3>合并请求</h3>
+                  <h3>{chatT("合并请求", "Yêu cầu hợp nhất")}</h3>
                   {visibleMergeRequests.map(row)}
                 </section>
               ) : null}
               {visibleItems.length ? (
                 <section className="artifact-section">
-                  <h3>文件</h3>
+                  <h3>{chatT("文件", "Tệp")}</h3>
                   {visibleItems.map(row)}
                 </section>
               ) : null}
               {visibleDefinitions.length ? (
                 <section className="artifact-section">
-                  <h3>SOP 与角色</h3>
+                  <h3>{chatT("SOP 与角色", "SOP và vai trò")}</h3>
                   {visibleDefinitions.map(row)}
                 </section>
               ) : null}
               {visibleRuns.length ? (
                 <section className="artifact-section">
-                  <h3>SOP 运行</h3>
+                  <h3>{chatT("SOP 运行", "Lượt chạy SOP")}</h3>
                   {visibleRuns.map((run) => (
                     <button
                       type="button"
@@ -718,7 +719,7 @@ export default function ArtifactPanel({
                           kind: "run",
                           id: run.id,
                           runId: run.id,
-                          name: run.workflowSnapshot?.name || "SOP 运行",
+                          name: run.workflowSnapshot?.name || chatT("SOP 运行", "Lượt chạy SOP"),
                         })
                       }
                     >
@@ -727,7 +728,7 @@ export default function ArtifactPanel({
                       </span>
                       <span className="artifact-file-copy">
                         <strong>
-                          {run.workflowSnapshot?.name || "SOP 运行"}
+                          {run.workflowSnapshot?.name || chatT("SOP 运行", "Lượt chạy SOP")}
                         </strong>
                         <small>
                           <i
@@ -739,7 +740,7 @@ export default function ArtifactPanel({
                               (item) => item.status === "succeeded",
                             ).length
                           }
-                          /{run.workflowSnapshot?.nodes?.length || 0} 节点
+                          /{run.workflowSnapshot?.nodes?.length || 0} {chatT("节点", "bước")}
                         </small>
                       </span>
                       <ChevronRight className="artifact-row-action" size={13} />
@@ -749,7 +750,7 @@ export default function ArtifactPanel({
               ) : null}
               {visibleSubagents.length ? (
                 <section className="artifact-section">
-                  <h3>子 Agent</h3>
+                  <h3>{chatT("子 Agent", "Tác tử con")}</h3>
                   {visibleSubagents.map((agent) => {
                     const status = subagentStatus(agent, live);
                     const count = agent.dispatches.length;
@@ -780,8 +781,8 @@ export default function ArtifactPanel({
                           <small>
                             <i className={`artifact-run-dot status-${{ done: "succeeded", running: "running", failed: "failed" }[status.tone] || "canceled"}`} />
                             {status.label}
-                            {agent.model ? ` · 模型 ${agent.model}` : ""}
-                            {count > 1 ? ` · 派发 ${count} 次` : ""}
+                            {agent.model ? chatT(` · 模型 ${agent.model}`, ` · Mô hình ${agent.model}`) : ""}
+                            {count > 1 ? chatT(` · 派发 ${count} 次`, ` · Điều phối ${count} lần`) : ""}
                             {agent.dispatches.at(-1)?.detail
                               ? ` · ${agent.dispatches.at(-1).detail}`
                               : ""}
@@ -795,14 +796,14 @@ export default function ArtifactPanel({
               ) : null}
               {visibleOperations.length ? (
                 <section className="artifact-section">
-                  <h3>待确认操作</h3>
+                  <h3>{chatT("待确认操作", "Thao tác chờ xác nhận")}</h3>
                   {visibleOperations.map(row)}
                 </section>
               ) : null}
               {!matchCount ? (
                 <div className="artifact-panel-empty" role="status">
                   <HarnessIcon name="artifact" size={28} />
-                  <p>{query ? "没有匹配的产物。" : "此会话还没有产物。"}</p>
+                  <p>{query ? chatT("没有匹配的产物。", "Không có sản phẩm đầu ra phù hợp.") : chatT("此会话还没有产物。", "Cuộc trò chuyện này chưa có sản phẩm đầu ra.")}</p>
                 </div>
               ) : null}
             </>

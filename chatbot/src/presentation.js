@@ -1,3 +1,4 @@
+import { chatT } from "./locale.js";
 // The source remains editable Markdown; export produces a real OOXML deck.
 export function presentationPages(source) {
   return source
@@ -11,7 +12,7 @@ const plain = (s) =>
     .replace(/`([^`]+)`/g, "$1")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
 export function presentationTitle(source) {
-  return plain(source.match(/^#{1,6}\s+(.+)$/m)?.[1] || "演示文稿")
+  return plain(source.match(/^#{1,6}\s+(.+)$/m)?.[1] || chatT("演示文稿", "Bản trình chiếu"))
     .replace(/[\\/:*?"<>|]/g, " ")
     .slice(0, 80);
 }
@@ -20,7 +21,7 @@ export async function createPresentation(source) {
   const pptx = new PptxGenJS();
   pptx.layout = "LAYOUT_WIDE";
   pptx.author = "LoopForge";
-  pptx.subject = "会话生成的演示文稿";
+  pptx.subject = chatT("会话生成的演示文稿", "Bản trình chiếu tạo từ cuộc trò chuyện");
   pptx.title = presentationTitle(source);
   pptx.lang = "zh-CN";
   pptx.theme = {
@@ -48,7 +49,7 @@ export async function createPresentation(source) {
     const title = plain(
       titleIndex >= 0
         ? lines.splice(titleIndex, 1)[0].replace(/^#{1,6}\s+/, "")
-        : `第 ${index + 1} 页`,
+        : chatT(`第 ${index + 1} 页`, `Trang ${index + 1}`),
     );
     const color = index === 0 ? "FFFFFF" : "142B45";
     slide.addText(title, {

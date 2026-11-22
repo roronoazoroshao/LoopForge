@@ -1,3 +1,4 @@
+import { chatT } from "./locale";
 import React, { useEffect, useState } from "react";
 import HarnessIcon from "./HarnessIcon";
 import SlidingTabs from "./SlidingTabs";
@@ -7,16 +8,16 @@ import { resumeMissed } from "./activity";
 
 export function subagentStatus(agent, live) {
   const last = agent.dispatches.at(-1);
-  if (last?.failed) return { label: "失败", tone: "failed" };
+  if (last?.failed) return { label: chatT("失败", "Thất bại"), tone: "failed" };
   if (!last?.finishedAt)
     return live
-      ? { label: "运行中", tone: "running" }
-      : { label: "已中断", tone: "interrupted" };
-  return { label: "已完成", tone: "done" };
+      ? { label: chatT("运行中", "Đang chạy"), tone: "running" }
+      : { label: chatT("已中断", "Đã gián đoạn"), tone: "interrupted" };
+  return { label: chatT("已完成", "Đã hoàn tất"), tone: "done" };
 }
 
 export function subagentName(agent) {
-  return agent.role || agent.subagent || "子 Agent";
+  return agent.role || agent.subagent || chatT("子 Agent", "Tác tử con");
 }
 
 // The subagent's last paragraph is its report, which also comes back as the
@@ -59,17 +60,17 @@ export function SubagentSession({ agent, live = false, artifacts = [], onOpenArt
   return (
     <section
       className="sop-run-embedded sop-run-panel node-conversation-view subagent-session"
-      aria-label="子 Agent 会话"
+      aria-label={chatT("子 Agent 会话", "Cuộc trò chuyện tác tử con")}
     >
       <div className="sop-panel-scroll">
-        <SlidingTabs className="node-tabs" aria-label="子 Agent 详情">
+        <SlidingTabs className="node-tabs" aria-label={chatT("子 Agent 详情", "Chi tiết tác tử con")}>
           <button
             role="tab"
             aria-selected={tab === "conversation"}
             onClick={() => setTab("conversation")}
           >
             <HarnessIcon name="chat" size={14} />
-            会话过程
+            {chatT("会话过程", "Quá trình trò chuyện")}
           </button>
           <button
             role="tab"
@@ -77,7 +78,7 @@ export function SubagentSession({ agent, live = false, artifacts = [], onOpenArt
             onClick={() => setTab("artifacts")}
           >
             <HarnessIcon name="doc" size={14} />
-            产物 {published.length || ""}
+            {chatT("产物", "Sản phẩm đầu ra")} {published.length || ""}
           </button>
         </SlidingTabs>
         {tab === "conversation" ? (
@@ -90,20 +91,20 @@ export function SubagentSession({ agent, live = false, artifacts = [], onOpenArt
                   {step.input || step.detail ? (
                     <article
                       className="node-message node-message-user"
-                      aria-label="收到的任务"
+                      aria-label={chatT("收到的任务", "Tác vụ đã nhận")}
                     >
-                      <span className="node-message-sender">AI 助手</span>
+                      <span className="node-message-sender">{chatT("AI 助手", "Trợ lý AI")}</span>
                       <RichContent message={step.input || step.detail} />
                     </article>
                   ) : null}
                   {agent.models?.[step.id] ? (
-                    <p className="muted subagent-model" aria-label="运行模型">
-                      模型 · {agent.models[step.id]}
+                    <p className="muted subagent-model" aria-label={chatT("运行模型", "Mô hình thực thi")}>
+                      {chatT("模型", "Mô hình")} · {agent.models[step.id]}
                     </p>
                   ) : null}
                   {resumeMissed(step) ? (
                     <p className="muted subagent-resume-missed" role="note">
-                      复用未生效：没有接着 {step.resumed} 做，已新开子 Agent。
+                      {chatT(`复用未生效：没有接着 ${step.resumed} 做，已新开子 Agent。`, `Không tái sử dụng được: chưa tiếp tục ${step.resumed}, đã mở tác tử con mới.`)}
                     </p>
                   ) : null}
                   {steps.length || running ? (
@@ -118,12 +119,12 @@ export function SubagentSession({ agent, live = false, artifacts = [], onOpenArt
                   {step.output ? (
                     <article
                       className="node-message node-message-assistant node-result"
-                      aria-label="子 Agent 汇报"
+                      aria-label={chatT("子 Agent 汇报", "Báo cáo tác tử con")}
                     >
                       <RichContent message={step.output} />
                     </article>
                   ) : step.failed ? (
-                    <p className="error">这次派发失败了。</p>
+                    <p className="error">{chatT("这次派发失败了。", "Lượt điều phối này thất bại.")}</p>
                   ) : null}
                 </React.Fragment>
               );
@@ -151,13 +152,13 @@ export function SubagentSession({ agent, live = false, artifacts = [], onOpenArt
                   <HarnessIcon name={missing ? "alert" : "doc"} size={17} />
                   <span>
                     <strong>{title}</strong>
-                    <small>{missing ? "缺少必需交付物" : pending ? "交付物 · 回复完成后可打开" : source}</small>
+                    <small>{missing ? chatT("缺少必需交付物", "Thiếu sản phẩm bàn giao bắt buộc") : pending ? chatT("交付物 · 回复完成后可打开", "Sản phẩm bàn giao · có thể mở sau khi phản hồi hoàn tất") : source}</small>
                   </span>
                 </div>
               ),
             )}
             {!published.length ? (
-              <p className="muted">这个子 Agent 没有交付物或发布的产物。</p>
+              <p className="muted">{chatT("这个子 Agent 没有交付物或发布的产物。", "Tác tử con này không có sản phẩm bàn giao hoặc đầu ra đã công bố.")}</p>
             ) : null}
           </div>
         )}

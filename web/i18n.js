@@ -1,13 +1,13 @@
-// Runtime UI translation. The app renders Chinese copy directly; in English
-// mode this layer rewrites text nodes and a few attributes as they appear,
-// using the zh→en dictionary in i18n-en.js. Chinese mode is a no-op.
+// Runtime UI translation. The app renders Chinese copy directly; in English and Vietnamese
+// modes this layer rewrites text nodes and a few attributes as they appear,
+// using the zh→en dictionary in i18n-en.js. Vietnamese falls back to English for future missing entries; Chinese mode is a no-op.
 (() => {
   const root = document.documentElement;
-  const lang = root.dataset.lang === 'en' ? 'en' : 'zh';
+  const lang = ['en', 'vi'].includes(root.dataset.lang) ? root.dataset.lang : 'zh';
   window.lfLang = () => lang;
   window.lfSetLang = next => {
-    const value = next === 'en' ? 'en' : 'zh';
-    const current = root.dataset.lang === 'en' ? 'en' : 'zh';
+    const value = ['en', 'vi'].includes(next) ? next : 'zh';
+    const current = ['en', 'vi'].includes(root.dataset.lang) ? root.dataset.lang : 'zh';
     if (value === current || root.classList.contains('lang-leaving')) return;
     try { localStorage.setItem('loopforge.lang', value); } catch { /* A blocked store keeps the previous language after reload. */ }
     const groups = [...document.querySelectorAll('.lang-switch')];
@@ -32,10 +32,10 @@
     }
     setTimeout(finish, 560);
   };
-  window.lfT = (zh, en) => (lang === 'en' ? en : zh);
+  window.lfT = (zh, en) => lang === 'vi' ? (window.LF_I18N_VI?.[zh] ?? en ?? zh) : (lang === 'en' ? en : zh);
 
   function bindLangSwitch() {
-    const current = root.dataset.lang === 'en' ? 'en' : 'zh';
+    const current = ['en', 'vi'].includes(root.dataset.lang) ? root.dataset.lang : 'zh';
     document.querySelectorAll('.lang-switch').forEach(group => {
       group.querySelectorAll('[data-lang-value]').forEach(btn => {
         const on = btn.dataset.langValue === current;
@@ -83,9 +83,9 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startLangMotion, { once: true });
   else startLangMotion();
 
-  if (lang !== 'en') return;
+  if (lang === 'zh') return;
 
-  const dict = window.LF_I18N_EN || {};
+  const dict = lang === 'vi' ? {...(window.LF_I18N_EN || {}), ...(window.LF_I18N_VI || {})} : (window.LF_I18N_EN || {});
   const HAN = /[\u3400-\u9fff\u300c\u300d\uff0c\u3002\uff1a\uff08\uff09\u3001\uff1b\uff01\uff1f]/;
   const SKIP = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'CODE', 'PRE', 'NOSCRIPT']);
   const SKIP_SEL = '[data-i18n-skip],.monaco-editor,.xterm,.log-line,.run-log,.markdown-body,[contenteditable="true"]';
@@ -99,15 +99,16 @@
   const sentences = fragments.filter(k => k.length >= 6 && HAN.test(k));
   const sentenceRE = sentences.length ? new RegExp(sentences.map(escape).join('|'), 'g') : null;
   const punct = [[/，/g, ', '], [/。/g, '. '], [/：/g, ': '], [/；/g, '; '], [/、/g, ', '], [/！/g, '! '], [/？/g, '? '], [/（/g, ' ('], [/）/g, ') '], [/「|」/g, '"'], [/『|』/g, '"']];
+  const isVi = lang === 'vi';
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const UNITS = {次: ['time', 'times'], 步: ['step', 'steps'], 个: ['', ''], 台: ['', ''], 条: ['', '']};
+  const UNITS = isVi ? {次: ['lần', 'lần'], 步: ['bước', 'bước'], 个: ['', ''], 台: ['máy', 'máy'], 条: ['', '']} : {次: ['time', 'times'], 步: ['step', 'steps'], 个: ['', ''], 台: ['', ''], 条: ['', '']};
   const patterns = [
-    [/第\s*(\d+)\s*(?:阶段|Stage)/g, 'Stage $1'],
-    [/第\s*(\d+)\s*(?:轮|Round)/g, 'Round $1'],
-    [/ · (高|中|低) · /g, (_, p) => ` · ${{高: 'High', 中: 'Medium', 低: 'Low'}[p]} · `],
-    [/入\s*(\d+)\s*\/\s*出\s*(\d+)/g, 'In $1 / Out $2'],
-    [/(\d{4})年(\d{1,2})月/g, (_, y, m) => `${MONTHS[m - 1] || m} ${y}`],
-    [/(^|[^\d])(\d{1,2})月(?![\u3400-\u9fff])/g, (_, pre, m) => pre + (MONTHS[m - 1] || m)],
+    [/第\s*(\d+)\s*(?:阶段|Stage)/g, isVi ? 'Giai đoạn $1' : 'Stage $1'],
+    [/第\s*(\d+)\s*(?:轮|Round)/g, isVi ? 'Lượt $1' : 'Round $1'],
+    [/ · (高|中|低) · /g, (_, p) => ` · ${(isVi ? {高: 'Cao', 中: 'Trung bình', 低: 'Thấp'} : {高: 'High', 中: 'Medium', 低: 'Low'})[p]} · `],
+    [/入\s*(\d+)\s*\/\s*出\s*(\d+)/g, isVi ? 'Vào $1 / Ra $2' : 'In $1 / Out $2'],
+    [/(\d{4})年(\d{1,2})月/g, (_, y, m) => isVi ? `Tháng ${Number(m)}/${y}` : `${MONTHS[m - 1] || m} ${y}`],
+    [/(^|[^\d])(\d{1,2})月(?![\u3400-\u9fff])/g, (_, pre, m) => pre + (isVi ? `Tháng ${Number(m)}` : (MONTHS[m - 1] || m))],
     [/共\s*(\d+)\s*(?=[A-Za-z])/g, '$1 '],
     [/(\d{4}-\d{2}-\d{2})\s*至\s*(\d{4}-\d{2}-\d{2})/g, '$1 – $2'],
     [/(\d+(?:\.\d+)?)\s*(次|步|个|台|条)(?![\u3400-\u9fff])/g, (_, n, u) => {
@@ -119,7 +120,7 @@
 
   function translateExact(text) {
     const trimmed = text && text.trim();
-    return trimmed && Object.prototype.hasOwnProperty.call(dict, trimmed) ? text.replace(trimmed, dict[trimmed]) : text;
+    return trimmed && Object.prototype.hasOwnProperty.call(dict, trimmed) ? text.replace(trimmed, () => dict[trimmed]) : text;
   }
 
   function translate(text) {
@@ -129,11 +130,14 @@
     const trimmed = text.trim();
     let out;
     if (Object.prototype.hasOwnProperty.call(dict, trimmed)) {
-      out = text.replace(trimmed, dict[trimmed]);
+      out = text.replace(trimmed, () => dict[trimmed]);
     } else {
-      out = fragmentRE ? text.replace(fragmentRE, m => dict[m]) : text;
+      out = text;
+      // Vietnamese dynamic phrases must be matched before fragments consume their units.
+      if (isVi) for (const [re, rep] of patterns) out = out.replace(re, rep);
+      if (fragmentRE && HAN.test(out)) out = out.replace(fragmentRE, m => dict[m]);
       if (sentenceRE && HAN.test(out)) out = out.replace(sentenceRE, m => dict[m]);
-      for (const [re, rep] of patterns) out = out.replace(re, rep);
+      if (!isVi) for (const [re, rep] of patterns) out = out.replace(re, rep);
     }
     if (out !== text) {
       for (const [re, rep] of punct) out = out.replace(re, rep);
