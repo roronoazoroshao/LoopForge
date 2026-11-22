@@ -1035,7 +1035,7 @@ function obsCountUp(el){
   };
   requestAnimationFrame(step);
 }
-function obsSourceLabel(s){return s==='gongfeng'?'Gongfeng':s==='tapd'?'TAPD':s==='local'?obsUi('本地','Cục bộ'):s==='github'?'GitHub':s||'—'}
+function obsSourceLabel(s){return s==='gongfeng'?obsUi('工蜂','Gongfeng'):s==='tapd'?'TAPD':s==='local'?obsUi('本地','Cục bộ'):s==='github'?'GitHub':s||'—'}
 function obsCategoryLabel(k){return (obsUi({requirement:'需求开发',bugfix:'Bug 修复',refactor:'技术优化',other:'其他'},{requirement:'Phát triển yêu cầu',bugfix:'Sửa lỗi',refactor:'Tối ưu kỹ thuật',other:'Khác'})[k])||k||obsUi('未分类','Chưa phân loại')}
 function obsTraceLabel(t){return [t.origin==='external'?'外部 · '+t.workflowName:obsSourceLabel(t.issueSource||'local'),t.externalId||t.issueId||t.runId].filter(Boolean).join(' ')}
 function obsOverview(){
