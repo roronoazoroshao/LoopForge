@@ -478,9 +478,9 @@ function obsFilterBar(){
   const sourceFilter=`<select id="obsSourceFilter" data-obs-select data-icon="connector" aria-label="需求来源">${sources}</select>`;
   const clear=(kind,title)=>`<button type="button" data-obs-clear-filter="${kind}" title="${title}" aria-label="${title}">${obsIcon('close',11)}</button>`;
   const chips=[];
-  if(scope==='project')chips.push(`<span class="obs-chip">${escapeHTML(obsScopeChipText('project',projectName))}</span>`);
-  else if(selected)chips.push(`<span class="obs-chip">${escapeHTML(obsScopeChipText('user',projectName,label))}${clear('user','清除责任人')}</span>`);
-  else chips.push(`<span class="obs-chip">${escapeHTML(obsScopeChipText('user',projectName))}</span>`);
+  if(scope==='project')chips.push(`<span class="obs-chip"${obsUi("", " data-i18n-data")}>${escapeHTML(obsScopeChipText('project',projectName))}</span>`);
+  else if(selected)chips.push(`<span class="obs-chip"${obsUi("", " data-i18n-data")}>${escapeHTML(obsScopeChipText('user',projectName,label))}${clear('user','清除责任人')}</span>`);
+  else chips.push(`<span class="obs-chip"${obsUi("", " data-i18n-data")}>${escapeHTML(obsScopeChipText('user',projectName))}</span>`);
   if(state.obsOriginFilter)chips.push(`<span class="obs-chip">${escapeHTML((originChoices.find(([v])=>v===state.obsOriginFilter)||[,state.obsOriginFilter])[1])}${clear('origin','清除执行来源')}</span>`);
   if(state.obsSourceFilter)chips.push(`<span class="obs-chip">${escapeHTML(obsSourceLabel(state.obsSourceFilter))}需求${clear('source','清除需求来源')}</span>`);
   if(grain!=='all'){
@@ -488,7 +488,7 @@ function obsFilterBar(){
     chips.push(`<span class="obs-chip">${escapeHTML(range?range.label:obsRangeCaption())}${clear('period','回到全部')}</span>`);
   }
   const manage=obsCanManageSources()?`<button class="obs-btn ghost" id="obsManageSources" type="button" title="外部数据源" aria-label="外部数据源">${obsIcon('integration')}<span>外部数据源</span></button>`:'';
-  return `<div class="obs-fbar"><div class="obs-fbar-row">${obsSeg('data-obs-scope',[['user','个人',0,'','user'],['project','项目',0,'','users']],scope)}${userFilter}${originFilter}${sourceFilter}<span class="obs-sp"></span>${obsSeg('data-obs-grain',[['all','全部'],['day','日'],['week','周'],['month','月']],grain)}${obsPeriodPicker()}${manage}</div><div class="obs-scopeline"><span>统计范围</span>${chips.join('')}<span class="obs-info" tabindex="0">${obsIcon('info',13)}口径说明<span class="obs-tip" role="tooltip">${escapeHTML(hint)}</span></span></div></div>`;
+  return `<div class="obs-fbar"><div class="obs-fbar-row">${obsSeg('data-obs-scope',[['user','个人',0,'','user'],['project','项目',0,'','users']],scope)}${userFilter}${originFilter}${sourceFilter}<span class="obs-sp"></span>${obsSeg('data-obs-grain',[['all','全部'],['day','日'],['week','周'],['month','月']],grain)}${obsPeriodPicker()}${manage}</div><div class="obs-scopeline"><span>统计范围</span>${chips.join('')}<span class="obs-info" tabindex="0">${obsIcon('info',13)}口径说明<span class="obs-tip" role="tooltip"${obsUi("", " data-i18n-data")}>${escapeHTML(hint)}</span></span></div></div>`;
 }
 function obsFilteredRuns(){
   let runs=scopedRuns(state.data.runs||[]);

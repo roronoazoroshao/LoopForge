@@ -196,7 +196,7 @@ function renderMCPManagement(){
   const matchedInstalled=installed.filter(item=>mcpMatchesQuery(item,query));
   const installedCount=$('#mcpInstalledCount');
   if(installedCount)installedCount.textContent=String(matchedInstalled.length);
-  hint.innerHTML=personal?`<b>个人 MCP</b><span>${escapeHTML(mcpScopeDescription(true,userDisplay(state.currentUser)||'当前用户'))}</span>`:`<b>项目 MCP</b><span>${escapeHTML(mcpScopeDescription(false,project?.name||'未选择项目'))}</span>`;
+  hint.innerHTML=personal?`<b>个人 MCP</b><span${typeof window!=='undefined'&&window.lfLang?.()==='vi'?' data-i18n-data':''}>${escapeHTML(mcpScopeDescription(true,userDisplay(state.currentUser)||'当前用户'))}</span>`:`<b>项目 MCP</b><span${typeof window!=='undefined'&&window.lfLang?.()==='vi'?' data-i18n-data':''}>${escapeHTML(mcpScopeDescription(false,project?.name||'未选择项目'))}</span>`;
   if(personal&&(!state.currentUser||state.currentUser.isGuest)){grid.innerHTML='<div class="mcp-market-empty"><b>登录后才能管理个人 MCP</b><p>项目级 MCP 仍可在当前项目中管理。</p></div>';return}
   const pagedMCP=paginateList('mcp',matchedInstalled);
   const catalog=personal?'':mcpCatalogSuggestionsHTML(installed,query);

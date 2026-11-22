@@ -1,15 +1,22 @@
 # Vietnamese localization release checklist / Điều kiện phát hành tiếng Việt
 
-This branch is an **incomplete preview**, not a complete Vietnamese release. Source baseline: `a458320ec989c9dbc08a3c4987a63498ff2c87d2`.
+The merged Vietnamese localization is an **incomplete preview**, not a complete Vietnamese release. Source baseline: `a458320ec989c9dbc08a3c4987a63498ff2c87d2`.
 
 ## Current evidence
 
-- The English runtime catalogue contains 4615 distinct source keys. The Vietnamese catalogue contains all 4615 source keys (100% key coverage, zero missing, empty, or unknown keys). This measures catalogue entries, not UI or semantic coverage.
+- The English runtime catalogue contains 5330 distinct source keys. The Vietnamese catalogue contains all 5330 source keys (100% key coverage, zero missing, empty, or unknown keys). This measures catalogue entries, not UI or semantic coverage.
 - Preview selection uses the existing `loopforge.lang` storage preference; the document language is `vi-VN`. Existing Chinese and English preferences remain supported.
 - The React workbench uses explicit UI string translations. Agent prompts, user data, identifiers, filenames and API contracts must not be automatically rewritten.
 - Fifteen Vietnamese Markdown translations exist, including the README, contribution and security policies, deployment guide, architecture, four Local guides and all six API index/detail documents. Other technical documents remain untranslated.
 - Four localized README SVGs exist (hero and SOP flow, light and dark). Screenshots and videos retain their source languages; visual QA is not yet complete.
 - Isolated JavaScript smoke checks of boot, language selection, fallback, existing locale behavior and nine Vietnamese dynamic formats were performed. Placeholder and newline comparisons found no remaining mismatches. Complete CI, browser visual checks and independent human expert review have **not** been verified.
+
+## Screenshot-driven follow-up (2026-11-22)
+
+- Added 715 previously uncatalogued keys from the console, including execution machines, projects, access keys, channels, capability assets, assistant settings, requirements, run details and usage analytics.
+- Explicitly localized dynamic scope sentences in MCP and usage analytics and the chatbot machine-refresh action. Preserve project/user names, HTML escaping and existing command/API identifiers.
+- Focused regression fixtures cover 60 previously untranslated labels, 10 dynamic scope scenarios, and the static HTML text/attribute inventory. These are not browser screenshots or a complete UI inventory.
+- Full CI and real-browser QA remain outstanding. The owner's requested merge is a preview integration, not a production readiness approval.
 
 ## Completion gates
 

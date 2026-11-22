@@ -342,3 +342,13 @@ test('Vietnamese translates previously uncatalogued settings and dashboard label
   ]
 ]) assert.equal(window.lfTranslate(source), expected, source);
 });
+
+// Inventory the static HTML text/attribute subset, including decoded line breaks.
+// Dynamic templates and React strings require separate tests.
+test('static console labels and attributes have Vietnamese catalogue entries', () => {
+  const { window } = fixture('vi');
+  const html = load('index.html');
+  const matches = [...html.matchAll(/>([^<>{}\n]*[\u3400-\u9fff][^<>{}\n]*)</g), ...html.matchAll(/(?:placeholder|aria-label|title|data-meta)="([^"]*[\u3400-\u9fff][^"]*)"/g)];
+  const missing = [...new Set(matches.map(match => match[1].trim().replaceAll('&#10;', '\n')).filter(source => source.length < 220 && !Object.hasOwn(window.LF_I18N_VI, source)))];
+  assert.deepEqual(missing, []);
+});
