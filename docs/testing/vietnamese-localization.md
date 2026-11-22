@@ -79,3 +79,7 @@ Localized Workbench relative-time labels, dynamic room SOP dispatch prompts, rew
 ### Static Web Workbench, bot and collaboration UI pass
 
 Added 59 complete EN/VI catalogue entries covering accessible labels, bot setup, room workflows, Web Workbench states and conversation suggestions. The four predefined example prompts are translated at generation time (not merely in the DOM), so pressing them sends Vietnamese in Vietnamese mode and leaves the original Chinese strings for the other existing mode. Placeholder and catalogue parity checked by isolated execution. Full runner/browser checks remain deferred.
+
+### Standalone routes
+
+`/vscode.html`, `/bot-bind.html`, and `/gongfeng-oauth-done.html` previously omitted `boot.js` and the i18n runtime, so Web catalogue additions could not localize those routes. All three now load locale initialization, EN/VI catalogues and DOM translator in script order before their page scripts. Added 47 reviewed labels; account names and binding codes remain unchanged. Source-level script order checks pass, but Content Security Policy, iframe behavior, full VS Code vendor locale and real-browser checks remain unverified.
