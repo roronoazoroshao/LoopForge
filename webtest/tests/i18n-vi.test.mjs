@@ -51,3 +51,10 @@ test('Vietnamese catalogue only contains real source keys and nonempty translati
   }
   assert.ok(Object.keys(window.LF_I18N_VI).length > 100);
 });
+
+test('Vietnamese falls back to English for a real untranslated catalogue entry', () => {
+  const { window } = fixture('vi');
+  const key = Object.keys(window.LF_I18N_EN).find(key => !Object.hasOwn(window.LF_I18N_VI, key));
+  // A complete catalogue will have no fallback entry left.
+  if (key) assert.equal(window.lfTranslate(key), window.LF_I18N_EN[key]);
+});
