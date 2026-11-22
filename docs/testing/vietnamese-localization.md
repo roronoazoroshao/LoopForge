@@ -83,3 +83,7 @@ Added 59 complete EN/VI catalogue entries covering accessible labels, bot setup,
 ### Standalone routes
 
 `/vscode.html`, `/bot-bind.html`, and `/gongfeng-oauth-done.html` previously omitted `boot.js` and the i18n runtime, so Web catalogue additions could not localize those routes. All three now load locale initialization, EN/VI catalogues and DOM translator in script order before their page scripts. Added 47 reviewed labels; account names and binding codes remain unchanged. Source-level script order checks pass, but Content Security Policy, iframe behavior, full VS Code vendor locale and real-browser checks remain unverified.
+
+### Shared tasks and scheduled execution dynamics
+
+Scheduled execution statuses now localize the authored prefix without modifying raw server diagnostics; pinned-conversation text and shared-subscription project scope are authored in Vietnamese before DOM rendering. Parameter metadata retains its technical identifiers and defaults while localizing required markers and counter labels. Isolated source evaluations checked Vietnamese, Chinese and raw-data preservation; full runner, preview API and browser remain unverified.
