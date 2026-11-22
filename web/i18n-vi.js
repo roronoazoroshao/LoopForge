@@ -6298,3 +6298,15 @@ Object.assign(window.LF_I18N_VI, {
   "共享任务版本不存在": "Không tìm thấy phiên bản tác vụ dùng chung.",
   "只有项目 Owner 或平台管理员可以编辑项目": "Chỉ chủ dự án hoặc quản trị viên nền tảng được chỉnh sửa dự án."
 });
+
+// Remaining static Web HTML labels, help text, and TAPD example placeholders.
+Object.assign(window.LF_I18N_VI, {
+  "用 {{params.days}} 引用下方参数，例如“检查超过 {{params.days}} 天未更新的需求”。发布内容对平台登录用户可见。": "Dùng {{params.days}} để tham chiếu tham số bên dưới, ví dụ “Kiểm tra yêu cầu chưa được cập nhật quá {{params.days}} ngày”. Nội dung phát hành hiển thị với người dùng đã đăng nhập nền tảng.",
+  "运行沙箱 · 点击修改": "Sandbox thực thi · Nhấn để thay đổi",
+  "放弃修改，恢复到上次保存": "Hủy thay đổi và khôi phục phiên bản đã lưu gần nhất",
+  "缩小": "Thu nhỏ",
+  "重置为 100%": "Đặt lại về 100%",
+  "适应视图": "Vừa khung nhìn",
+  "小地图": "Bản đồ thu nhỏ",
+  "【工作项标题】&#10;https://www.tapd.cn/tapd_fe/…/story/detail/…": "[Tiêu đề hạng mục]&#10;https://www.tapd.cn/tapd_fe/…/story/detail/…"
+});

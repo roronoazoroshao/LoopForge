@@ -1962,3 +1962,15 @@ Object.assign(window.LF_I18N_EN, {
   "共享任务版本不存在": "Shared task version not found.",
   "只有项目 Owner 或平台管理员可以编辑项目": "Only the project owner or platform admin can edit the project."
 });
+
+// Remaining static Web HTML labels, help text, and TAPD example placeholders.
+Object.assign(window.LF_I18N_EN, {
+  "用 {{params.days}} 引用下方参数，例如“检查超过 {{params.days}} 天未更新的需求”。发布内容对平台登录用户可见。": "Use {{params.days}} to reference the parameters below, for example “Check requests not updated for more than {{params.days}} days”. Published content is visible to signed-in platform users.",
+  "运行沙箱 · 点击修改": "Execution sandbox · click to edit",
+  "放弃修改，恢复到上次保存": "Discard changes and restore the last saved version",
+  "缩小": "Zoom out",
+  "重置为 100%": "Reset to 100%",
+  "适应视图": "Fit view",
+  "小地图": "Minimap",
+  "【工作项标题】&#10;https://www.tapd.cn/tapd_fe/…/story/detail/…": "[Work item title]&#10;https://www.tapd.cn/tapd_fe/…/story/detail/…"
+});

@@ -175,3 +175,7 @@ Localized SkillHub filter/empty/error UI at source (including Vietnamese number 
 ### React mention picker and fallback labels
 
 Mention category and hint copy now uses explicit VI metadata while retaining stable API type values and user-provided reference names. The local workspace-file preview label, workspace-unavailable fallback, default conversation title, and attachment-only user prompt are generated in Vietnamese. Isolated JS fixtures checked VI/ZH output and unchanged reference identifiers; JSX code was reviewed without a full bundler, pending the deferred runner/E2E gates.
+
+### Static HTML coverage audit
+
+Reviewed static Chinese text nodes and attributes in the five standalone Web HTML pages through the actual i18n translator. Added exact Vietnamese/English coverage for canvas zoom/minimap tooltips, sandbox/discard hints, a shared-task parameter guide and the TAPD work-item placeholder. The language switch label `中文 / English / Tiếng Việt` intentionally remains multilingual. The audit only covers authored HTML literals, not dynamic rendering or browser behavior.
