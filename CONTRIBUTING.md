@@ -1,5 +1,7 @@
 # Contributing
 
+[Tiếng Việt](CONTRIBUTING.vi-VN.md) · [简体中文](CONTRIBUTING.zh-CN.md)
+
 LoopForge has a platform at the repository root and a complementary local workflow edition in `local/`. Read the applicable `AGENTS.md` before changing either.
 
 For platform changes, preserve upstream engine, repository and handler boundaries. Keep identity, provider and deployment adaptations explicit. Add a regression test for a behavioral fix and document schema or runner-protocol compatibility changes.

@@ -1,6 +1,6 @@
 # Security Policy
 
-English | [简体中文](SECURITY.zh-CN.md)
+English | [简体中文](SECURITY.zh-CN.md) | [Tiếng Việt](SECURITY.vi-VN.md)
 
 ## Reporting a vulnerability
 
