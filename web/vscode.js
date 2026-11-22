@@ -107,7 +107,7 @@
       const el = document.createElement('script');
       el.src = src;
       el.onload = () => resolve();
-      el.onerror = () => reject(new Error('加载失败: ' + src));
+      el.onerror = () => reject(new Error(window.lfT("加载失败: ", "Failed to load: ", "Không tải được: ") + src));
       document.head.appendChild(el);
     });
   }
@@ -251,13 +251,15 @@
         },
         windowIndicator: {
           label: `$(remote) SOP ${runId.slice(-12)}`,
-          tooltip: workspaceReadOnly ? '任务工作区 · 只读' : '任务工作区 · 可读写及交互式终端',
+          tooltip: workspaceReadOnly
+            ? window.lfT("任务工作区 · 只读", "Task workspace · read-only", "Không gian làm việc tác vụ · chỉ đọc")
+            : window.lfT("任务工作区 · 可读写及交互式终端", "Task workspace · read/write and interactive terminal", "Không gian làm việc tác vụ · đọc/ghi và terminal tương tác"),
           command: embedded ? 'agentflow.popout' : undefined
         },
         commands: [
           {
             id: 'agentflow.popout',
-            label: '在新窗口打开 VS Code',
+            label: window.lfT("在新窗口打开 VS Code", "Open VS Code in a new window", "Mở VS Code trong cửa sổ mới"),
             menu: 1,
             handler: () => {
               if (embedded) postParent('popout');
@@ -266,7 +268,7 @@
           },
           {
             id: 'agentflow.maximize',
-            label: '沉浸模式',
+            label: window.lfT("沉浸模式", "Immersive mode", "Chế độ tập trung"),
             menu: 1,
             handler: () => postParent('maximize')
           }
