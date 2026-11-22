@@ -1,3 +1,5 @@
+function revisionVI(){return typeof window!=='undefined'&&window.lfLang?.()==='vi'}
+function revisionCopy(zh,vi){return revisionVI()?vi:zh}
 async function importMcpJsonFile(e){
   const file=e.target.files&&e.target.files[0];if(e.target)e.target.value='';
   if(!file)return;
@@ -5,14 +7,14 @@ async function importMcpJsonFile(e){
     const data=JSON.parse(await file.text());
     const res=await api('/api/mcp-servers/import',{method:'POST',body:JSON.stringify(data)});
     (res.servers||[]).forEach(v=>{const i=(state.data.mcpServers||[]).findIndex(x=>x.id===v.id);if(i>=0)state.data.mcpServers[i]=v;else state.data.mcpServers.push(v)});
-    state.assetType='mcpServers';state.selectedAsset=res.servers?.[0]?.id||state.selectedAsset;renderAssets();toast(`已导入 ${res.imported} 个 MCP`);
+    state.assetType='mcpServers';state.selectedAsset=res.servers?.[0]?.id||state.selectedAsset;renderAssets();toast(revisionCopy(`已导入 ${res.imported} 个 MCP`,`Đã nhập ${res.imported} MCP`),'info',2600,revisionVI());
   }catch(err){toast(err.message||'JSON 无效')}
 }
 function closeRevisionHistory(){$('#revisionModal')?.classList.remove('open');state.revisionSelected=null}
 async function openRevisionHistory(kind,id,name){
   if(!id)return toast('先保存再看历史');
   state.revisionKind=kind;state.revisionEntity=id;state.revisionSelected=null;
-  $('#revisionTitle').textContent=`${name||id} 的版本历史`;
+  const title=$('#revisionTitle');if(revisionVI())title.setAttribute?.('data-i18n-skip','');else title.removeAttribute?.('data-i18n-skip');title.textContent=revisionCopy(`${name||id} 的版本历史`,`Lịch sử phiên bản: ${name||id}`);
   const items=await api(kind==='workflow'?`/api/workflows/${encodeURIComponent(id)}/revisions`:`/api/agents/${encodeURIComponent(id)}/revisions`);
   state.revisionItems=items||[];
   $('#revisionList').innerHTML=items.length?items.map(r=>`<button type="button" class="revision-item" data-rev="${escapeHTML(r.id)}"><b>${escapeHTML(r.summary||r.name)}</b><small>v${r.version}${r.revision?` · #${r.revision}`:''} · ${new Date(r.createdAt).toLocaleString()}</small></button>`).join(''):'<p class="prop-hint">还没有历史。保存一次修改后才会留下上一版。</p>';

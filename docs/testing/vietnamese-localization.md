@@ -91,3 +91,7 @@ Scheduled execution statuses now localize the authored prefix without modifying 
 ### Static scheduling and integration labels
 
 Reviewed 51 additional EN/VI UI keys for scheduled execution, runtime operations, SkillHub, shared subscriptions, analytics and standalone status messages. Catalogue invariants were checked directly: zero empty/missing entries and no placeholder mismatch; this is not a claim of runtime-wide or semantic coverage.
+
+### Runtime machinery, SOP KPI and revision source audit
+
+Runner concurrency and default machine status, relative heartbeat time, update and removal confirmations, SOP catalogue metrics and project ownership, repository save feedback and revision history titles are explicitly authored in Vietnamese at source. Dynamic names, workflow and runner IDs, raw diagnostics and API payloads retain original meaning; protected prelocalized confirmations prevent second-pass mutation. Focused isolated checks confirmed Vietnamese Runner/metric copy and unchanged Chinese defaults; full tests and browser QA remain deferred.

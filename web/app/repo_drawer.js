@@ -1,5 +1,7 @@
 // Repository add/edit drawer for the project detail page. Saves write straight
 // to /api/repositories; #repositoryModal stays for its other callers.
+function repoDrawerVI(){return typeof window!=='undefined'&&window.lfLang?.()==='vi'}
+function repoDrawerCopy(zh,vi){return repoDrawerVI()?vi:zh}
 const repoDrawerState={projectId:'',repoId:'',nameTouched:false,saving:false,returnFocus:null};
 function repoDrawerOpen(){return !!$('#repoDrawer')?.classList.contains('open')}
 function setRepoDrawerSwitch(on){const sw=$('#repoDrawerDefault');if(!sw)return;sw.classList.toggle('on',!!on);sw.setAttribute('aria-checked',String(!!on))}
@@ -98,12 +100,12 @@ async function saveRepoDrawer(e){
     let defaultError='';
     if(nextDefault!==(project.defaultRepositoryId||'')){
       try{await saveProjectDefaultRepository(project,nextDefault)}
-      catch(err){defaultError=`仓库已保存，${makeDefault?'设为默认':'取消默认'}失败：${err.message}`}
+      catch(err){defaultError=repoDrawerCopy(`仓库已保存，${makeDefault?'设为默认':'取消默认'}失败：${err.message}`,`Đã lưu kho mã nhưng không thể ${makeDefault?'đặt làm mặc định':'bỏ mặc định'}: ${err.message}`)}
     }
     closeRepoDrawer({restoreFocus:false});
     renderAll();
     refreshProjectAdminRepos(repo.id);
-    toast(defaultError||(editing?'仓库已保存':`仓库已添加${makeDefault&&!wasDefault?'，并设为默认':''}`),defaultError?'err':'ok');
+    toast(defaultError||(editing?repoDrawerCopy('仓库已保存','Đã lưu kho mã'):repoDrawerCopy(`仓库已添加${makeDefault&&!wasDefault?'，并设为默认':''}`,`Đã thêm kho mã${makeDefault&&!wasDefault?' và đặt làm mặc định':''}`)),defaultError?'err':'ok',2600,repoDrawerVI());
   }catch(err){toast(err.message,'err')}
   finally{repoDrawerState.saving=false;const btn=$('#repoDrawerSave');if(btn)btn.disabled=false}
 }
