@@ -62,7 +62,7 @@ export default function NativeApprovalPanel({ chat, onChange }) {
         <div className="native-approval" key={item.id}>
           <div className="native-approval-title">
             <HarnessIcon name="warning" size={15} aria-hidden="true" />
-            <strong>{chatT("批准外部写入", "Phê duyệt thao tác ghi bên ngoài")}{item.summary ? `：${item.summary}` : ""}</strong>
+            <strong>{chatT("批准外部写入", "Phê duyệt thao tác ghi bên ngoài")}{item.summary ? chatT(`：${item.summary}`, `: ${item.summary}`) : ""}</strong>
           </div>
           <pre>{commandText(item.input)}</pre>
           <p>{chatT("这项操作会写入外部系统。仅批准这一次。停止回复、调用取消或等待超时后，审批会失效。", "Thao tác này sẽ ghi vào hệ thống bên ngoài. Chỉ phê duyệt lần này. Phê duyệt hết hiệu lực khi dừng phản hồi, hủy lệnh gọi hoặc hết thời gian chờ.")}</p>

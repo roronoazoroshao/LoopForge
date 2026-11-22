@@ -14,7 +14,7 @@ export async function api(path, options = {}) {
     response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok)
     throw Object.assign(
-      new Error(data?.error || `请求失败（${response.status}）`),
+      new Error(data?.error || chatT(`请求失败（${response.status}）`, `Yêu cầu thất bại (HTTP ${response.status})`)),
       { status: response.status },
     );
   return data;
@@ -36,11 +36,11 @@ export function elapsedSeconds(startedAt, finishedAt) {
   return Math.floor((end - start) / 1000);
 }
 export function formatElapsed(seconds) {
-  if (seconds < 1) return "不到1秒";
+  if (seconds < 1) return chatT("不到1秒", "Dưới 1 giây");
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const rest = seconds % 60;
-  return `${hours ? `${hours}小时` : ""}${minutes ? `${minutes}分钟` : ""}${rest || (!hours && !minutes) ? `${rest}秒` : ""}`;
+  return chatT(`${hours ? `${hours}小时` : ""}${minutes ? `${minutes}分钟` : ""}${rest || (!hours && !minutes) ? `${rest}秒` : ""}`, [hours ? `${hours} giờ` : "", minutes ? `${minutes} phút` : "", rest || (!hours && !minutes) ? `${rest} giây` : ""].filter(Boolean).join(" "));
 }
 export const attachmentURL = (attachment, sessionId) =>
   attachment.id?.startsWith("local-attachment-") &&
@@ -416,7 +416,7 @@ export function confirmationCaption(message, previous) {
     return (parseReply(previous).drafts || []).some(
       (d) => d.proposal && ["declined", "muted"].includes(d.decision),
     )
-      ? "不走 SOP，让 AI 助手自己做"
+      ? chatT("不走 SOP，让 AI 助手自己做", "Không dùng SOP, để trợ lý AI tự thực hiện")
       : "";
   const match =
     /^已确认并执行 ([a-z_]+)。请核对这条草稿的保存回执，继续完成原始请求；不要重复刚才的写入，下一项需要确认时提交草稿，全部完成时总结实际结果。$/.exec(
@@ -427,5 +427,5 @@ export function confirmationCaption(message, previous) {
     !parseReply(previous).drafts?.some((d) => d.saved && d.tool === match[1])
   )
     return "";
-  return `已确认${actionName(match[1])}，继续处理`;
+  return chatT(`已确认${actionName(match[1])}，继续处理`, `Đã xác nhận ${actionName(match[1])}, tiếp tục xử lý`);
 }
