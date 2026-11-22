@@ -1917,3 +1917,5 @@ Object.assign(window.LF_I18N_EN, {
   "返回": "Back",
   "已确认刚才的草稿，请继续下一步。如果计划已完成，直接总结，不要再提交新草稿。": "The previous draft was approved. Continue to the next step, or summarize if complete without submitting a new draft."
 });
+
+Object.assign(window.LF_I18N_EN, {"请选择运行沙箱":"Select a runtime sandbox"});

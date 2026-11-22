@@ -6253,3 +6253,5 @@ Object.assign(window.LF_I18N_VI, {
   "返回": "Quay lại",
   "已确认刚才的草稿，请继续下一步。如果计划已完成，直接总结，不要再提交新草稿。": "Đã xác nhận bản nháp vừa rồi. Hãy tiếp tục bước tiếp theo; nếu kế hoạch đã xong, tổng kết trực tiếp mà không gửi bản nháp mới."
 });
+
+Object.assign(window.LF_I18N_VI, {"请选择运行沙箱":"Hãy chọn sandbox thực thi"});

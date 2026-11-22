@@ -111,3 +111,7 @@ Added 66 reviewed source phrases from SSH host trust, accessible dropdowns, file
 ### Remaining first-party static Web copy
 
 Reviewed and added 72 VI and EN entries spanning notification editor helper copy, SOP designer/scheduling, SkillHub version states, run execution details, IDE status and orchestrator error messages. Preserved project and protocol identifiers; static strings inside already explicit localized branches and agent prompt content are not counted as missing user-interface translations. Interpolation and dictionary parity were checked in isolation, but production rendering and semantic review are still pending.
+
+### Upload raw data safety and localized validation
+
+Source-localized upload labels, hints, overflow counts and validation errors in Vietnamese while leaving the Chinese branch unchanged. File-name nodes are tagged `data-i18n-skip` so an uploaded Chinese filename cannot be translated by the broad DOM observer; dynamic rejection messages are prelocalized and likewise protected. An isolated fake DOM fixture reproduced the old Chinese copy, checked localized VI and preserved original filenames. Full Node/browser tests remain deferred.
