@@ -6259,3 +6259,5 @@ Object.assign(window.LF_I18N_VI, {"请选择运行沙箱":"Hãy chọn sandbox t
 Object.assign(window.LF_I18N_VI, {"已保存 Git SSH 主机信任":"Đã lưu máy chủ Git SSH đáng tin cậy","已移除 Git SSH 主机信任":"Đã gỡ tin cậy đối với máy chủ Git SSH"});
 
 Object.assign(window.LF_I18N_VI, {"步骤责任人必须是有效用户":"Người phụ trách bước phải là người dùng hợp lệ","同步到工蜂 Issue 需要先绑定代码仓库":"Hãy liên kết kho mã trước khi đồng bộ yêu cầu sang Gongfeng"});
+
+Object.assign(window.LF_I18N_VI, {"仓库不存在或已被删除":"Không tìm thấy kho mã hoặc kho mã đã bị xóa","编辑代码仓库":"Chỉnh sửa kho mã"});

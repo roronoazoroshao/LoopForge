@@ -127,7 +127,8 @@ function sopRunRequirements(w){
 function sopRunRequirementChips(w){
   const rows=sopRunRequirements(w);
   if(!rows.length)return '';
-  return `<div class="sop-requirements" aria-label="运行条件">${rows.map(r=>sopBadge((r.ok?'':'需要 ')+r.label,r.ok?'success':'warn',r.ok?'check':'alert',r.hint)).join('')}</div>`;
+  const required=window.lfLang?.()==='vi'?'Cần: ':'需要 ';
+  return `<div class="sop-requirements" aria-label="运行条件">${rows.map(r=>sopBadge((r.ok?'':required)+r.label,r.ok?'success':'warn',r.ok?'check':'alert',r.hint)).join('')}</div>`;
 }
 // --- 流程模板卡片 -------------------------------------------------------------
 // Each card exposes one primary action; the rest live in the ⋯ popover.

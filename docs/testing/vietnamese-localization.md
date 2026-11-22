@@ -135,3 +135,7 @@ Two stable Go issue-validation messages now have exact Vietnamese translations, 
 ### SOP draft created toast
 
 Localized the dynamic draft-creation result at its source, including dependency counts and exact known-key translations. Unrecognized labels remain intact; the VI toast is marked as already localized to prevent fragment rewriting. Isolated tests verified both VI and original ZH output. Full runner/browser verification remains deferred.
+
+### SOP prerequisite prefix and repository drawer
+
+Localized the dynamically concatenated “需要” prefix before SOP prerequisites as “Cần: ” while retaining technical and user labels. Added exact EN/VI catalogue entries for two previously untranslated repository-drawer states. Isolated RED/GREEN source fixtures confirmed VI, unchanged ZH and the dictionary entries. Full runner/browser checks remain deferred.
