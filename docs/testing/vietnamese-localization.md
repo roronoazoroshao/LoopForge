@@ -7,9 +7,9 @@ This branch is an **incomplete preview**, not a complete Vietnamese release. Sou
 - The English runtime catalogue contains 4615 distinct source keys. The Vietnamese catalogue contains all 4615 source keys (100% key coverage, zero missing, empty, or unknown keys). This measures catalogue entries, not UI or semantic coverage.
 - Preview selection uses the existing `loopforge.lang` storage preference; the document language is `vi-VN`. Existing Chinese and English preferences remain supported.
 - The React workbench uses explicit UI string translations. Agent prompts, user data, identifiers, filenames and API contracts must not be automatically rewritten.
-- Eleven Vietnamese Markdown translations exist, including the README, contribution and security policies, deployment guide, architecture, four Local guides, API overview and shared-schedules API guide. Other linked API and technical documents remain untranslated.
+- Fifteen Vietnamese Markdown translations exist, including the README, contribution and security policies, deployment guide, architecture, four Local guides and all six API index/detail documents. Other technical documents remain untranslated.
 - Four localized README SVGs exist (hero and SOP flow, light and dark). Screenshots and videos retain their source languages; visual QA is not yet complete.
-- Isolated JavaScript smoke checks of boot, language selection, translation fallback mechanism and existing locale behavior were performed. The complete CI suites, real browser visual checks and independent human expert review have **not** been verified.
+- Isolated JavaScript smoke checks of boot, language selection, fallback, existing locale behavior and nine Vietnamese dynamic formats were performed. Placeholder and newline comparisons found no remaining mismatches. Complete CI, browser visual checks and independent human expert review have **not** been verified.
 
 ## Completion gates
 

@@ -47,6 +47,8 @@ jobs:
           min=$(tr -d '[:space:]' < scripts/coverage-go.min)
           test -n "$min"
           bash scripts/coverage-go.sh --profile "${{ runner.temp }}/go.cover" --profile "${{ runner.temp }}/go-browser.cover" --min "$min"
+      - name: Require complete Vietnamese catalogue coverage
+        run: node webtest/scripts/check-i18n-vi.mjs --strict
       - name: Browser-free UI tests for the platform console
         run: npm ci --no-audit --no-fund && npm run coverage
         working-directory: webtest

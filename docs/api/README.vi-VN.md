@@ -2,11 +2,11 @@
 
 Tài liệu dựa trên hiện thực hiện tại của `internal/httpapi/server.go`, `dispatch.go`, `schedule.go`. API chia theo miền:
 
-- [Cộng tác và yêu cầu](collaboration.md): dự án, kho mã, Issue, bình luận, làm rõ và tác vụ.
-- [Danh mục năng lực](registry.md): Agent, quy tắc, Skill, MCP, trình thực thi, môi trường và cấu hình sandbox.
-- [Điều phối và thực thi](orchestration.md): SOP, lượt chạy, phê duyệt, nhật ký, sản phẩm đầu ra, phân tích và tác vụ theo lịch.
+- [Cộng tác và yêu cầu](collaboration.vi-VN.md): dự án, kho mã, Issue, bình luận, làm rõ và tác vụ.
+- [Danh mục năng lực](registry.vi-VN.md): Agent, quy tắc, Skill, MCP, trình thực thi, môi trường và cấu hình sandbox.
+- [Điều phối và thực thi](orchestration.vi-VN.md): SOP, lượt chạy, phê duyệt, nhật ký, sản phẩm đầu ra, phân tích và tác vụ theo lịch.
 - [Tác vụ AI theo lịch dùng chung và đăng ký](shared-schedules.vi-VN.md): phiên bản phát hành, tham số nghiệp vụ, thực thi độc lập và nâng cấp thủ công.
-- [Đồng bộ bên ngoài](sync.md): đồng bộ Gongfeng/TAPD.
+- [Đồng bộ bên ngoài](sync.vi-VN.md): đồng bộ Gongfeng/TAPD.
 
 ## Quy ước cơ bản
 
