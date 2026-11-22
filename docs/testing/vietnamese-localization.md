@@ -163,3 +163,7 @@ Localized the previously hardcoded personal-chat group title through `chatT` and
 ### Exact Go API error strings: projects, accounts, issues and schedules
 
 Added 33 reviewed Vietnamese/English whole-message translations for user-visible project permissions, domain ownership, registration, TAPD validation, scheduling and shared-task access errors. Go handlers, status codes, machine-readable fields and existing data are unchanged. These exact entries prevent partial fragment translation such as mixed Owner/项目 text. Catalogue parity and template-variable invariants were evaluated in isolation; full API integration and runner tests remain deferred.
+
+### Date picker and SOP palette
+
+The date calendar produces Vietnamese weekday headings and month navigation directly (the legacy Chinese branch is unchanged); the option search uses Vietnamese accessible labels. Flow palette grouping, role metadata, SOP status and copy confirmations now author Vietnamese at render source, with user-provided workflow/role names excluded from a second DOM translation pass. Focused syntax and isolated locale fixtures passed; browser QA remains pending.
