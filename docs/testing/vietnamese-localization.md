@@ -151,3 +151,7 @@ Localized the previously hardcoded `SidebarSection` accessible label (“convers
 ### React onboarding punctuation and source test reliability
 
 QuickAccess Wizard model and CLI lists use a locale-aware separator (`、` in ZH, `, ` in VI); the interpolated repository-name caption now closes parentheses via `chatT` rather than a hardcoded Chinese glyph. Project names, model IDs and repository names remain unmodified. The fallback SOP regression test normalizes cross-VM-realm nested arrays before strict equality checks, avoiding failures caused solely by prototype identity. Isolated RED/GREEN separator fixture passed; production runner is deferred.
+
+### React chatbot Git change statuses and tool-error fallback
+
+The Changes panel now derives Vietnamese labels for Git porcelain codes A/M/D/R/C/U, while the source status code, file path and diff metadata remain untouched. Its missing-start tool-completion fallback now emits localized UI text in VI mode, without changing the tool event ID, failure flag or stream semantics. Focused source-level RED/GREEN fixtures verified VI and original ZH branches. Full runner/build/browser checks remain deferred.

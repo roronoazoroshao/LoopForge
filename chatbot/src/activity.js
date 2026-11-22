@@ -141,8 +141,8 @@ export function mergeActivity(previous = [], events = []) {
         steps.push({
           id: event.id,
           kind: "tool",
-          tool: "工具调用",
-          text: "工具调用失败",
+          tool: chatT("工具调用", "Lời gọi công cụ"),
+          text: chatT("工具调用失败", "Lời gọi công cụ thất bại"),
           failed: true,
           finishedAt: at || "done",
         });
