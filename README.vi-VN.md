@@ -90,7 +90,7 @@ MIRROR=ghcr.nju.edu.cn ./start.sh pull
 
 Mở địa chỉ do trình cài đặt in ra và tạo tài khoản; tài khoản đầu tiên trở thành quản trị viên. Theo mặc định, dịch vụ lắng nghe tại `0.0.0.0:8090`. Trên máy chủ đám mây, trình cài đặt đọc IP công khai từ dịch vụ metadata của nhà cung cấp rồi in ra; hãy cho phép cổng trong nhóm bảo mật (security group) hoặc đặt reverse proxy HTTPS phía trước. Giới hạn quyền truy cập ở IP của chính bạn cho đến khi tài khoản quản trị viên được tạo. Hướng dẫn thiết lập nhanh trên trang chủ giúp bạn thêm key mô hình, kết nối kho mã và chọn SOP.
 
-Với GitLab, Gitea, Gogs và các dịch vụ lưu trữ Git khác, [thiết lập Git SSH](docs/deployment.md#git-repositories-over-ssh) để checkout và đẩy nhánh bằng khóa cá nhân. Tự động hóa PR/MR và Issue cần token API của dịch vụ lưu trữ hoặc MCP được cấu hình riêng.
+Với GitLab, Gitea, Gogs và các dịch vụ lưu trữ Git khác, [thiết lập Git SSH](docs/deployment.vi-VN.md#kho-git-qua-ssh) để checkout và đẩy nhánh bằng khóa cá nhân. Tự động hóa PR/MR và Issue cần token API của dịch vụ lưu trữ hoặc MCP được cấu hình riêng.
 
 ### Dùng thử không cần API key
 
@@ -113,7 +113,7 @@ Tài khoản mới tham gia **dự án demo LoopForge**, trong đó có một SO
 
 <br>
 
-- **Trình thực thi.** Chọn CLI và mô hình cho trò chuyện, làm rõ yêu cầu, phản hồi của Bot, báo cáo thông báo, đánh giá lượt chạy hoặc bản xem trước tĩnh. Mỗi vai trò SOP có thể chọn CLI riêng; các mẫu tích hợp vẫn mặc định dùng CodeBuddy. Prompt theo lịch sử dụng CLI đã chọn trong lịch. Nền tảng có thể chạy mà không cần cài CodeBuddy hoặc key của CodeBuddy khi các quy trình dùng CLI khác. [Triển khai và nâng cấp](docs/deployment.md#choosing-an-executor)
+- **Trình thực thi.** Chọn CLI và mô hình cho trò chuyện, làm rõ yêu cầu, phản hồi của Bot, báo cáo thông báo, đánh giá lượt chạy hoặc bản xem trước tĩnh. Mỗi vai trò SOP có thể chọn CLI riêng; các mẫu tích hợp vẫn mặc định dùng CodeBuddy. Prompt theo lịch sử dụng CLI đã chọn trong lịch. Nền tảng có thể chạy mà không cần cài CodeBuddy hoặc key của CodeBuddy khi các quy trình dùng CLI khác. [Triển khai và nâng cấp](docs/deployment.vi-VN.md#chọn-trình-thực-thi)
 
   | Trình thực thi | Thông tin xác thực | Cài đặt |
   | --- | --- | --- |
@@ -126,13 +126,13 @@ Tài khoản mới tham gia **dự án demo LoopForge**, trong đó có một SO
   | **Antigravity** | Key cá nhân hoặc phiên đăng nhập tài khoản hiện có của chủ máy thực thi đã kết nối | Cài CLI chính thức trên máy thực thi và trong image Docker dùng cho lượt chạy SOP |
   | **ZCode** | Chỉ key cá nhân | Không đi kèm; cần cài sao cho dịch vụ hoặc máy thực thi tìm thấy trong PATH |
 
-  Bảy CLI tác tử được liệt kê sau Claude Code lưu cấu hình mô hình và MCP trong thư mục home riêng cho mỗi lượt chạy. Antigravity có thể dùng lại phiên đăng nhập tài khoản của chủ máy thực thi trong không gian làm việc của cuộc trò chuyện và sandbox SOP chạy trực tiếp hoặc bằng Docker. CLI chính thức làm mới bản sao thông tin xác thực; Runner lưu phiên đăng nhập đã làm mới về kho lưu trữ cục bộ ban đầu. API key Gemini được tính phí API riêng. Các CLI tác tử khác dùng key và Base URL của chính người chịu trách nhiệm, lấy từ cài đặt cá nhân, kể cả trên máy thực thi đã kết nối. Cài đặt lần đầu cần truy cập npm hoặc nhà cung cấp; [triển khai trực tiếp](docs/deployment.md#workers-and-runners) cần CLI tương ứng với trình thực thi bạn chọn.
-- **Thông báo WeCom.** Image build từ Dockerfile này có `wecom-cli`; các image đã phát hành sẽ có thành phần này ở bản phát hành tiếp theo. Cài đặt trực tiếp cần cài riêng; xem [Triển khai](docs/deployment.md#native-development).
+  Bảy CLI tác tử được liệt kê sau Claude Code lưu cấu hình mô hình và MCP trong thư mục home riêng cho mỗi lượt chạy. Antigravity có thể dùng lại phiên đăng nhập tài khoản của chủ máy thực thi trong không gian làm việc của cuộc trò chuyện và sandbox SOP chạy trực tiếp hoặc bằng Docker. CLI chính thức làm mới bản sao thông tin xác thực; Runner lưu phiên đăng nhập đã làm mới về kho lưu trữ cục bộ ban đầu. API key Gemini được tính phí API riêng. Các CLI tác tử khác dùng key và Base URL của chính người chịu trách nhiệm, lấy từ cài đặt cá nhân, kể cả trên máy thực thi đã kết nối. Cài đặt lần đầu cần truy cập npm hoặc nhà cung cấp; [triển khai trực tiếp](docs/deployment.vi-VN.md#worker-và-runner) cần CLI tương ứng với trình thực thi bạn chọn.
+- **Thông báo WeCom.** Image build từ Dockerfile này có `wecom-cli`; các image đã phát hành sẽ có thành phần này ở bản phát hành tiếp theo. Cài đặt trực tiếp cần cài riêng; xem [Triển khai](docs/deployment.vi-VN.md#phát-triển-trực-tiếp-trên-máy-chủ).
 - **GitHub không bắt buộc.** Tất cả SOP chung tích hợp sẵn đều chạy được khi không có kho mã: SOP sản phẩm bàn giao tài liệu, dự án frontend/backend mới bàn giao tệp mã nguồn trong không gian làm việc của tác vụ. Sửa lỗi vẫn cần mã nguồn và thông tin tái hiện. Kết nối kho mã khi làm việc trên mã hiện có hoặc muốn mở PR.
 - **Bàn giao vào kho mã.** Chọn **Connect GitHub** (Kết nối GitHub) trong cài đặt cá nhân, xác nhận mã thiết bị trên GitHub và chọn kho mã (LoopForge có sẵn OAuth App; không yêu cầu PAT, nhưng vẫn hỗ trợ nhập PAT thủ công). Thiết lập thông tin xác thực cho trình thực thi (hoặc liên kết máy thực thi cục bộ), sau đó chạy SOP của dự án hoặc yêu cầu Main Bot thay đổi mã và gửi PR/MR.
-- **Sandbox.** Với bản cài Compose mặc định, lượt chạy SOP và không gian làm việc của cuộc trò chuyện đều dùng container sandbox Docker được khởi tạo qua Docker socket của máy chủ. Sandbox mặc định dùng lại image runtime đã cài, nên không cần build thêm sau cài đặt; Dockerfile tùy chỉnh vẫn build image riêng. Quyền truy cập Docker socket cho phép kiểm soát daemon Docker của máy chủ, vì vậy thiết lập này dành cho nhóm đáng tin cậy, không phải cơ chế cô lập đa khách thuê không đáng tin cậy. Xem [ranh giới triển khai](docs/deployment.md#accounts). Chạy lại trình cài đặt vẫn giữ dữ liệu của bạn.
-- **Tài khoản và quyền truy cập.** Bản cài mới lắng nghe trên mọi giao diện mạng (giữ nguyên cấu hình bind đã có) và được thiết kế cho nhóm đáng tin cậy: người dùng đã đăng nhập có thể đọc dữ liệu dự án trên toàn bộ instance; đồng đội có thể đăng ký từ trang đăng nhập (đặt `AGENTFLOW_ALLOW_SIGNUP=false` trong `.env` để tắt chức năng đó). Hãy đọc [mô hình tài khoản và quyền truy cập](docs/deployment.md#accounts) trước khi mở quyền truy cập ra ngoài nhóm.
-- **Truy cập từ xa, HTTPS, worker riêng.** Xem [Triển khai](docs/deployment.md).
+- **Sandbox.** Với bản cài Compose mặc định, lượt chạy SOP và không gian làm việc của cuộc trò chuyện đều dùng container sandbox Docker được khởi tạo qua Docker socket của máy chủ. Sandbox mặc định dùng lại image runtime đã cài, nên không cần build thêm sau cài đặt; Dockerfile tùy chỉnh vẫn build image riêng. Quyền truy cập Docker socket cho phép kiểm soát daemon Docker của máy chủ, vì vậy thiết lập này dành cho nhóm đáng tin cậy, không phải cơ chế cô lập đa khách thuê không đáng tin cậy. Xem [ranh giới triển khai](docs/deployment.vi-VN.md#tài-khoản). Chạy lại trình cài đặt vẫn giữ dữ liệu của bạn.
+- **Tài khoản và quyền truy cập.** Bản cài mới lắng nghe trên mọi giao diện mạng (giữ nguyên cấu hình bind đã có) và được thiết kế cho nhóm đáng tin cậy: người dùng đã đăng nhập có thể đọc dữ liệu dự án trên toàn bộ instance; đồng đội có thể đăng ký từ trang đăng nhập (đặt `AGENTFLOW_ALLOW_SIGNUP=false` trong `.env` để tắt chức năng đó). Hãy đọc [mô hình tài khoản và quyền truy cập](docs/deployment.vi-VN.md#tài-khoản) trước khi mở quyền truy cập ra ngoài nhóm.
+- **Truy cập từ xa, HTTPS, worker riêng.** Xem [Triển khai](docs/deployment.vi-VN.md).
 - **Muốn phát triển chính LoopForge?** `bash scripts/dev.sh` chạy nền tảng trực tiếp (Go 1.26.11+).
 
 </details>
@@ -224,7 +224,7 @@ Dùng trò chuyện để khám phá và cải tiến qua nhiều lượt; Main 
 LoopForge không thay thế chúng mà điều phối chúng. Mỗi bước tác tử và mỗi lượt trò chuyện chạy một trong các CLI này. LoopForge bổ sung các yếu tố xung quanh: ai làm gì, trong sandbox nào, theo thứ tự nào, với những bước kiểm tra nào và ai phê duyệt.
 
 **Có an toàn khi công khai trên Internet không?**
-Bản cài mới lắng nghe trên mọi giao diện mạng và hướng đến nhóm đáng tin cậy. Đọc [mô hình tài khoản và quyền truy cập](docs/deployment.md#accounts) và thiết lập HTTPS trước khi mở truy cập. Báo cáo lỗ hổng một cách riêng tư theo [chính sách bảo mật](SECURITY.vi-VN.md).
+Bản cài mới lắng nghe trên mọi giao diện mạng và hướng đến nhóm đáng tin cậy. Đọc [mô hình tài khoản và quyền truy cập](docs/deployment.vi-VN.md#tài-khoản) và thiết lập HTTPS trước khi mở truy cập. Báo cáo lỗ hổng một cách riêng tư theo [chính sách bảo mật](SECURITY.vi-VN.md).
 
 ## Tài liệu
 
@@ -232,7 +232,7 @@ Các tài liệu được liên kết bên dưới vẫn sử dụng ngôn ngữ
 
 | Tôi muốn… | Bắt đầu tại đây |
 | --- | --- |
-| Triển khai, quản lý tài khoản, kết nối máy thực thi | [Triển khai](docs/deployment.md) |
+| Triển khai, quản lý tài khoản, kết nối máy thực thi | [Triển khai](docs/deployment.vi-VN.md) |
 | Tìm hiểu không gian làm việc của cuộc trò chuyện, tác vụ AI theo lịch và giá token | [Không gian làm việc của cuộc trò chuyện](docs/conversation-workspaces.md) · [Tác vụ AI theo lịch](docs/ai-scheduled-task-capabilities.md) · [Giá token](docs/token-pricing.md) |
 | Bảo trì bản cài Local hiện có | [LoopForge Local](docs/local/usage.vi-VN.md) · [Các phiên bản](docs/local/editions.vi-VN.md) |
 | Mở rộng nền tảng hoặc dùng API HTTP / MCP | [Kiến trúc](docs/architecture.vi-VN.md) · [Tham chiếu API](docs/api/README.vi-VN.md) · [API lịch dùng chung](docs/api/shared-schedules.vi-VN.md) |

@@ -6,7 +6,7 @@
 
 ## Kết nối LoopForge qua MCP
 
-Dùng CodeBuddy với một instance LoopForge đang chạy để truy cập các dự án, SOP và lượt chạy trên instance đó. Nếu cần một instance, xem [hướng dẫn triển khai](../deployment.md).
+Dùng CodeBuddy với một instance LoopForge đang chạy để truy cập các dự án, SOP và lượt chạy trên instance đó. Nếu cần một instance, xem [hướng dẫn triển khai](../deployment.vi-VN.md).
 
 1. Đăng nhập LoopForge và mở **Access** (接入方式). Tạo token truy cập cá nhân và chọn **CodeBuddy** để xem hướng dẫn thiết lập MCP.
 2. Áp dụng cấu hình cấp người dùng trong CodeBuddy và xác nhận máy chủ `agentflow` đã kết nối trong cài đặt MCP. Yêu cầu CodeBuddy liệt kê các dự án LoopForge để kiểm tra quyền truy cập.
