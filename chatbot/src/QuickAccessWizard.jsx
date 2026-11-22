@@ -1,5 +1,6 @@
 import { chatT } from "./locale.js";
 const builtinDisplay = (value) => chatT(value, Object.hasOwn(BUILTIN_VI, value) ? BUILTIN_VI[value] : value);
+const quickAccessListSeparator = () => chatT("、", ", ");
 const BUILTIN_VI = {
   "需求定型": "Định hình yêu cầu",
   "方案设计": "Thiết kế giải pháp",
@@ -45,7 +46,7 @@ export function sharedModelNames(models, fallback = "") {
   const list = Array.isArray(models) && models.length ? models : fallback ? [fallback] : [];
   return list
     .map((id) => (id === "deepseek-v4.1-flash" ? "Deepseek-V4.1-Flash" : id))
-    .join("、");
+    .join(quickAccessListSeparator());
 }
 
 const STEPS = [
@@ -524,7 +525,7 @@ function StatusPill({ ok, okLabel = chatT("已就绪", "Đã sẵn sàng"), need
 function VerifyMessage({ result, okText }) {
   const text = result.valid
     ? okText
-    : result.error || chatT(`缺少权限：${(result.missing || []).join("、")}`, `Thiếu quyền: ${(result.missing || []).join(", ")}`);
+    : result.error || chatT(`缺少权限：${(result.missing || []).join(quickAccessListSeparator())}`, `Thiếu quyền: ${(result.missing || []).join(", ")}`);
   return (
     <p
       key={text}
@@ -1579,7 +1580,7 @@ export default function QuickAccessWizard({
                         <li className={completedSummary?.cliNames?.length || sponsoredModel ? "is-ok" : "is-warn"}>
                           <HarnessIcon name={completedSummary?.cliNames?.length ? "check" : "info"} size={14} />
                           <span>
-                            {chatT("模型 CLI ·", "CLI mô hình ·")} {completedSummary?.cliNames?.join("、") ||
+                            {chatT("模型 CLI ·", "CLI mô hình ·")} {completedSummary?.cliNames?.join(quickAccessListSeparator()) ||
                               (sponsoredModel
                                 ? chatT(`平台共享模型（${sharedModelNames(sponsoredModels, sponsoredModel)}）`, `Mô hình dùng chung nền tảng (${sharedModelNames(sponsoredModels, sponsoredModel)})`)
                                 : chatT("可在个人配置或执行机器设置中准备", "Có thể thiết lập trong Cài đặt cá nhân hoặc cài đặt máy thực thi"))}
@@ -1738,7 +1739,7 @@ export default function QuickAccessWizard({
                         <header className="qa-cred-head">
                           <div>
                             <strong id="qa-executors-title">{chatT("执行器", "Trình thực thi")}</strong>
-                            <span>{readyCLIs.length ? readyCLIs.map(cli => cli.label).join("、") : sponsoredModel ? chatT("可使用平台共享模型", "Có thể dùng mô hình dùng chung của nền tảng") : chatT("尚未配置执行器", "Chưa cấu hình trình thực thi")}</span>
+                            <span>{readyCLIs.length ? readyCLIs.map(cli => cli.label).join(quickAccessListSeparator()) : sponsoredModel ? chatT("可使用平台共享模型", "Có thể dùng mô hình dùng chung của nền tảng") : chatT("尚未配置执行器", "Chưa cấu hình trình thực thi")}</span>
                           </div>
                           <StatusPill ok={cliReady} />
                         </header>
@@ -2001,7 +2002,7 @@ export default function QuickAccessWizard({
                                 >
                                   {chatT("已识别仓库：", "Kho mã đã nhận diện:")}
                                   <code>{parsedRepo.project}</code>
-                                  {chatT("（仓库名", "(Tên kho mã")} <code>{parsedRepo.name}</code>）
+                                  {chatT("（仓库名", "(Tên kho mã")} <code>{parsedRepo.name}</code>{chatT("）", ")")}
                                 </p>
                               ) : (
                                 <p key="help" className="qa-hint">
@@ -2141,7 +2142,7 @@ export default function QuickAccessWizard({
                               />
                               <span>
                                 {repoAccess.label} {repoAccess.ready ? chatT("已配置", "Đã cấu hình") : chatT("未配置", "Chưa cấu hình")} ·
-                                CLI · {readyCLIs.length ? readyCLIs.map(cli => cli.label).join("、") :
+                                CLI · {readyCLIs.length ? readyCLIs.map(cli => cli.label).join(quickAccessListSeparator()) :
                                   sponsoredModel ? chatT("使用平台共享模型", "Dùng mô hình dùng chung của nền tảng") : chatT("未配置", "Chưa cấu hình")}
                               </span>
                             </dd>

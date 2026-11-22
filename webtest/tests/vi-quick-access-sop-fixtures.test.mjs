@@ -18,13 +18,13 @@ test('fresh Vietnamese fallback SOPs contain localized role prompts and preserve
  for(let i=0;i<roles.length;i++){
   assert.doesNotMatch(roles[i].body.prompt+roles[i].body.name+roles[i].body.description,/[\u3400-\u9fff]/);
   assert.equal(roles[i].body.id,zhRoles[i].body.id);
-  assert.deepEqual(roles[i].body.artifactOutputs,zhRoles[i].body.artifactOutputs);
+  assert.deepEqual(JSON.parse(JSON.stringify(roles[i].body.artifactOutputs)),JSON.parse(JSON.stringify(zhRoles[i].body.artifactOutputs)));
   assert.match(roles[i].body.prompt,/{{input}}$/);
  }
  const workflow=vi.find(x=>x.url==='/api/workflows').body,original=zh.find(x=>x.url==='/api/workflows').body;
  assert.equal(workflow.name,'SOP bàn giao backend');
- assert.deepEqual(workflow.nodes.map(n=>n.id),original.nodes.map(n=>n.id));
- assert.deepEqual(workflow.nodes.map(n=>n.artifactOutputs),original.nodes.map(n=>n.artifactOutputs));
+ assert.deepEqual(Array.from(workflow.nodes,n=>n.id),Array.from(original.nodes,n=>n.id));
+ assert.deepEqual(JSON.parse(JSON.stringify(workflow.nodes.map(n=>n.artifactOutputs))),JSON.parse(JSON.stringify(original.nodes.map(n=>n.artifactOutputs))));
  assert.equal(workflow.tags[1],'generic-source:generic-backend-delivery');
  assert.equal(zh.find(x=>x.url==='/api/sandboxes').body.name,'本地开发沙箱');
 });

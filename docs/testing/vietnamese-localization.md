@@ -147,3 +147,7 @@ Previously a fresh Vietnamese onboarding flow localized only display names but p
 ### React accessibility and test reliability
 
 Localized the previously hardcoded `SidebarSection` accessible label (“conversations of [title]”) while preserving the unmodified project title in both VI and ZH. Adjusted the isolated QuickAccess SOP provisioning regression test to await the actual async provisioning promise instead of waiting a single event-loop turn, avoiding timing-dependent false positives.
+
+### React onboarding punctuation and source test reliability
+
+QuickAccess Wizard model and CLI lists use a locale-aware separator (`、` in ZH, `, ` in VI); the interpolated repository-name caption now closes parentheses via `chatT` rather than a hardcoded Chinese glyph. Project names, model IDs and repository names remain unmodified. The fallback SOP regression test normalizes cross-VM-realm nested arrays before strict equality checks, avoiding failures caused solely by prototype identity. Isolated RED/GREEN separator fixture passed; production runner is deferred.
