@@ -164,6 +164,37 @@ function sharedSOPCard(w,m={},liveCount=0){
   const meta=`${w.owner?`${w.owner} · `:''}v${w.version||1}`;
   return `<article class="sop-card" data-sop="${escapeHTML(w.id)}" tabindex="0" role="button" aria-label="打开流程设计器：${escapeHTML(w.name)}">${sopRunCardBody(w,m,liveCount)}<div class="sop-card-foot"><span class="sop-card-meta" title="${escapeHTML(`${from} · ${meta}`)}"><span class="sop-card-tag">${escapeHTML(from)}</span>${escapeHTML(meta)}</span>${sopCardPrimary('data-clone-workflow',w.id,'复制到本项目','copy')}</div></article>`;
 }
+// Only the four immutable descriptions shipped with the opt-in public catalog are
+// UI copy. A platform admin may edit a generic template, so never translate a
+// description unless both its built-in ID and original seed text match.
+const SOP_SEED_DESCRIPTION_COPY={
+  'generic-backend-delivery': [
+    '后端需求从需求定型到独立评审与交付。',
+    'Take backend requirements from scoping through independent review to delivery.',
+    'Đưa yêu cầu backend từ bước làm rõ đến rà soát độc lập và bàn giao.'
+  ],
+  'generic-frontend-delivery': [
+    '前端需求从页面设计到交互与回归验证。',
+    'Take frontend requirements from page design through interaction and regression verification.',
+    'Đưa yêu cầu frontend từ thiết kế giao diện đến kiểm chứng tương tác và hồi quy.'
+  ],
+  'generic-product-delivery': [
+    '完成需求分析、产品方案文档与独立验收；无需代码仓库或 Git Token。',
+    'Complete requirements analysis, a product proposal, and independent acceptance; no repository or Git token is required.',
+    'Hoàn thành phân tích yêu cầu, tài liệu đề xuất sản phẩm và nghiệm thu độc lập; không cần kho mã hay Git Token.'
+  ],
+  'issue-fix-production': [
+    '先复现，再修复，独立评审并回归。',
+    'Reproduce the issue, fix it, independently review it, then run regression tests.',
+    'Tái hiện lỗi, sửa lỗi, rà soát độc lập rồi kiểm thử hồi quy.'
+  ]
+};
+function sopCatalogDescription(w){
+  const description=w?.description;
+  if(!description)return lfT('平台提供的通用流程模板','A general workflow template provided by the platform','Mẫu quy trình chung do nền tảng cung cấp');
+  const seed=SOP_SEED_DESCRIPTION_COPY[w.id];
+  return seed&&description===seed[0]?lfT(...seed):description;
+}
 function genericProjectCopy(w){return (state.data?.workflows||[]).find(x=>!catalogGeneric(x)&&x.projectId===state.projectFilter&&(x.tags||[]).includes(`generic-source:${w.id}`))}
 function genericSOPCard(w){
   const nodes=w.nodes||[],agentCount=nodes.filter(n=>n.type==='agent').length,gates=nodes.filter(n=>n.type==='approval').length;
@@ -172,7 +203,7 @@ function genericSOPCard(w){
     ?sopCardPrimary('data-open-sop',copy.id,'查看项目副本','eye')
     :sopCardPrimary('data-adopt-generic',w.id,'复制到本项目','copy','复制后归本项目所有、可自由修改，不再跟随平台更新');
   const tags=(w.tags||[]).filter(t=>!t.startsWith('generic-source:')).join(' · ')||'通用模板';
-  return `<article class="sop-card generic" data-generic-id="${escapeHTML(w.id)}" tabindex="0" role="button" aria-label="使用通用模板：${escapeHTML(w.name)}">${sopCardHead(sopStatusBadge(w),'平台维护 · 与项目无关',sopBadge(`v${w.version||1}`,'neutral',''))}${sopCardTitle(w)}<p>${escapeHTML(w.description||'平台提供的通用流程模板')}</p>${sopRunRequirementChips(w)}${genericRequirementChips(w)}<div class="sop-kpis"><span><b>${nodes.length}</b>节点</span><span><b>${agentCount}</b>角色节点</span><span><b>${gates}</b>人工门禁</span><span><b>v${w.version||1}</b>版本</span></div><div class="sop-card-foot"><span class="sop-card-meta" title="${escapeHTML(`${w.owner||'平台'} · ${tags}`)}"><span class="sop-card-tag">${escapeHTML(w.owner||'平台')}</span>${escapeHTML(tags)}</span>${primary}${sopCardMoreButton(w)}</div></article>`;
+  return `<article class="sop-card generic" data-generic-id="${escapeHTML(w.id)}" tabindex="0" role="button" aria-label="使用通用模板：${escapeHTML(w.name)}">${sopCardHead(sopStatusBadge(w),'平台维护 · 与项目无关',sopBadge(`v${w.version||1}`,'neutral',''))}${sopCardTitle(w)}<p data-i18n-skip>${escapeHTML(sopCatalogDescription(w))}</p>${sopRunRequirementChips(w)}${genericRequirementChips(w)}<div class="sop-kpis"><span><b>${nodes.length}</b>节点</span><span><b>${agentCount}</b>角色节点</span><span><b>${gates}</b>人工门禁</span><span><b>v${w.version||1}</b>版本</span></div><div class="sop-card-foot"><span class="sop-card-meta" title="${escapeHTML(`${w.owner||'平台'} · ${tags}`)}"><span class="sop-card-tag">${escapeHTML(w.owner||'平台')}</span>${escapeHTML(tags)}</span>${primary}${sopCardMoreButton(w)}</div></article>`;
 }
 function sopCatalogCard(w,metrics,live){
   if(catalogGeneric(w))return genericSOPCard(w);
