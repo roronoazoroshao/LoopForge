@@ -171,3 +171,7 @@ The date calendar produces Vietnamese weekday headings and month navigation dire
 ### SkillHub and shared subscription data boundary
 
 Localized SkillHub filter/empty/error UI at source (including Vietnamese number formatting), and protected raw search terms, skill titles/descriptions, shared-task titles/source names and backend diagnostics from the DOM dictionary pass. User data and API payloads are preserved. RED/GREEN isolated empty-search fixtures and syntax checks passed; actual browser and runner checks remain deferred.
+
+### React mention picker and fallback labels
+
+Mention category and hint copy now uses explicit VI metadata while retaining stable API type values and user-provided reference names. The local workspace-file preview label, workspace-unavailable fallback, default conversation title, and attachment-only user prompt are generated in Vietnamese. Isolated JS fixtures checked VI/ZH output and unchanged reference identifiers; JSX code was reviewed without a full bundler, pending the deferred runner/E2E gates.

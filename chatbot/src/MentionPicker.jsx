@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import HarnessIcon from "./HarnessIcon";
 import { api } from "./api";
-import { referenceTypes } from "./mentions.js";
+import { referenceTypes, referenceTypeLabel, referenceTypeHint } from "./mentions.js";
 import { usePanelPresence } from "./usePanelPresence";
 import "./mention-context.css";
 
@@ -222,7 +222,7 @@ export default forwardRef(function MentionPicker(
           aria-label={chatT("搜索引用对象", "Tìm đối tượng tham chiếu")}
           placeholder={
             type
-              ? chatT(`搜索${referenceTypes.find((x) => x.type === type)?.label}…`, `Tìm ${referenceTypes.find((x) => x.type === type)?.label}…`)
+              ? chatT(`搜索${referenceTypeLabel(type)}…`, `Tìm ${referenceTypeLabel(type)}…`)
               : chatT("搜索所有对象…", "Tìm mọi đối tượng…")
           }
           value={query}
@@ -264,14 +264,13 @@ export default forwardRef(function MentionPicker(
               <HarnessIcon name={icon} size={18} />
               <span>
                 <strong>
-                  {categories ? option.label : option.name || option.id}
+                  {categories ? referenceTypeLabel(option.type) : option.name || option.id}
                 </strong>
                 <small>
                   {categories
-                    ? option.hint
+                    ? referenceTypeHint(option.type)
                     : [
-                        referenceTypes.find((x) => x.type === option.type)
-                          ?.label,
+                        referenceTypeLabel(option.type),
                         option.projectName || chatT("共享", "Dùng chung"),
                         option.id,
                       ].join(" · ")}

@@ -1,4 +1,5 @@
 import { createContext } from "react";
+import {chatT} from "./locale.js";
 
 // Provided by the conversation when it has a workspace: opens a URL in the
 // Agent browser of that workspace (the side panel's 浏览器 tab).
@@ -97,7 +98,7 @@ const devFile = "file";
 export const devServerOrigin = (port) => (port === devFile ? "file://" : `http://localhost:${port}`);
 
 // devServerLabel names the target in the panel.
-export const devServerLabel = (port) => (port === devFile ? "工作区文件" : `localhost:${port}`);
+export const devServerLabel = (port) => (port === devFile ? chatT("工作区文件","Tệp workspace") : `localhost:${port}`);
 
 export const devServerPrefix = (runId, port) =>
   `/devpreview/${encodeURIComponent(runId)}/${port}`;
