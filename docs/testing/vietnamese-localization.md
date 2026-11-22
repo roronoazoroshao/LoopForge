@@ -99,3 +99,7 @@ Runner concurrency and default machine status, relative heartbeat time, update a
 ### Observability ECharts funnel and dynamic categories
 
 Translated five funnel-stage labels and category/source names at the producer before ECharts consumes them; translated dynamic peak, trace-source and tool-call labels while leaving raw trace identifiers and counts unchanged. Isolated source checks confirmed English-independent VI labels and unchanged ZH metric keys. Full ECharts browser tests are deferred.
+
+### Observability generated insight sentences
+
+Source-level VI branches now create complete delivery, token comparison, cache hit and failure-insight sentences including dynamic quantities and raw model names. The `data-i18n-skip` protection is applied only to prelocalized insight bodies, preventing the runtime observer from rewriting user-authored workflow names and diagnostic strings. A RED/GREEN isolated fixture exercised delivery insights and verified that ZH output is unchanged; the Node test file is authored but the runner is deferred.
