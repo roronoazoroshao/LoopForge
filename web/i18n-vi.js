@@ -6310,3 +6310,20 @@ Object.assign(window.LF_I18N_VI, {
   "小地图": "Bản đồ thu nhỏ",
   "【工作项标题】&#10;https://www.tapd.cn/tapd_fe/…/story/detail/…": "[Tiêu đề hạng mục]&#10;https://www.tapd.cn/tapd_fe/…/story/detail/…"
 });
+
+// Backend-generated run/workspace errors shown as UI; preserve API payloads and identifiers.
+Object.assign(window.LF_I18N_VI, {
+  "origin 必须为 all、internal 或 external": "origin chỉ được là all, internal hoặc external",
+  "手动运行需要登录用户或已配置 Owner 的项目": "Lượt chạy thủ công yêu cầu người dùng đăng nhập hoặc dự án đã cấu hình Owner",
+  "项目默认代码仓库无效，请重新绑定": "Kho mã mặc định của dự án không hợp lệ; hãy liên kết lại",
+  "工作区正在使用或保存，稍后自动重试": "Không gian làm việc đang được sử dụng hoặc lưu; hệ thống sẽ tự thử lại sau",
+  "没有已保存的工作区快照，无法恢复": "Không có bản chụp không gian làm việc đã lưu để khôi phục",
+  "工作区已回收；有保存的快照时可按需恢复，空闲 1 小时后再次回收": "Không gian làm việc đã được thu hồi. Có thể khôi phục từ bản chụp đã lưu (nếu có); hệ thống sẽ thu hồi lại sau 1 giờ không hoạt động",
+  "执行机器 Daemon 已卸载，工作区已随之删除；重新连接执行机器也无法恢复此工作区": "Daemon của máy thực thi đã bị gỡ cài đặt và không gian làm việc cũng đã bị xóa; kết nối lại máy không thể khôi phục không gian này",
+  "工作区尚未创建或已被清理": "Không gian làm việc chưa được tạo hoặc đã bị dọn dẹp",
+  "远程工作区通道未配置": "Chưa cấu hình kênh kết nối không gian làm việc từ xa",
+  "远程执行机器当前离线或工作区通道不可用": "Máy thực thi từ xa đang ngoại tuyến hoặc kênh không gian làm việc không khả dụng",
+  "远程工作区读取超时": "Quá thời gian đọc không gian làm việc từ xa",
+  "远程执行机器返回了空响应": "Máy thực thi từ xa trả về phản hồi rỗng",
+  "Git 状态读取失败": "Không đọc được trạng thái Git"
+});

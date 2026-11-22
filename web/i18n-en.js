@@ -1974,3 +1974,20 @@ Object.assign(window.LF_I18N_EN, {
   "小地图": "Minimap",
   "【工作项标题】&#10;https://www.tapd.cn/tapd_fe/…/story/detail/…": "[Work item title]&#10;https://www.tapd.cn/tapd_fe/…/story/detail/…"
 });
+
+// Backend-generated run/workspace errors shown as UI; preserve API payloads and identifiers.
+Object.assign(window.LF_I18N_EN, {
+  "origin 必须为 all、internal 或 external": "origin must be all, internal, or external",
+  "手动运行需要登录用户或已配置 Owner 的项目": "Manual runs require a signed-in user or a project with an Owner configured",
+  "项目默认代码仓库无效，请重新绑定": "The project's default repository is invalid; reconnect it",
+  "工作区正在使用或保存，稍后自动重试": "The workspace is in use or being saved. Retrying shortly",
+  "没有已保存的工作区快照，无法恢复": "No saved workspace snapshot is available to restore",
+  "工作区已回收；有保存的快照时可按需恢复，空闲 1 小时后再次回收": "The workspace was reclaimed. Restore it from a saved snapshot if available; it will be reclaimed after one hour of inactivity",
+  "执行机器 Daemon 已卸载，工作区已随之删除；重新连接执行机器也无法恢复此工作区": "The runner daemon was uninstalled and its workspace deleted; reconnecting the runner cannot restore it",
+  "工作区尚未创建或已被清理": "The workspace has not been created or was cleaned up",
+  "远程工作区通道未配置": "The remote workspace channel is not configured",
+  "远程执行机器当前离线或工作区通道不可用": "The remote runner is offline or its workspace channel is unavailable",
+  "远程工作区读取超时": "Timed out reading the remote workspace",
+  "远程执行机器返回了空响应": "The remote runner returned an empty response",
+  "Git 状态读取失败": "Could not read Git status"
+});
