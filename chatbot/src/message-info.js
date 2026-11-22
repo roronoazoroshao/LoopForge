@@ -1,7 +1,8 @@
+import { chatT } from "./locale.js";
 import { elapsedSeconds, formatElapsed } from "./api.js";
 import { replyEngineLabel } from "./engines.js";
 
-export const NOT_REPORTED = "未上报";
+export const NOT_REPORTED = chatT("未上报", "Chưa báo cáo");
 
 const pad = (n) => String(n).padStart(2, "0");
 
@@ -53,10 +54,10 @@ export const formatTokens = (n) =>
   Math.max(0, Number(n) || 0).toLocaleString("en-US");
 
 const tokenParts = [
-  ["input", "输入", "inputTokens"],
-  ["output", "输出", "outputTokens"],
-  ["cacheRead", "缓存读", "cacheReadTokens"],
-  ["cacheWrite", "缓存写", "cacheWriteTokens"],
+  ["input", chatT("输入", "Đầu vào"), "inputTokens"],
+  ["output", chatT("输出", "Đầu ra"), "outputTokens"],
+  ["cacheRead", chatT("缓存读", "Đọc cache"), "cacheReadTokens"],
+  ["cacheWrite", chatT("缓存写", "Ghi cache"), "cacheWriteTokens"],
 ];
 
 /** Card fields for one saved assistant reply; missing data reads 「未上报」. */
@@ -67,19 +68,19 @@ export function messageInfo(message = {}, sessionExecutor = "") {
   const rows = [
     {
       key: "time",
-      label: "时间",
+      label: chatT("时间", "Thời gian"),
       value: fullTime(message.startedAt || message.createdAt),
     },
     {
       key: "agent",
       label: "Agent",
-      value: String(message.speakerName || "").trim() || "主 Bot",
+      value: String(message.speakerName || "").trim() || chatT("主 Bot", "Bot chính"),
     },
-    { key: "tool", label: "编码工具", value: tool || NOT_REPORTED },
-    { key: "model", label: "模型", value: model || NOT_REPORTED },
+    { key: "tool", label: chatT("编码工具", "Công cụ lập trình"), value: tool || NOT_REPORTED },
+    { key: "model", label: chatT("模型", "Mô hình"), value: model || NOT_REPORTED },
     {
       key: "elapsed",
-      label: "用时",
+      label: chatT("用时", "Thời lượng"),
       value: seconds === null ? NOT_REPORTED : formatElapsed(seconds),
     },
   ].map((row) => ({ ...row, missing: row.value === NOT_REPORTED }));

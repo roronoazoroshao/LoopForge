@@ -162,7 +162,7 @@ const homeStarters = [
     tone: "blue",
     title: chatT("快速接入", "Kết nối nhanh"),
     description: chatT("提供最低限度的鉴权与仓库，用默认角色与 SOP 立即开始。", "Cung cấp xác thực và kho mã tối thiểu, bắt đầu ngay với vai trò và SOP mặc định."),
-    steps: ["鉴权", "仓库", "默认 SOP"],
+    steps: [chatT("鉴权", "Xác thực"), chatT("仓库", "Kho mã"), chatT("默认 SOP", "SOP mặc định")],
   },
   // New users asked how to hook up a test environment and how roles and SOPs
   // work; these two cards start a guided conversation instead of dropping them
@@ -173,9 +173,9 @@ const homeStarters = [
     tone: "violet",
     title: chatT("接入测试环境", "Kết nối môi trường kiểm thử"),
     description: chatT("助手先查执行机器、镜像和沙箱，再按缺口一步步带你配好。", "Trợ lý kiểm tra máy thực thi, image và sandbox rồi hướng dẫn cấu hình những phần còn thiếu."),
-    steps: ["执行机器", "镜像", "沙箱"],
+    steps: [chatT("执行机器", "Máy thực thi"), chatT("镜像", "Image"), chatT("沙箱", "Sandbox")],
     prompt:
-      "带我一步步接入测试环境：先查看当前项目已有的执行机器、容器镜像、环境脚本和沙箱，告诉我还缺什么、按什么顺序配、每一步在哪里操作；能由你提交的配置，直接起草出来给我。",
+      chatT("带我一步步接入测试环境：先查看当前项目已有的执行机器、容器镜像、环境脚本和沙箱，告诉我还缺什么、按什么顺序配、每一步在哪里操作；能由你提交的配置，直接起草出来给我。", "Hướng dẫn tôi từng bước kết nối môi trường kiểm thử: trước tiên xem máy thực thi, image container, script môi trường và sandbox hiện có của dự án; cho biết còn thiếu gì, cấu hình theo thứ tự nào và thao tác ở đâu; với cấu hình bạn có thể gửi, hãy tạo bản nháp trực tiếp cho tôi."),
   },
   {
     id: "sop",
@@ -183,9 +183,9 @@ const homeStarters = [
     tone: "green",
     title: chatT("选用 SOP 与角色", "Chọn SOP và vai trò"),
     description: chatT("了解产品、前端、后端三套交付 SOP 和其中的角色，按需求推荐一套。", "Tìm hiểu ba SOP bàn giao sản phẩm, frontend, backend và các vai trò; đề xuất SOP phù hợp yêu cầu."),
-    steps: ["产品", "前端", "后端"],
+    steps: [chatT("产品", "Sản phẩm"), chatT("前端", "Frontend"), chatT("后端", "Backend")],
     prompt:
-      "我准备写需求了。平台内置的产品、前端、后端交付 SOP 分别适合什么场景、好在哪里、里面有哪些角色？请结合当前项目推荐一套，并告诉我怎么绑定和派发第一条需求。我的需求是：",
+      chatT("我准备写需求了。平台内置的产品、前端、后端交付 SOP 分别适合什么场景、好在哪里、里面有哪些角色？请结合当前项目推荐一套，并告诉我怎么绑定和派发第一条需求。我的需求是：", "Tôi chuẩn bị viết yêu cầu. SOP bàn giao sản phẩm, frontend và backend tích hợp phù hợp các tình huống nào, có ưu điểm và vai trò gì? Hãy đề xuất SOP theo dự án hiện tại và hướng dẫn liên kết, điều phối yêu cầu đầu tiên. Yêu cầu của tôi là:"),
   },
 ];
 
@@ -248,7 +248,7 @@ function AssistantTurn({ message, steps, assets, projectId, sessionId, local, re
       {message.failure && message.generationId && !local ? (
         <GenerationDiagnostics sessionId={sessionId} generationId={message.generationId} failure={message.failure} onCLIInstall={onCLIInstall} readOnly={readOnly} />
       ) : message.unfinished ? (
-        <p className="reply-stopped">本轮未完成 · {message.unfinished}</p>
+        <p className="reply-stopped">{chatT("本轮未完成 ·", "Lượt này chưa hoàn tất ·")} {message.unfinished}</p>
       ) : reply.stopped ? (
         <p className="reply-stopped">{chatT("已停止，以上是停止前的内容。", "Đã dừng. Nội dung trên được tạo trước khi dừng.")}</p>
       ) : null}
@@ -297,7 +297,7 @@ function LiveMessage({ live, generation, finished = false, local = false, readOn
         <p className="reply-stopped">
           {generation?.status === "failed" && generation?.error
             ? generation.error
-            : "已停止，以上是停止前的内容。"}
+            : chatT("已停止，以上是停止前的内容。", "Đã dừng; nội dung phía trên là phần trước khi dừng.")}
         </p>
       ) : null}
     </div>
@@ -313,7 +313,7 @@ function readIssueMention() {
 export default function App() {
   const realChat = useChat();
   const chat = useLocalConversations(realChat);
-  const sessionTitle = chat.session?.displayTitle || chat.session?.title || "新对话";
+  const sessionTitle = chat.session?.displayTitle || chat.session?.title || chatT("新对话", "Cuộc trò chuyện mới");
   const titleReveal = useTitleReveal(
     chat.session?.id,
     sessionTitle,
@@ -509,7 +509,7 @@ export default function App() {
   const projectName =
     chat.projects.find((p) => p.id === chat.projectId)?.name ||
     (chat.projectId && (chat.session?.projectName || chat.projectId)) ||
-    "个人对话";
+    chatT("个人对话", "Cuộc trò chuyện cá nhân");
   const sessionLoading = !!chat.activeId && chat.session?.id !== chat.activeId;
   const composerLoading = sessionLoading || chat.replyStatePending;
   const hasComposerExecutor = !!chat.executor || chat.local;
@@ -517,7 +517,7 @@ export default function App() {
     !hasComposerExecutor && !composerLoading && (chat.machinesReady || chat.machineError);
   const selectedModel = chat.models.find((m) => m.id === chat.model) || (!chat.local ? chat.modelDetails : null);
   const modelLabel =
-    (hasComposerExecutor && (selectedModel?.name || chat.model)?.replace(/^Claude-/, "").replace(/^GPT-/, "")) || "模型";
+    (hasComposerExecutor && (selectedModel?.name || chat.model)?.replace(/^Claude-/, "").replace(/^GPT-/, "")) || chatT("模型", "Mô hình");
   // The CLI switch is only for a conversation that has not started. A reply
   // in flight, or one already saved, keeps that CLI; another CLI needs a new chat.
   const lockedExecutorId = chat.session
@@ -544,7 +544,7 @@ export default function App() {
     const project = chat.projects.find((p) => p.id === id);
     if (project && !canChatInProject(project, chat.user)) {
       chat.setError(
-        `你还不是「${project.name}」的成员，不能在这个项目里对话。请项目 Owner 把你加入项目，或先用「个人对话」。`,
+        chatT(`你还不是「${project.name}」的成员，不能在这个项目里对话。请项目 Owner 把你加入项目，或先用「个人对话」。`, `Bạn chưa là thành viên của “${project.name}” nên không thể trò chuyện trong dự án này. Nhờ chủ dự án thêm bạn hoặc dùng cuộc trò chuyện cá nhân trước.`),
       );
       return;
     }
@@ -950,7 +950,7 @@ export default function App() {
         const slot = previewURL
           ? {
               id: localId("pending"),
-              name: file.name || "粘贴的图片",
+              name: file.name || chatT("粘贴的图片", "Ảnh đã dán"),
               mimeType: file.type,
               size: file.size,
               previewURL,
@@ -1174,7 +1174,7 @@ export default function App() {
           if (innerWidth < 850) setSidebar(false);
         }}
       >
-        <span>{s.displayTitle || s.title || "新对话"}</span>
+        <span>{s.displayTitle || s.title || chatT("新对话", "Cuộc trò chuyện mới")}</span>
         {scheduledSession(s) ? (
           <span className="session-project-tag session-source-tag" title={chatT("定时任务产生的会话", "Cuộc trò chuyện do tác vụ theo lịch tạo")}>
             {chatT("定时", "Theo lịch")}
@@ -1187,7 +1187,7 @@ export default function App() {
           <span
             className="session-run"
             data-run-state={runState.state}
-            title={`运行状态：${runState.label}`}
+            title={chatT(`运行状态：${runState.label}`, `Trạng thái lượt chạy: ${runState.label}`)}
           >
             {runState.label}
           </span>
@@ -1364,7 +1364,7 @@ export default function App() {
               {pinnedExecutor ? (
                 <span
                   className="conversation-engine"
-                  title={`本对话使用 ${pinnedExecutor.label}，对话开始后不能切换 CLI；换 CLI 请新建对话`}
+                  title={chatT(`本对话使用 ${pinnedExecutor.label}，对话开始后不能切换 CLI；换 CLI 请新建对话`, `Cuộc trò chuyện dùng ${pinnedExecutor.label}; không thể đổi CLI sau khi bắt đầu. Tạo cuộc trò chuyện mới để đổi CLI.`)}
                 >
                   <ModelProviderIcon
                     brand={engineBrand(pinnedExecutor.id)}
@@ -1389,8 +1389,8 @@ export default function App() {
                     ref={headerProjectPicker}
                     type="button"
                     className="conversation-project"
-                    title={`当前项目：${projectName}，点击切换项目`}
-                    aria-label={`当前项目：${projectName}，切换项目`}
+                    title={chatT(`当前项目：${projectName}，点击切换项目`, `Dự án hiện tại: ${projectName}, nhấp để chuyển dự án`)}
+                    aria-label={chatT(`当前项目：${projectName}，切换项目`, `Dự án hiện tại: ${projectName}, chuyển dự án`)}
                     aria-haspopup="listbox"
                     aria-expanded={menu?.type === "header-project"}
                     onClick={() =>
@@ -1428,7 +1428,7 @@ export default function App() {
               type="button"
               className={`panel-toggle changes-toggle ${panel && panelView === "changes" ? "active" : ""}`}
               title={chatT("查看本次会话的代码改动", "Xem thay đổi mã trong cuộc trò chuyện này")}
-              aria-label={`查看改动，共 ${workspaceChanges.files.length} 个文件`}
+              aria-label={chatT(`查看改动，共 ${workspaceChanges.files.length} 个文件`, `Xem thay đổi, tổng ${workspaceChanges.files.length} tệp`)}
               aria-expanded={panel && panelView === "changes"}
               aria-controls="conversation-artifacts"
               onClick={() => {
@@ -1479,7 +1479,7 @@ export default function App() {
               ) : null}
             </span>
             {!panel && artifactUnread ? (
-              <span className="sr-only" id="artifact-unread-description">{artifactUnread} 个新产物</span>
+              <span className="sr-only" id="artifact-unread-description">{chatT(`${artifactUnread} 个新产物`, `${artifactUnread} sản phẩm đầu ra mới`)}</span>
             ) : null}
           </button> : null}
         </div>
@@ -1528,7 +1528,7 @@ export default function App() {
                       closeMenu();
                     }}
                   >
-                    最近的会话
+                    {chatT("最近的会话", "Cuộc trò chuyện gần đây")}
                     {!archived && !mineOnly ? <HarnessIcon name="check" size={14} /> : null}
                   </button>
                   <button
@@ -1540,7 +1540,7 @@ export default function App() {
                       closeMenu();
                     }}
                   >
-                    已归档
+                    {chatT("已归档", "Đã lưu trữ")}
                     {archived ? <HarnessIcon name="check" size={14} /> : null}
                   </button>
                   <button
@@ -1552,7 +1552,7 @@ export default function App() {
                       closeMenu();
                     }}
                   >
-                    仅我参与的对话
+                    {chatT("仅我参与的对话", "Chỉ cuộc trò chuyện tôi tham gia")}
                     {mineOnly ? <HarnessIcon name="check" size={14} /> : null}
                   </button>
                 </Menu>
@@ -1624,7 +1624,7 @@ export default function App() {
                             }))
                           }
                         >
-                          展开其余 {hidden} 条
+                          {chatT(`展开其余 ${hidden} 条`, `Mở rộng ${hidden} mục còn lại`)}
                         </button>
                       ) : null}
                       {showAll && group.sessions.length > PROJECT_PREVIEW_LIMIT ? (
@@ -1869,16 +1869,17 @@ export default function App() {
                     kind: "run",
                     id: run.id,
                     runId: run.id,
-                    name: run.workflowSnapshot?.name || "SOP 运行",
+                    name: run.workflowSnapshot?.name || chatT("SOP 运行", "Lượt chạy SOP"),
                     nodeId,
                   })
                 }
                 onAsk={(item) => {
                   setText(
-                    `运行 ${item.runId} 的「${item.nodeName}」节点${item.kind === "failed" ? "失败了" : "在等待人工确认"}，帮我分析具体卡在哪里、原因是什么、需要谁做什么。`,
+                    chatT(`运行 ${item.runId} 的「${item.nodeName}」节点${item.kind === "failed" ? "失败了" : "在等待人工确认"}，帮我分析具体卡在哪里、原因是什么、需要谁做什么。`, `Bước “${item.nodeName}” của lượt chạy ${item.runId} ${item.kind === "failed" ? "đã thất bại" : "đang chờ con người xác nhận"}. Hãy phân tích điểm bị kẹt, nguyên nhân và ai cần làm gì.`),
                   );
                   document
-                    .querySelector('textarea[aria-label="消息"]')
+                    // Keep focus independent of the localized accessible name.
+                    .querySelector('[data-chat-composer]')
                     ?.focus();
                 }}
               />
@@ -1914,8 +1915,7 @@ export default function App() {
               <div className="readonly-notice" role="status">
                 <HarnessIcon name="eye" size={16} aria-hidden="true" />
                 <span>
-                  你不是「{projectName}
-                  」的成员，只能查看这个会话。加入项目后可以继续聊。
+                  {chatT(`你不是「${projectName}」的成员，只能查看这个会话。加入项目后可以继续聊。`, `Bạn không phải thành viên của “${projectName}” nên chỉ có thể xem cuộc trò chuyện này. Tham gia dự án để tiếp tục trò chuyện.`)}
                 </span>
               </div>
             ) : (
@@ -2005,7 +2005,7 @@ export default function App() {
                         <span
                           key={a.id}
                           className="composer-attachment-thumb is-uploading"
-                          title={`正在上传 ${a.name}`}
+                          title={chatT(`正在上传 ${a.name}`, `Đang tải ${a.name} lên`)}
                         >
                           <span className="composer-attachment-preview">
                             <img src={a.previewURL} alt={a.name} />
@@ -2021,8 +2021,8 @@ export default function App() {
                             <button
                               type="button"
                               className="composer-attachment-preview"
-                              title={`${a.name} · 点击查看大图`}
-                              aria-label={`查看图片 ${a.name}`}
+                              title={chatT(`${a.name} · 点击查看大图`, `${a.name} · Nhấp để xem ảnh lớn`)}
+                              aria-label={chatT(`查看图片 ${a.name}`, `Xem hình ảnh ${a.name}`)}
                               onClick={() =>
                                 setImagePreview({ src: url, name: a.name })
                               }
@@ -2032,8 +2032,8 @@ export default function App() {
                             <button
                               type="button"
                               className="composer-attachment-remove"
-                              aria-label={`移除 ${a.name}`}
-                              title={`移除 ${a.name}`}
+                              aria-label={chatT(`移除 ${a.name}`, `Xóa ${a.name}`)}
+                              title={chatT(`移除 ${a.name}`, `Xóa ${a.name}`)}
                               onClick={() => removeAttachment(a)}
                             >
                               <HarnessIcon name="close" size={11} />
@@ -2052,7 +2052,7 @@ export default function App() {
                               <small>{formatFileSize(a.size)}</small>
                             ) : null}
                             <button
-                              aria-label={`移除 ${a.name}`}
+                              aria-label={chatT(`移除 ${a.name}`, `Xóa ${a.name}`)}
                               onClick={() => removeAttachment(a)}
                             >
                               <HarnessIcon name="close" size={13} />
@@ -2073,7 +2073,7 @@ export default function App() {
                           )}
                           {ref.name || ref.id}
                           <button
-                            aria-label={`移除引用 ${ref.name || ref.id}`}
+                            aria-label={chatT(`移除引用 ${ref.name || ref.id}`, `Xóa tham chiếu ${ref.name || ref.id}`)}
                             onClick={() => {
                               setReferences((old) =>
                                 old.filter(
@@ -2094,7 +2094,8 @@ export default function App() {
                   ) : null}
                   <textarea
                     ref={input}
-                    aria-label="消息"
+                    data-chat-composer="true"
+                    aria-label={chatT("消息", "Tin nhắn")}
                     rows={2}
                     placeholder={
                       chat.activeId
@@ -2463,7 +2464,7 @@ export default function App() {
                 {searchGroups.map((group) => (
                   <section
                     key={group.projectId}
-                    aria-label={`${group.name}的搜索结果`}
+                    aria-label={chatT(`${group.name}的搜索结果`, `Kết quả tìm kiếm ${group.name}`)}
                   >
                     <div className="date-label">{group.name}</div>
                     {group.sessions.map((s) => (
@@ -2513,8 +2514,7 @@ export default function App() {
             </label>
           ) : dialog.type === "delete" ? (
             <p>
-              删除“{dialog.session.title}”的聊天记录？本对话里还没提交 MR
-              的需求单会一并删除，已提交 MR 的需求和已保存的 SOP 会保留。
+              {chatT(`删除“${dialog.session.title}”的聊天记录？本对话里还没提交 MR 的需求单会一并删除，已提交 MR 的需求和已保存的 SOP 会保留。`, `Xóa lịch sử trò chuyện “${dialog.session.title}”? Yêu cầu chưa gửi MR trong cuộc trò chuyện này cũng bị xóa; yêu cầu đã gửi MR và SOP đã lưu được giữ lại.`)}
             </p>
           ) : dialog.type === "edit" ? (
             <>
@@ -2549,7 +2549,7 @@ export default function App() {
           ) : dialog.type === "settings" ? (
             <>
               <label className="settings-row">
-                <span>外观</span>
+                <span>{chatT("外观", "Giao diện")}</span>
                 <HarnessSelect
                   value={theme}
                   ariaLabel={chatT("外观", "Giao diện")}
