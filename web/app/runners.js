@@ -160,7 +160,7 @@ function renderRunnersView(){
       warn=!pool.online;
       text=pool.online?runnerUICopy(`云端执行 · ${pool.online} 台在线`,`Thực thi đám mây · ${pool.online} máy trực tuyến`):runnerUICopy('云端暂无在线机器，新任务最多等待 10 分钟','Hiện không có máy đám mây trực tuyến; tác vụ mới sẽ chờ tối đa 10 phút.');
     }else{
-      text='在平台云端执行';
+      text=runnerUICopy('在平台云端执行','Thực thi trên đám mây của nền tảng');
     }
     if(runnerVI())poolStatus.setAttribute?.('data-i18n-skip','');else poolStatus.removeAttribute?.('data-i18n-skip');
     poolStatus.textContent=text;poolStatus.classList.toggle('warn',warn);
