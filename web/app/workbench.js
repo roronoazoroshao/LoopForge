@@ -85,10 +85,10 @@ const CREDENTIAL_KINDS=[
     impact:'以 Codex 运行的 SOP 节点将无法执行，Base URL 与模型目录一并清空。'},
   {key:'claudeCodeApiKey',group:'model',name:'Claude Code',short:'Claude Code API Key',logo:'claude',monochrome:true,
     use:'AI 对话选择 Claude 执行器，以及以 Claude Code 运行的 SOP 节点',
-    description:'AI 对话切换到 Claude Code 后可选用模型目录里的模型，SOP 在执行机器上以 Claude Code 运行的节点也使用它。目录为空时，未填 Base URL 使用 Claude Code 自带模型，填写后跟随服务发布的模型；也可以自己挑选、排序和命名。',
-    guide:[['在模型服务商控制台创建 API Key'],['如走代理或私有网关，记下服务地址'],['粘贴 Key，按需填写 Base URL；保存后可在模型目录里挑选 AI 对话的模型']],
+    description:window.lfLang?.()==='vi'?'LoopForge dùng thông tin đăng nhập được lưu tại đây; không tự đọc cấu hình Claude Code ở terminal. Khi dùng OmniRoute, nhập API Key/token của gateway và Base URL để tải và chọn mô hình.':'AI 对话切换到 Claude Code 后可选用模型目录里的模型，SOP 在执行机器上以 Claude Code 运行的节点也使用它。目录为空时，未填 Base URL 使用 Claude Code 自带模型，填写后跟随服务发布的模型；也可以自己挑选、排序和命名。',
+    guide:window.lfLang?.()==='vi'?[['Dùng token truy cập OmniRoute (không phải API Key Anthropic) khi kết nối gateway'],['Nhập Base URL của dịch vụ Anthropic tương thích, ví dụ http://localhost:20128 (không thêm /v1). Nếu LoopForge chạy trong container, localhost là container: dùng địa chỉ gateway mà máy chủ LoopForge truy cập được.'],['Lưu cấu hình, chọn Tải mô hình khả dụng hoặc thêm ID mô hình thủ công. Cài Claude Code trong terminal không tự chuyển thông tin đăng nhập vào LoopForge.']]:[['在模型服务商控制台创建 API Key'],['如走代理或私有网关，记下服务地址'],['粘贴 Key，按需填写 Base URL；保存后可在模型目录里挑选 AI 对话的模型']],
     placeholder:'请输入 Claude Code API Key',
-    extra:{name:'claudeCodeBaseUrl',label:'Base URL',placeholder:'https://api.anthropic.com',url:true,clearWithKey:true},
+    extra:{name:'claudeCodeBaseUrl',label:'Base URL',placeholder:'http://localhost:20128',url:true,clearWithKey:true},
     models:{name:'claudeCodeModels',engine:'claude-code',endpoint:'/v1/models'},
     impact:'以 Claude Code 运行的 SOP 节点将无法执行，Base URL 与模型目录一并清空。'},
   agentCliCredentialKind('opencode',{name:'OpenCode',logo:'opencode',baseUrl:'https://api.example.com/v1',required:()=>true,
@@ -379,6 +379,24 @@ function closeCredentialCatalogProbe(catalog){
   catalog.probeToken=(catalog.probeToken||0)+1;catalog.probe=null;
   panel.hidden=true;panel.innerHTML='';
 }
+
+function credentialProbeDisplayError(error,kind,baseURL){
+  const text=String(error||'');
+  if(window.lfLang?.()!=='vi')return text;
+  if(kind?.models?.engine==='claude-code' && /(?:localhost|127\.0\.0\.1)/i.test(baseURL||'') &&
+     /(?:无法连接|connection refused|ECONNREFUSED|network is unreachable|fetch failed)/i.test(text)){
+    return 'Không kết nối được gateway tại '+String(baseURL)+'. Nếu LoopForge chạy trong Docker, localhost trỏ tới container chứ không phải máy chủ OmniRoute. Hãy dùng hostname hoặc IP mà dịch vụ LoopForge truy cập được.';
+  }
+  if(text.startsWith('获取模型列表失败：')){
+    const detail=text.slice('获取模型列表失败：'.length);
+    return 'Không tải được danh sách mô hình: '+detail.replace(/^无法连接 /,'Không kết nối được ').replace('：',': ');
+  }
+  if(text==='服务没有返回可用模型，可以手动添加模型')
+    return 'Gateway không trả về danh sách mô hình. Hãy thêm ID mô hình thủ công hoặc kiểm tra quyền của token.';
+  if(text.startsWith('请先填写 ')&&text.endsWith(' API Key'))
+    return 'Hãy nhập API Key hoặc token của nhà cung cấp trong Cấu hình cá nhân.';
+  return text;
+}
 async function probeCredentialCatalog(row,catalog,button){
   const kind=credentialKind(row.dataset.credentialRow),form=row.querySelector('.credential-editor-form'),panel=catalog.querySelector('[data-catalog-probe]');
   const extra=form?.querySelector('input[name="baseUrl"], input[name="extra"]'),secret=form?.querySelector('[name="secret"]')?.value.trim()||'',protocol=form?.querySelector('select[name="protocol"]')?.value,environment=form?.querySelector('select[name="extra"]')?.value;
@@ -399,7 +417,7 @@ async function probeCredentialCatalog(row,catalog,button){
   finally{setCredentialButtonBusy(button,'')}
   if(catalog.probeToken!==token||!catalog.isConnected)return;
   if(result?.error||!result?.models?.length){
-    panel.innerHTML=`<div class="credential-catalog-probe-fail"><p class="credential-vline is-err" role="alert">${credentialGlyph('alert',13)}${escapeHTML(result?.error||'服务没有返回可用模型')}</p><div><button type="button" class="credential-btn ghost credential-ink" data-catalog-act="probe-close">关闭</button><button type="button" class="credential-btn secondary credential-ink" data-catalog-act="probe">${credentialGlyph('refresh',13)}<span>重试</span></button></div></div>`;
+    panel.innerHTML=`<div class="credential-catalog-probe-fail"><p class="credential-vline is-err" role="alert">${credentialGlyph('alert',13)}${escapeHTML(credentialProbeDisplayError(result?.error||'服务没有返回可用模型',kind,extra?.value.trim()))}</p><div><button type="button" class="credential-btn ghost credential-ink" data-catalog-act="probe-close">关闭</button><button type="button" class="credential-btn secondary credential-ink" data-catalog-act="probe">${credentialGlyph('refresh',13)}<span>重试</span></button></div></div>`;
     hydrateCredentialIcons(panel);
     return;
   }

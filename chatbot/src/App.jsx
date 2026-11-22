@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import { useChat } from "./useChat";
-import { chatT } from "./locale.js";
+import { chatT, chatServerErrorText } from "./locale.js";
 import NativeApprovalPanel from "./NativeApprovalPanel";
 import { AgentBrowserLinks } from "./agent-browser-links.js";
 import ActivityTrace, { ReplyTimeline } from "./ActivityTrace";
@@ -248,7 +248,7 @@ function AssistantTurn({ message, steps, assets, projectId, sessionId, local, re
       {message.failure && message.generationId && !local ? (
         <GenerationDiagnostics sessionId={sessionId} generationId={message.generationId} failure={message.failure} onCLIInstall={onCLIInstall} readOnly={readOnly} />
       ) : message.unfinished ? (
-        <p className="reply-stopped">{chatT("本轮未完成 ·", "Lượt này chưa hoàn tất ·")} {message.unfinished}</p>
+        <p className="reply-stopped">{chatT("本轮未完成 ·", "Lượt này chưa hoàn tất ·")} {chatServerErrorText(message.unfinished)}</p>
       ) : reply.stopped ? (
         <p className="reply-stopped">{chatT("已停止，以上是停止前的内容。", "Đã dừng. Nội dung trên được tạo trước khi dừng.")}</p>
       ) : null}
@@ -296,7 +296,7 @@ function LiveMessage({ live, generation, finished = false, local = false, readOn
       {finished ? (
         <p className="reply-stopped">
           {generation?.status === "failed" && generation?.error
-            ? generation.error
+            ? chatServerErrorText(generation.error)
             : chatT("已停止，以上是停止前的内容。", "Đã dừng; nội dung phía trên là phần trước khi dừng.")}
         </p>
       ) : null}
@@ -1860,7 +1860,7 @@ export default function App() {
           <div className="composer-column">
             {chat.error && !(chat.generation?.failure && chat.error === chat.generation.error) ? (
               <div role="alert" className="chat-error">
-                <span>{chat.error}</span>
+                <span>{chatServerErrorText(chat.error)}</span>
                 <CredentialAction text={chat.error} />
                 <CLIInstallAction text={chat.error} onResult={chat.adoptCLIInstall} />
                 <IconButton label={chatT("关闭提示", "Đóng thông báo")} onClick={() => chat.setError("")}>

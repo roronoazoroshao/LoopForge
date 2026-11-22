@@ -1213,3 +1213,18 @@ test('lfT supports explicit Vietnamese dynamic labels without changing other loc
   assert.equal(window.lfT('模型目录', 'Model catalog'), 'Danh mục mô hình');
   assert.equal(window.lfT('未登记的短语', 'Unregistered phrase'), 'Unregistered phrase');
 });
+
+test('dynamic Claude Code missing-key error is a whole Vietnamese message', () => {
+  const vi = fixture('vi').window;
+  const zh = fixture('zh').window;
+  for (const message of [
+    'Claude Code: 请先在个人配置中配置 Claude Code API Key 后再使用 Claude Code 模型',
+    'Claude Code: 请先在个人配置中配置 Claude Code API Key 后再使用 Claude Code Mô hình',
+  ]) {
+    const localized = vi.lfTranslate(message);
+    assert.match(localized, /Claude Code: Chưa cấu hình Claude Code API Key/);
+    assert.match(localized, /Base URL/);
+    assert.doesNotMatch(localized, /[\u3400-\u9fff]/u);
+    assert.equal(zh.lfT(message, message), message, 'Chinese mode keeps the source text');
+  }
+});

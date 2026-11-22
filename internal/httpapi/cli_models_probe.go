@@ -81,6 +81,9 @@ func (h *usersHandlers) probeCLIModels(c *gin.Context) {
 	if req.BaseURL != nil {
 		baseURL = strings.TrimSpace(*req.BaseURL)
 	}
+	if engine == assistantEngineClaude {
+		baseURL = runtime.ClaudeGatewayBaseURL(baseURL)
+	}
 	configuredBaseURL := baseURL
 	if req.Protocol != nil && runtime.IsAgentCLI(engine) {
 		protocol = runtime.AgentCLIProtocol(engine, *req.Protocol)

@@ -104,6 +104,10 @@
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const UNITS = isVi ? {次: ['lần', 'lần'], 步: ['bước', 'bước'], 个: ['', ''], 台: ['máy', 'máy'], 条: ['', '']} : {次: ['time', 'times'], 步: ['step', 'steps'], 个: ['', ''], 台: ['', ''], 条: ['', '']};
   const patterns = [
+    // Dynamic provider errors must be translated before individual text fragments.
+    ...(isVi ? [
+      [/^((?:Claude Code|Codex|CodeBuddy|OpenCode|Cursor|Kimi Code|Pi|ZCode):\s*)?请先在个人配置中配置 (.+?) API Key 后再使用 \2 (?:模型|Mô hình)$/, (_, prefix, engine) => (prefix || '') + 'Chưa cấu hình ' + engine + ' API Key trong Cấu hình cá nhân. Hãy lưu API Key và Base URL của nhà cung cấp (nếu dùng gateway) trước khi chọn mô hình ' + engine + '.'],
+    ] : []),
     // Vietnamese-only user-facing API validation messages. Never rewrite SOP identifiers.
     ...(isVi ? [
       [/^SOP ([A-Za-z0-9._:\/-]+) 不存在$/, (_, id) => `Không tìm thấy SOP ${id}`],

@@ -230,6 +230,13 @@ func (h *catalogHandlers) executorModels(c *gin.Context) {
 		catalog.Models = []executorModelInfo{}
 		catalogs[runtime.AgentCLIAntigravity] = catalog
 	}
+	if _, baseURL := assistantEngineCredential(user, assistantEngineClaude); baseURL != "" {
+		// Custom gateways must advertise their own IDs; native Claude defaults
+		// are misleading if the gateway discovery request failed.
+		catalog := catalogs["claude"]
+		catalog.Models = []executorModelInfo{}
+		catalogs["claude"] = catalog
+	}
 	for _, engine := range append([]string{assistantEngineCodeBuddy}, assistantCLIEngines()...) {
 		models, _ := assistantDiscoveredModelsFor(c.Request.Context(), user, engine)
 		if len(models) == 0 {

@@ -147,15 +147,22 @@ func bindCommand(ctx context.Context, sandbox Sandbox, workspace string, command
 			}
 			bound.Argv = argv
 		case BindClaudeCode:
-			bound.environment["ANTHROPIC_API_KEY"] = strings.TrimSpace(credentials.ClaudeCode.APIKey)
-			if bound.environment["ANTHROPIC_API_KEY"] == "" {
+			key := strings.TrimSpace(credentials.ClaudeCode.APIKey)
+			if key == "" {
 				return CommandSpec{}, fmt.Errorf("需求责任人未配置 Claude Code API Key，请在个人配置中配置")
 			}
-			baseURL := strings.TrimSpace(credentials.ClaudeCode.BaseURL)
+			baseURL := ClaudeGatewayBaseURL(credentials.ClaudeCode.BaseURL)
 			if baseURL == "" {
 				baseURL = "https://api.anthropic.com"
 			}
 			bound.environment["ANTHROPIC_BASE_URL"] = baseURL
+			if baseURL == "https://api.anthropic.com" {
+				bound.environment["ANTHROPIC_API_KEY"] = key
+			} else {
+				// Claude Code prefers ANTHROPIC_API_KEY when both variables exist.
+				// Use only the Bearer token on custom OmniRoute-style gateways.
+				bound.environment["ANTHROPIC_AUTH_TOKEN"] = key
+			}
 		case BindAgentCLI:
 			var home AgentCLIHome
 			homeEnv := bound.environment["HOME"]

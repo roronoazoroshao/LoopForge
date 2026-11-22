@@ -329,6 +329,9 @@ func assistantScheduledModel(id string, catalog assistantModelCatalog) string {
 // The second result reports whether Cursor is refreshing its automatic catalog.
 func assistantDiscoveredModelsFor(ctx context.Context, user domain.User, engine string) ([]assistantDiscoveredModel, bool) {
 	key, baseURL := assistantEngineCredential(user, engine)
+	if engine == assistantEngineClaude {
+		baseURL = runtime.ClaudeGatewayBaseURL(baseURL)
+	}
 	protocol := assistantEngineProtocol(user, engine)
 	listed := assistantSavedModels(user, engine)
 	if len(listed) == 0 && key != "" && baseURL != "" {
@@ -372,7 +375,10 @@ func assistantEngineModels(ctx context.Context, user domain.User, runnerLogin ma
 			listed, pending = assistantDiscoveredModelsFor(ctx, user, engine)
 			cursorModelsPending = cursorModelsPending || pending
 		}
-		if len(listed) == 0 && (engine != runtime.AgentCLIAntigravity || runnerLogin[engine] || !antigravityUsesCustomEndpoint(user)) {
+		if len(listed) == 0 && (engine != runtime.AgentCLIAntigravity || runnerLogin[engine] || !antigravityUsesCustomEndpoint(user)) &&
+			(engine != assistantEngineClaude || baseURL == "") {
+			// Do not advertise official Claude IDs for an arbitrary custom gateway
+			// that has not returned a model list. Users can add IDs manually.
 			listed = assistantEngineBuiltinModels(engine)
 		}
 		catalog := cliModelsOf(listed)
