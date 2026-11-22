@@ -191,3 +191,7 @@ Agent counts, active role metadata, loop/skill/verification counters, project la
 ### Asset catalogue dynamic copy
 
 Translated shared/owner status, numeric counts and search-result messages at source. Asset titles/descriptions and originating project names are protected against DOM retranslation. RED/GREEN isolated fixtures checked Chinese legacy output and Vietnamese units. Full runner and visual E2E deferred.
+
+### Issue table localized dynamic metadata
+
+Generated issue progress/error/status tooltips and repository counts are now authored in Vietnamese. Owner, repository, branch and user-defined SOP names are protected against runtime DOM translation. Same numeric values and APIs; focused syntax and locale checks passed, full browser/runner pending.

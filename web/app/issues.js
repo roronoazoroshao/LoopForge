@@ -1,3 +1,5 @@
+function issuesVI(){return typeof window!=='undefined'&&window.lfLang?.()==='vi'}
+function issuesCopy(zh,vi){return issuesVI()?vi:zh}
 function setIssueView(view, rerender=true){
   state.issueView=view==='kanban'?'kanban':'table';
   localStorage.setItem('agentflow.issueView',state.issueView);
@@ -270,15 +272,15 @@ function issuePriorityMarkup(value){
 function issueSourceLabel(i){
   const s=metricsIssueSource(i);
   if(s==='github')return 'GitHub';
-  if(s==='gongfeng')return '工蜂';
+  if(s==='gongfeng')return issuesCopy('工蜂','Gongfeng');
   if(s==='tapd')return 'TAPD';
-  return '平台新建';
+  return issuesCopy('平台新建','Tạo trên nền tảng');
 }
 function issueSourceMarkup(i){
   const s=metricsIssueSource(i)||'local';
   const tone=s==='github'?'github':s==='gongfeng'?'gongfeng':s==='tapd'?'tapd':'local';
   const label=issueSourceLabel(i);
-  return `<span class="issue-source-chip tone-${tone}" title="需求来源：${escapeHTML(label)}">${escapeHTML(label)}</span>`;
+  return `<span class="issue-source-chip tone-${tone}" title="${issuesCopy(`需求来源：${escapeHTML(label)}`,`Nguồn yêu cầu: ${escapeHTML(label)}`)}">${escapeHTML(label)}</span>`;
 }
 // 与顶栏、项目成员保持一致：复用统一头像组件（真实头像 + 首字回退），不再自绘姓氏。
 function issueOwnerAvatar(i){
@@ -379,7 +381,7 @@ function issueListProgress(i,run,w){
   return raw;
 }
 function issueRow(i){
-  const {project:p,run,workflow:w}=issueExecution(i),boundRepos=(state.data.repositories||[]).filter(x=>(i.repositoryIds||[]).includes(x.id)||x.id===i.repositoryId||(!((i.repositoryIds||[]).length||i.repositoryId)&&x.id===p?.defaultRepositoryId)),issueRepos=[boundRepos.find(x=>x.id===i.repositoryId),...boundRepos.filter(x=>x.id!==i.repositoryId)].filter(Boolean),repo=issueRepos[0],repoLabel=issueRepos.length>1?`${repo?.name||'未绑定'} 等${issueRepos.length}个`:repo?.name||'未绑定',health=issueRunHealth(i),stage=issueCurrentStage(i),progress=issueListProgress(i,run,w);
+  const {project:p,run,workflow:w}=issueExecution(i),boundRepos=(state.data.repositories||[]).filter(x=>(i.repositoryIds||[]).includes(x.id)||x.id===i.repositoryId||(!((i.repositoryIds||[]).length||i.repositoryId)&&x.id===p?.defaultRepositoryId)),issueRepos=[boundRepos.find(x=>x.id===i.repositoryId),...boundRepos.filter(x=>x.id!==i.repositoryId)].filter(Boolean),repo=issueRepos[0],repoLabel=issueRepos.length>1?issuesCopy(`${repo?.name||'未绑定'} 等${issueRepos.length}个`,`${repo?.name||'Chưa liên kết'} và ${issueRepos.length-1} kho mã khác`):repo?.name||issuesCopy('未绑定','Chưa liên kết'),health=issueRunHealth(i),stage=issueCurrentStage(i),progress=issueListProgress(i,run,w);
   const sop=issueSOPLabel(i);
   const laneDots=issueLaneDots(i);
   const convo=conversationIssueProgress(i,run);
@@ -387,7 +389,7 @@ function issueRow(i){
   const needsConfirm=clarificationNeedsConfirm(i);
   let progressText=`${progress.pct}%`;
   let progressCls='';
-  let progressTitle=`${progress.done}/${progress.total||0} 节点`;
+  let progressTitle=issuesCopy(`${progress.done}/${progress.total||0} 节点`,`${progress.done}/${progress.total||0} bước`);
   let trackWidth=progress.pct;
   if(convo){
     progressText=convo.text;
@@ -395,22 +397,22 @@ function issueRow(i){
     trackWidth=convo.width;
     progressTitle=convo.title;
   }else if(isFailed){
-    progressText='失败';
+    progressText=issuesCopy('失败','Thất bại');
     progressCls=' fail';
     trackWidth=0;
-    progressTitle=`门禁或脚本执行失败（${progress.done}/${progress.total||0} 节点）`;
+    progressTitle=issuesCopy(`门禁或脚本执行失败（${progress.done}/${progress.total||0} 节点）`,`Bước kiểm tra hoặc script thất bại (${progress.done}/${progress.total||0} bước)`);
   }else if(needsConfirm){
-    progressText='需要确认结论';
+    progressText=issuesCopy('需要确认结论','Cần xác nhận kết luận');
     progressCls=' confirm';
     trackWidth=100;
-    progressTitle='澄清已完成，需要确认结论后再触发 SOP';
+    progressTitle=issuesCopy('澄清已完成，需要确认结论后再触发 SOP','Đã làm rõ; cần xác nhận kết luận trước khi kích hoạt SOP');
   }else if(progress.pct>=100){
     progressCls=' done';
   }
   const rowTone=needsConfirm?' needs-confirm':(isFailed?' needs-attention':'');
   const owner=issueOwnerSummary(i);
   const pri=i.priority||'medium';
-  return `<div class="issue-table-row${rowTone}" role="row" data-id="${escapeHTML(i.id)}">${state.issueSelectionMode?`<div class="issue-select-cell">${issueSelectionCheckbox(i)}</div>`:''}<div class="issue-key-cell" title="${escapeHTML(String(issueKeyLabel(i)||''))}">${issueKeyMarkup(i)}</div><div class="issue-title-cell">${issueTitleMarkup(i.title)}</div><div class="issue-source-cell">${issueSourceMarkup(i)}</div><div class="issue-assignee-cell" title="${escapeHTML(owner)}">${issueOwnerAvatar(i)}<span class="issue-assignee-name">${escapeHTML(owner)}</span></div><div class="issue-repository-cell" title="${escapeHTML(issueRepos.map(r=>r.name).join('、')||'未绑定')} · ${escapeHTML(i.baseBranch||repo?.defaultBranch||'')}">${escapeHTML(repoLabel)}</div><div class="issue-priority-cell">${issuePriorityMarkup(pri)}</div><div class="issue-workflow-cell" title="${escapeHTML(sop)}">${escapeHTML(sop)}${laneDots}</div><div class="issue-stage-cell ${stage.key}" title="${escapeHTML(stage.hint)}">${issueStageBadge(stage)}</div><div class="issue-progress-cell${progressCls}" title="${escapeHTML(progressTitle)}"><b>${escapeHTML(progressText)}</b><span class="issue-progress-track"><i style="width:${trackWidth}%"></i></span></div><div class="issue-actions-cell">${issueActionButtons(i)}</div></div>`;
+  return `<div class="issue-table-row${rowTone}" role="row" data-id="${escapeHTML(i.id)}">${state.issueSelectionMode?`<div class="issue-select-cell">${issueSelectionCheckbox(i)}</div>`:''}<div class="issue-key-cell" title="${escapeHTML(String(issueKeyLabel(i)||''))}">${issueKeyMarkup(i)}</div><div class="issue-title-cell">${issueTitleMarkup(i.title)}</div><div class="issue-source-cell">${issueSourceMarkup(i)}</div><div class="issue-assignee-cell"${issuesVI()?' data-i18n-skip':''} title="${escapeHTML(owner)}">${issueOwnerAvatar(i)}<span class="issue-assignee-name">${escapeHTML(owner)}</span></div><div class="issue-repository-cell"${issuesVI()?' data-i18n-skip':''} title="${escapeHTML(issueRepos.map(r=>r.name).join('、')||issuesCopy('未绑定','Chưa liên kết'))} · ${escapeHTML(i.baseBranch||repo?.defaultBranch||'')}">${escapeHTML(repoLabel)}</div><div class="issue-priority-cell">${issuePriorityMarkup(pri)}</div><div class="issue-workflow-cell"${issuesVI()?' data-i18n-skip':''} title="${escapeHTML(sop)}">${escapeHTML(sop)}${laneDots}</div><div class="issue-stage-cell ${stage.key}" title="${escapeHTML(stage.hint)}">${issueStageBadge(stage)}</div><div class="issue-progress-cell${progressCls}" title="${escapeHTML(progressTitle)}"><b>${escapeHTML(progressText)}</b><span class="issue-progress-track"><i style="width:${trackWidth}%"></i></span></div><div class="issue-actions-cell">${issueActionButtons(i)}</div></div>`;
 }
 
 let refreshIssuesPending=null;
