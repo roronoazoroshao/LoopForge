@@ -13,6 +13,7 @@ function issueDeletePath(id,force){
   return `/api/issues/${encodeURIComponent(id)}${force?'?force=true':''}`;
 }
 function issueDeletionWarning(force,external){
+  if(globalThis.window?.lfLang?.()==='vi')return `Yêu cầu, bình luận và hồ sơ làm rõ sẽ bị xóa. ${force?'Tác vụ, lượt chạy, nhật ký, sản phẩm đầu ra và không gian thực thi liên quan cũng sẽ bị dọn sạch. ':''}Không thể khôi phục sau khi xóa.${external?' Yêu cầu gốc ở hệ thống bên ngoài vẫn được giữ; đồng bộ sau này có thể nhập lại.':''}`;
   return `需求、评论和澄清记录将被删除。${force?'关联的任务、运行记录、日志、产物和执行工作区将一并清理。':''}删除后无法恢复。${external?'外部原单会保留，后续同步可能重新导入。':''}`;
 }
 function issueDeletionContextHTML(issue,{menu=false}={}){

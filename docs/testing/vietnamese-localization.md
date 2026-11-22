@@ -63,3 +63,7 @@ All 12 fresh browser-local demo conversations now have Vietnamese titles, 48 mes
 ### Approval and issue detail dynamic source audit
 
 Localized Web manual gate reasons, paused run descriptions, rework buttons and bulk messages, the issue close dialog and associated-conversation metadata, and run graph stage/parent copy. Preserved workflow/user names and instructions; marked localized prompt titles and messages to avoid a second DOM translation, and reset protection between dialogs. The original ZH/EN source branches and run API payload expressions remain unchanged. Isolated gate fixtures and JS syntax checks passed; full DOM and browser verification remains deferred.
+
+### SOP designer and request-management source audit
+
+Localized sandbox selection/failure messages using explicit Vietnamese arguments; prompt placeholder help, platform tab labels, SOP-copy suffix and destructive confirmation copy. Localized permanent issue deletion warnings and bulk counters; preserved force/external-sync distinctions and the original API path and request body. Added 91 reviewed static catalogue keys. Isolated source checks cover sandbox empty/selected behavior and four destructive-warning combinations; catalogue token parity verified; full runner/browser checks remain deferred.

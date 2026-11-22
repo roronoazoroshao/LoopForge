@@ -752,8 +752,8 @@ function renderAgentTaskBook(a){
   const host=$('#agentTaskBookPanel');if(!host)return;
   const d=ensureAgentDraft(a);
   host.innerHTML=`<div class="as-prompt-box">
-      <div class="as-ph-bar" role="toolbar" aria-label="插入运行时变量"><span>插入</span>${AGENT_PROMPT_PLACEHOLDERS.map(x=>`<button type="button" data-insert-ph="${x.t}" data-tip="${escapeHTML(`${x.t} · ${x.d}`)}">${x.l}</button>`).join('')}</div>
-      <textarea data-tp="prompt" aria-label="角色 prompt" placeholder="写清它是谁、做什么、按什么顺序、哪些事不能做。&#10;&#10;例如：你是 Issue 根因分析师，只分析不修改。读 Issue 和相关源码，把根因定位到具体文件和函数，写进 fix-plan.md。先复现，再缩小范围，最后给出修复步骤。不要改业务代码，也不要跑测试。">${escapeHTML(d.prompt||'')}</textarea>
+      <div class="as-ph-bar" role="toolbar" aria-label="插入运行时变量"><span>插入</span>${AGENT_PROMPT_PLACEHOLDERS.map(x=>`<button type="button" data-insert-ph="${x.t}" data-tip="${escapeHTML(`${x.t} · ${globalThis.window?.lfLang?.()==='vi'?(window.lfTranslate?.(x.d)??x.d):x.d}`)}">${x.l}</button>`).join('')}</div>
+      <textarea data-tp="prompt" aria-label="角色 prompt" placeholder="${globalThis.window?.lfLang?.()==='vi'?'Nêu rõ vai trò, nhiệm vụ, thứ tự thực hiện và các hành động không được phép.&#10;&#10;Ví dụ: Bạn là chuyên gia phân tích nguyên nhân gốc của issue, chỉ phân tích và không chỉnh sửa. Đọc issue cùng mã nguồn liên quan, xác định nguyên nhân đến tệp và hàm cụ thể rồi ghi vào fix-plan.md. Tái hiện trước, thu hẹp phạm vi, sau đó đề xuất các bước sửa. Không sửa mã nghiệp vụ hoặc chạy kiểm thử.':'写清它是谁、做什么、按什么顺序、哪些事不能做。&#10;&#10;例如：你是 Issue 根因分析师，只分析不修改。读 Issue 和相关源码，把根因定位到具体文件和函数，写进 fix-plan.md。先复现，再缩小范围，最后给出修复步骤。不要改业务代码，也不要跑测试。'}">${escapeHTML(d.prompt||'')}</textarea>
     </div>
     <p class="as-prompt-note" id="agentPromptNote"></p>`;
   const el=host.querySelector('[data-tp="prompt"]');
@@ -1163,17 +1163,17 @@ function syncSOPSandboxSelection(){
   let selected;
   if(sameSource)selected=choices.find(s=>s.id===select.value);
   else if(!missingTemplateSandbox)selected=defaultSOPSandbox(choices,template?.sandboxProfileId);
-  select.innerHTML=`<option value="">${escapeHTML(lfT('请选择运行沙箱','Select a sandbox'))}</option>`+choices.map(s=>`<option value="${escapeHTML(s.id)}">${escapeHTML(s.name||s.id)}${catalogForeign(s.projectId)?lfT(' · 共享',' · Shared'):''}</option>`).join('');
+  select.innerHTML=`<option value="">${escapeHTML(lfT('请选择运行沙箱','Select a sandbox','Chọn sandbox thực thi'))}</option>`+choices.map(s=>`<option value="${escapeHTML(s.id)}">${escapeHTML(s.name||s.id)}${catalogForeign(s.projectId)?lfT(' · 共享',' · Shared',' · Dùng chung'):''}</option>`).join('');
   select.value=selected?.id||'';
   select.dataset.source=state.sopTemplate;select.dataset.project=state.projectFilter;
   select.disabled=!choices.length;
   select.onchange=()=>syncSOPSandboxSelection();
   $('#sopFinish').disabled=!selected;
   $('#sopSandboxHint').textContent=!choices.length
-    ?lfT('当前项目没有可用的运行沙箱，请先配置或请管理员共享一个沙箱，再点击「刷新沙箱」。','No sandbox is available for this project. Configure one or ask an administrator to share one, then refresh sandboxes.')
-    :!selected&&missingTemplateSandbox?lfT('模板原有沙箱不可用，请重新选择运行沙箱。','The template sandbox is unavailable. Select a replacement sandbox.')
-    :!selected?lfT('请选择运行沙箱。如需本地执行，请确认流程中的任务均可信。','Select a sandbox. Choose local execution only if you trust every task in this SOP.')
-    :lfT('选择此 SOP 使用的运行环境，创建后仍可在流程设置中修改。','Choose the execution environment for this SOP. You can change it in SOP settings later.');
+    ?lfT('当前项目没有可用的运行沙箱，请先配置或请管理员共享一个沙箱，再点击「刷新沙箱」。','No sandbox is available for this project. Configure one or ask an administrator to share one, then refresh sandboxes.','Dự án chưa có sandbox thực thi khả dụng. Hãy cấu hình hoặc nhờ quản trị viên chia sẻ sandbox, rồi chọn Làm mới sandbox.')
+    :!selected&&missingTemplateSandbox?lfT('模板原有沙箱不可用，请重新选择运行沙箱。','The template sandbox is unavailable. Select a replacement sandbox.','Sandbox của mẫu không khả dụng. Hãy chọn sandbox thực thi khác.')
+    :!selected?lfT('请选择运行沙箱。如需本地执行，请确认流程中的任务均可信。','Select a sandbox. Choose local execution only if you trust every task in this SOP.','Chọn sandbox thực thi. Chỉ chọn thực thi cục bộ khi bạn tin cậy tất cả tác vụ trong SOP này.')
+    :lfT('选择此 SOP 使用的运行环境，创建后仍可在流程设置中修改。','Choose the execution environment for this SOP. You can change it in SOP settings later.','Chọn môi trường thực thi cho SOP này. Có thể thay đổi trong cài đặt quy trình sau khi tạo.');
 }
 async function refreshSOPSandboxes(){
   const button=$('#sopRefreshSandboxes');button.disabled=true;
@@ -1232,15 +1232,15 @@ async function createSOPFromWizard(e){
     toast(missing.length?`SOP 草稿已创建；${missing.length} 项运行依赖未配置（${missing.map(r=>r.label).join('、')}）`:'SOP 草稿已创建，请继续设计节点',missing.length?'':'ok')
   }catch(err){
     toast(/sandbox profile.*not found/i.test(err.message)
-      ?lfT('所选运行沙箱已不可用，请点击「刷新沙箱」后重新选择。','The selected sandbox is no longer available. Refresh sandboxes and select another one.')
+      ?lfT('所选运行沙箱已不可用，请点击「刷新沙箱」后重新选择。','The selected sandbox is no longer available. Refresh sandboxes and select another one.','Sandbox đã chọn không còn khả dụng. Hãy làm mới danh sách sandbox rồi chọn lại.')
       :err.message);
   }}
-async function cloneWorkflow(id){const src=id?(state.data.workflows||[]).find(w=>w.id===id):state.workflow;if(!src?.id)return toast('先选择一条 SOP');const name=await afPrompt({title:'复制 SOP',message:'请输入复制后的 SOP 名称：',defaultValue:`${src.name} - 副本`});if(!name)return;const owner=await afPrompt({title:'SOP 负责人',message:'请输入负责人（可留空）：',defaultValue:src.owner||''})??'';try{const copied=await api(`/api/workflows/${encodeURIComponent(src.id)}/clone`,{method:'POST',body:JSON.stringify({id:uid('sop'),name,owner,projectId:state.projectFilter||''})});state.data.workflows.unshift(copied);state.workflow=clone(copied);state.selectedNode=null;state.sopScope='project';markWorkflowClean();renderAll();toast('已复制到本项目')}catch(e){toast(e.message)}}
+async function cloneWorkflow(id){const src=id?(state.data.workflows||[]).find(w=>w.id===id):state.workflow;if(!src?.id)return toast('先选择一条 SOP');const name=await afPrompt({title:'复制 SOP',message:'请输入复制后的 SOP 名称：',defaultValue:globalThis.window?.lfLang?.()==='vi'?`${src.name} - Bản sao`:`${src.name} - 副本`});if(!name)return;const owner=await afPrompt({title:'SOP 负责人',message:'请输入负责人（可留空）：',defaultValue:src.owner||''})??'';try{const copied=await api(`/api/workflows/${encodeURIComponent(src.id)}/clone`,{method:'POST',body:JSON.stringify({id:uid('sop'),name,owner,projectId:state.projectFilter||''})});state.data.workflows.unshift(copied);state.workflow=clone(copied);state.selectedNode=null;state.sopScope='project';markWorkflowClean();renderAll();toast('已复制到本项目')}catch(e){toast(e.message)}}
 
 async function deleteWorkflow(id){
   const w=(state.data.workflows||[]).find(x=>x.id===id);
   if(!w)return toast('SOP 不存在或已删除');
-  if(!await afConfirm({title:'删除 SOP 确认',message:`确认删除 SOP「${w.name}」？此操作不可恢复，关联的运行记录会保留但流程定义将移除。`,confirmText:'确认删除',isDanger:true}))return;
+  if(!await afConfirm({title:'删除 SOP 确认',messageLocalized:globalThis.window?.lfLang?.()==='vi',message:globalThis.window?.lfLang?.()==='vi'?`Xóa SOP “${w.name}”? Không thể hoàn tác. Hồ sơ lượt chạy liên quan vẫn được giữ nhưng định nghĩa quy trình sẽ bị xóa.`:`确认删除 SOP「${w.name}」？此操作不可恢复，关联的运行记录会保留但流程定义将移除。`,confirmText:'确认删除',isDanger:true}))return;
   try{
     await api(`/api/workflows/${encodeURIComponent(id)}`,{method:'DELETE'});
     state.data.workflows=state.data.workflows.filter(x=>x.id!==id);

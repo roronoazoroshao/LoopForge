@@ -974,9 +974,10 @@ async function deleteIssueById(issueId){
   if(!issue||issue.id!==issueId)return toast('未找到需求单');
   if(!issueCanDelete(issue))return toast(issueDeletionBlock(issue).reason,'err');
   const force=issue.deletionRequiresForce===true;
-  const title=force?'强制删除需求':'删除需求';
+  const vi=globalThis.window?.lfLang?.()==='vi';
+  const title=vi?(force?'Buộc xóa yêu cầu':'Xóa yêu cầu'):(force?'强制删除需求':'删除需求');
   const external=issue.source==='tapd'||issue.source==='gongfeng';
-  if(!await afConfirm({title,message:`确定${title}「${issue.title||issue.id}」？${issueDeletionWarning(force,external)}`,danger:true,confirmText:force?'确认强制删除':'确认删除'}))return;
+  if(!await afConfirm({title,messageLocalized:vi,message:vi?`${title} “${issue.title||issue.id}”? ${issueDeletionWarning(force,external)}`:`确定${title}「${issue.title||issue.id}」？${issueDeletionWarning(force,external)}`,danger:true,confirmText:vi?(force?'Xác nhận buộc xóa':'Xác nhận xóa'):(force?'确认强制删除':'确认删除')}))return;
   try{
     await api(issueDeletePath(issueId,force),{method:'DELETE'});
     state.data.issues=(state.data.issues||[]).filter(i=>i.id!==issueId);
