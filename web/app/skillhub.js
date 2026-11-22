@@ -2,8 +2,10 @@
  * 浏览器只调用平台的 /api/skillhub/*；安装与更新由服务端下载所选版本快照入库，
  * 这里不接触 SkillHub 的 Key 和带签名的下载地址。视觉复用 assets-harness.css 与 Harness 组件类。
  */
+function skillhubVI(){return typeof window!=='undefined'&&window.lfLang?.()==='vi'}
+function skillhubText(zh,vi){return skillhubVI()?vi:zh}
 const SKILLHUB_PAGE_SIZE=24;
-const SKILLHUB_SORTS=[['downloads','按下载量'],['score','按综合评分'],['updated_at','最近更新']];
+const SKILLHUB_SORTS=[['downloads',skillhubText('按下载量','Theo lượt tải')],['score',skillhubText('按综合评分','Theo điểm tổng hợp')],['updated_at',skillhubText('最近更新','Cập nhật gần đây')]];
 const SKILLHUB_TRACE=[['trust','可信度','Trust'],['reliability','可靠性','Reliability'],['adaptability','适应性','Adaptability'],['convention','规范性','Convention'],['effectiveness','有效性','Effectiveness']];
 const SKILLHUB_TRACE_ITEMS={scan:'安全扫描',domestic:'国内可用',stability:'稳定性',func:'功能',errorHandling:'错误处理',boundary:'边界',trigger:'触发',progressive:'渐进披露',structure:'结构',docQuality:'文档质量',antiPatternFaq:'反模式 / FAQ',accuracy:'准确性',completeness:'完整性',usability:'易用性',creativity:'创造性'};
 const SKILLHUB_ID_PATTERN=/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
@@ -48,6 +50,12 @@ function skillhubCardState(item,skills){
 }
 function skillhubCount(n){
   n=Number(n)||0;
+  if(skillhubVI()){
+    if(n>=1e9)return `${+(n/1e9).toFixed(1)} tỷ`;
+    if(n>=1e6)return `${+(n/1e6).toFixed(1)} triệu`;
+    if(n>=1e3)return `${+(n/1e3).toFixed(1)} nghìn`;
+    return String(n);
+  }
   if(n>=1e8)return `${+(n/1e8).toFixed(1)} 亿`;
   if(n>=1e4)return `${+(n/1e4).toFixed(1)} 万`;
   return String(n);
@@ -106,8 +114,8 @@ function skillhubTraceHTML(evaluation,openKey){
   const dims=SKILLHUB_TRACE.map(([key,label,en])=>{
     const dim=evaluation.dimensions?.[key];if(!dim)return '';
     const score=skillhubDimensionScore(dim),open=key===openKey;
-    const items=Object.entries(dim.items||{}).map(([k,x])=>{const v=skillhubScoreValue(x?.score);return `<li><span>${escapeHTML(SKILLHUB_TRACE_ITEMS[k]||k)} <small>${escapeHTML(k)}</small></span><b>${v===null?'—':v.toFixed(1)}</b><span class="skillhub-bar is-thin"><i style="width:${v===null?0:Math.max(0,Math.min(100,v/5*100))}%"></i></span>${x?.userReason?`<p>${escapeHTML(x.userReason)}</p>`:''}</li>`}).join('');
-    return `<div class="skillhub-tl-sec${open?' is-open':''}" data-trace-dim="${key}"><button type="button" class="skillhub-tl-toggle" aria-expanded="${open}">${huiIcon(score!==null&&score>=4?'check':'alert')}<strong>${label}</strong><span class="skillhub-tl-en">${en}</span><span class="skillhub-bar"><i style="width:${score===null?0:Math.max(0,Math.min(100,score/5*100))}%"></i></span><span class="skillhub-tl-val">${score===null?'—':score.toFixed(1)}</span>${huiIcon('chevron-down')}</button><div class="skillhub-tl-fold"><div>${dim.userReason?`<p class="skillhub-tl-reason">${escapeHTML(dim.userReason)}</p>`:''}${items?`<ul class="skillhub-tl-items">${items}</ul>`:''}</div></div></div>`;
+    const items=Object.entries(dim.items||{}).map(([k,x])=>{const v=skillhubScoreValue(x?.score);return `<li><span>${escapeHTML(skillhubVI()?(window.lfTranslate?.(SKILLHUB_TRACE_ITEMS[k]||k)??(SKILLHUB_TRACE_ITEMS[k]||k)):(SKILLHUB_TRACE_ITEMS[k]||k))} <small>${escapeHTML(k)}</small></span><b>${v===null?'—':v.toFixed(1)}</b><span class="skillhub-bar is-thin"><i style="width:${v===null?0:Math.max(0,Math.min(100,v/5*100))}%"></i></span>${x?.userReason?`<p>${escapeHTML(x.userReason)}</p>`:''}</li>`}).join('');
+    return `<div class="skillhub-tl-sec${open?' is-open':''}" data-trace-dim="${key}"><button type="button" class="skillhub-tl-toggle" aria-expanded="${open}">${huiIcon(score!==null&&score>=4?'check':'alert')}<strong>${skillhubVI()?(window.lfTranslate?.(label)??label):label}</strong><span class="skillhub-tl-en">${en}</span><span class="skillhub-bar"><i style="width:${score===null?0:Math.max(0,Math.min(100,score/5*100))}%"></i></span><span class="skillhub-tl-val">${score===null?'—':score.toFixed(1)}</span>${huiIcon('chevron-down')}</button><div class="skillhub-tl-fold"><div>${dim.userReason?`<p class="skillhub-tl-reason">${escapeHTML(dim.userReason)}</p>`:''}${items?`<ul class="skillhub-tl-items">${items}</ul>`:''}</div></div></div>`;
   }).join('');
   return `<div class="skillhub-panel skillhub-tl"><header class="skillhub-tl-head"><span>${huiIcon('flask')}TRACE 质量评测</span><span class="skillhub-score"><b>${total===null?'—':total.toFixed(1)}</b><small>/ 5${evaluation.updatedAt?` · ${escapeHTML(skillhubDate(evaluation.updatedAt))}`:''}</small></span></header>${evaluation.userSummary?`<p class="skillhub-tl-summary">${escapeHTML(evaluation.userSummary)}</p>`:''}${dims}</div>`;
 }
@@ -118,10 +126,10 @@ function skillhubSplitFrontMatter(text){
 function skillhubFileWarnings(files){
   const list=files||[],out=[];
   const big=list.filter(f=>(Number(f.size)||0)>SKILLHUB_FILE_PREVIEW_MAX);
-  if(big.length)out.push(`${big.map(f=>f.path).join('、')} 超过平台单文件 1MB 限额，安装会失败并提示原因。`);
-  if(list.length>SKILLHUB_FILE_COUNT_MAX)out.push(`技能包含 ${list.length} 个文件，超过单个技能最多 ${SKILLHUB_FILE_COUNT_MAX} 个文件的限额。`);
+  if(big.length)out.push(skillhubText(`${big.map(f=>f.path).join('、')} 超过平台单文件 1MB 限额，安装会失败并提示原因。`,`${big.map(f=>f.path).join(', ')} vượt giới hạn 1 MB cho mỗi tệp. Cài đặt sẽ thất bại và hiển thị lý do.`));
+  if(list.length>SKILLHUB_FILE_COUNT_MAX)out.push(skillhubText(`技能包含 ${list.length} 个文件，超过单个技能最多 ${SKILLHUB_FILE_COUNT_MAX} 个文件的限额。`,`Kỹ năng có ${list.length} tệp, vượt giới hạn ${SKILLHUB_FILE_COUNT_MAX} tệp cho mỗi kỹ năng.`));
   const total=list.reduce((s,f)=>s+(Number(f.size)||0),0);
-  if(total>SKILLHUB_PACKAGE_MAX)out.push(`技能包共 ${fmtBytes(total)}，超过单个技能 64MB 的限额。`);
+  if(total>SKILLHUB_PACKAGE_MAX)out.push(skillhubText(`技能包共 ${fmtBytes(total)}，超过单个技能 64MB 的限额。`,`Gói kỹ năng có dung lượng ${fmtBytes(total)}, vượt giới hạn 64 MB cho mỗi kỹ năng.`));
   return out;
 }
 // Client-side hint only; the server re-checks ids across every project.
@@ -370,7 +378,7 @@ function skillhubFilesHTML(d){
     else view=`<pre class="skillhub-code">${highlightCode(f.content||'',skillFileLang(f.path))}</pre>`;
   }
   const isMd=/\.(md|markdown)$/i.test(d.filePath||'');
-  const warn=skillhubFileWarnings(d.files).map(w=>`<div class="skillhub-callout">${huiIcon('alert')}${escapeHTML(w)}</div>`).join('');
+  const warn=skillhubFileWarnings(d.files).map(w=>`<div class="skillhub-callout"${skillhubVI()?' data-i18n-skip':''}>${huiIcon('alert')}${escapeHTML(w)}</div>`).join('');
   return `<div class="skillhub-panel skillhub-files"><div class="skillhub-ftree">${skillhubFileTreeHTML(d.files,d.filePath)}</div><div class="skillhub-fview"><div class="skillhub-fbar">${huiIcon('doc')}<code>${escapeHTML(d.filePath||'')}</code><span class="skillhub-sp"></span>${isMd&&f?.previewable?`<div class="skillhub-seg"><button type="button" data-skillhub-mode="preview" class="${d.fileMode==='preview'?'is-on':''}">预览</button><button type="button" data-skillhub-mode="source" class="${d.fileMode==='source'?'is-on':''}">源码</button></div>`:''}</div><div class="skillhub-fbody">${view}</div></div></div>${warn}`;
 }
 function skillhubQualityHTML(d,view){

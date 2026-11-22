@@ -67,3 +67,7 @@ Localized Web manual gate reasons, paused run descriptions, rework buttons and b
 ### SOP designer and request-management source audit
 
 Localized sandbox selection/failure messages using explicit Vietnamese arguments; prompt placeholder help, platform tab labels, SOP-copy suffix and destructive confirmation copy. Localized permanent issue deletion warnings and bulk counters; preserved force/external-sync distinctions and the original API path and request body. Added 91 reviewed static catalogue keys. Isolated source checks cover sandbox empty/selected behavior and four destructive-warning combinations; catalogue token parity verified; full runner/browser checks remain deferred.
+
+### Canvas/SVG-only translation gap
+
+ECharts labels and tooltip content are constructed outside standard Web UI nodes; DOM-only dictionary coverage was insufficient. Source-level Vietnamese labels now cover weekdays, phase legend, tooltip labels and period names. SkillHub fixes compact number units and generated quota warnings, preserving file paths and numerical limits. Isolated generated chart options and numeric warning checks passed. Full browser rendering and automated test suite remain deferred.
