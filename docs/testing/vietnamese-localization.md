@@ -87,3 +87,7 @@ Added 59 complete EN/VI catalogue entries covering accessible labels, bot setup,
 ### Shared tasks and scheduled execution dynamics
 
 Scheduled execution statuses now localize the authored prefix without modifying raw server diagnostics; pinned-conversation text and shared-subscription project scope are authored in Vietnamese before DOM rendering. Parameter metadata retains its technical identifiers and defaults while localizing required markers and counter labels. Isolated source evaluations checked Vietnamese, Chinese and raw-data preservation; full runner, preview API and browser remain unverified.
+
+### Static scheduling and integration labels
+
+Reviewed 51 additional EN/VI UI keys for scheduled execution, runtime operations, SkillHub, shared subscriptions, analytics and standalone status messages. Catalogue invariants were checked directly: zero empty/missing entries and no placeholder mismatch; this is not a claim of runtime-wide or semantic coverage.
