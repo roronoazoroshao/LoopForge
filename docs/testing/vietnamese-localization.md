@@ -103,3 +103,7 @@ Translated five funnel-stage labels and category/source names at the producer be
 ### Observability generated insight sentences
 
 Source-level VI branches now create complete delivery, token comparison, cache hit and failure-insight sentences including dynamic quantities and raw model names. The `data-i18n-skip` protection is applied only to prelocalized insight bodies, preventing the runtime observer from rewriting user-authored workflow names and diagnostic strings. A RED/GREEN isolated fixture exercised delivery insights and verified that ZH output is unchanged; the Node test file is authored but the runner is deferred.
+
+### Broad UI literal inventory: high-priority leftovers
+
+Added 66 reviewed source phrases from SSH host trust, accessible dropdowns, file upload, issue delivery, analytics explanatory text, and account registration. These came from a literal-level audit of first-party modules rather than assuming catalogue completeness. Internal SVG motion metadata and engine/system prompts are tracked separately as non-UI or behavior-sensitive text. Dictionary checks ensure every newly added EN key has a Vietnamese value and matching interpolation tokens; full runtime coverage not yet certified.
