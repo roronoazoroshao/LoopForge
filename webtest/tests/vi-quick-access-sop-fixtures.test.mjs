@@ -8,8 +8,7 @@ async function calls(lang){
  const roles=src.slice(src.indexOf('const FALLBACK_ROLE_PROMPTS_VI'),src.indexOf('const BRANCH_OPTIONS = ['));
  const fn=src.slice(src.indexOf('async function provisionFallbackProjectSOP('),src.indexOf('export default function QuickAccessWizard('));
  const recorded=[],context=vm.createContext({chatT:(zh,vi)=>lang==='vi'?vi:zh,write:async(url,body,method)=>{recorded.push({url,body,method});return body}});
- vm.runInContext("const DEFAULT_SOP_ID='generic-backend-delivery';\n"+initial+'\n'+roles+'\n'+fn+"\nprovisionFallbackProjectSOP('proj-123','sop-123','alice')",context);
- await new Promise(resolve=>setImmediate(resolve));
+ await vm.runInContext("const DEFAULT_SOP_ID='generic-backend-delivery';\n"+initial+'\n'+roles+'\n'+fn+"\nprovisionFallbackProjectSOP('proj-123','sop-123','alice')",context);
  return recorded;
 }
 test('fresh Vietnamese fallback SOPs contain localized role prompts and preserve technical contracts',async()=>{

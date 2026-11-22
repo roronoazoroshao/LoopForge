@@ -143,3 +143,7 @@ Localized the dynamically concatenated “需要” prefix before SOP prerequisi
 ### React QuickAccessWizard — persistent fallback SOP localization
 
 Previously a fresh Vietnamese onboarding flow localized only display names but persisted seven Chinese role names, descriptions and prompts, a Chinese sandbox, node names and SOP description. The provisioning path now stores reviewed Vietnamese content for newly generated fallback SOPs while keeping all agent/node/workflow IDs, artifact paths, `{{input}}` placeholders, tags, edges, model IDs and API payload structure invariant. Existing stored projects and user-owned SOP content are never migrated. An isolated source-executed RED/GREEN fixture compared seven roles and a workflow in VI and ZH; the Vitest/Node production runner and browser are still deferred.
+
+### React accessibility and test reliability
+
+Localized the previously hardcoded `SidebarSection` accessible label (“conversations of [title]”) while preserving the unmodified project title in both VI and ZH. Adjusted the isolated QuickAccess SOP provisioning regression test to await the actual async provisioning promise instead of waiting a single event-loop turn, avoiding timing-dependent false positives.
