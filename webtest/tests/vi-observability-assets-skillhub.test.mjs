@@ -210,3 +210,24 @@ test('exported HTML is a self-contained Vietnamese report and retains project da
     assert.match(zh,/用量分析报告/);
   }
 });
+
+test('observability filters are Vietnamese in both personal and project modes without rewriting names',()=>{
+  for(const scope of ['user','project']){
+    const state={obsScope:scope,obsTrendGrain:'all',currentUser:{id:1},
+      obsOriginFilter:'internal',obsSourceFilter:'local',obsUserFilter:'',data:{users:[]}};
+    const context={state,result:'',window:{lfLang:()=>'vi'},
+      currentProject:()=>({name:'当前项目',id:'p1'}),obsScope:()=>scope,
+      obsTrendGrain:()=>'all',ensureObsUserFilter:()=>{},userById:()=>null,
+      obsUserName:()=>'',obsUserChoices:()=>[],obsCanManageSources:()=>false,
+      obsSeg:(key,opts)=>opts.map(o=>o[1]).join(' · '),obsPeriodPicker:()=>'',
+      obsPeriodRange:()=>null,obsRangeCaption:()=>'',obsSourceLabel:()=> 'Cục bộ',
+      obsIcon:()=>'',escapeHTML};
+    runInNewContext(take(obs,'function obsUi(zh,vi)','function obsFilteredRuns(){')+
+      '\nresult=obsFilterBar();',context);
+    assert.match(context.result,/Phạm vi thống kê/);
+    assert.match(context.result,/Tất cả/);
+    assert.match(context.result,/aria-label="Nguồn yêu cầu"/);
+    assert.match(context.result,/当前项目/);
+    assert.doesNotMatch(context.result.replaceAll('当前项目',''),/[\u3400-\u9fff]/u);
+  }
+});

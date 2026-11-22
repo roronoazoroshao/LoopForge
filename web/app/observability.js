@@ -465,7 +465,7 @@ function obsFilterBar(){
   const label=current?userDisplay(current):(selected?obsUserName(selected):obsUi('全部成员','Mọi thành viên'));
   const me=String(state.currentUser?.id||'');
   const people=obsUserChoices();
-  const userOptions=[`<option value=""${!selected?' selected':''} data-search="all 全部成员">全部责任人</option>`,
+  const userOptions=[`<option value=""${!selected?' selected':''} data-search="${obsUi('all 全部成员','all mọi thành viên')}">${obsUi('全部责任人','Tất cả người phụ trách')}</option>`,
     ...people.map(u=>{const id=String(u.id);return `<option value="${escapeHTML(id)}"${id===String(selected)?' selected':''} data-search="${escapeHTML(`${u.loginName||''} ${u.chineseName||''}`)}"${id===me?` data-meta="${obsUi('我','Tôi')}"`:''}>${escapeHTML(userDisplay(u))}</option>`})];
   if(selected&&!people.some(u=>String(u.id)===String(selected)))userOptions.push(`<option value="${escapeHTML(String(selected))}" selected>${escapeHTML(label)}</option>`);
   const originChoices=[['',obsUi('全部执行','Tất cả lượt chạy')],['internal',obsUi('平台内','Trong nền tảng')],['external',obsUi('外部工作流','Quy trình bên ngoài')]];
@@ -473,9 +473,9 @@ function obsFilterBar(){
   const sources=sourceChoices.map(([v,l])=>`<option value="${v}" ${(state.obsSourceFilter||'')===v?'selected':''}>${l}</option>`).join('');
   const grain=obsTrendGrain();
   const hint=obsScopeHintText(scope,projectName,grain);
-  const userFilter=scope==='user'?`<select id="obsUserFilter" data-obs-select data-icon="user" aria-label="责任人">${userOptions.join('')}</select>`:'';
-  const originFilter=`<select id="obsOriginFilter" data-obs-select data-icon="run-live" aria-label="执行">${originChoices.map(([v,l])=>`<option value="${v}" ${(state.obsOriginFilter||'')===v?'selected':''}>${l}</option>`).join('')}</select>`;
-  const sourceFilter=`<select id="obsSourceFilter" data-obs-select data-icon="connector" aria-label="需求来源">${sources}</select>`;
+  const userFilter=scope==='user'?`<select id="obsUserFilter" data-obs-select data-icon="user" aria-label="${obsUi('责任人','Người phụ trách')}">${userOptions.join('')}</select>`:'';
+  const originFilter=`<select id="obsOriginFilter" data-obs-select data-icon="run-live" aria-label="${obsUi('执行','Lượt chạy')}">${originChoices.map(([v,l])=>`<option value="${v}" ${(state.obsOriginFilter||'')===v?'selected':''}>${l}</option>`).join('')}</select>`;
+  const sourceFilter=`<select id="obsSourceFilter" data-obs-select data-icon="connector" aria-label="${obsUi('需求来源','Nguồn yêu cầu')}">${sources}</select>`;
   const clear=(kind,title)=>`<button type="button" data-obs-clear-filter="${kind}" title="${title}" aria-label="${title}">${obsIcon('close',11)}</button>`;
   const chips=[];
   if(scope==='project')chips.push(`<span class="obs-chip"${obsUi("", " data-i18n-data")}>${escapeHTML(obsScopeChipText('project',projectName))}</span>`);
@@ -487,8 +487,8 @@ function obsFilterBar(){
     const range=obsPeriodRange(obsPeriodKey(),grain);
     chips.push(`<span class="obs-chip">${escapeHTML(range?range.label:obsRangeCaption())}${clear('period',obsUi('回到全部','Xem toàn bộ'))}</span>`);
   }
-  const manage=obsCanManageSources()?`<button class="obs-btn ghost" id="obsManageSources" type="button" title="外部数据源" aria-label="外部数据源">${obsIcon('integration')}<span>外部数据源</span></button>`:'';
-  return `<div class="obs-fbar"><div class="obs-fbar-row">${obsSeg('data-obs-scope',[['user','个人',0,'','user'],['project','项目',0,'','users']],scope)}${userFilter}${originFilter}${sourceFilter}<span class="obs-sp"></span>${obsSeg('data-obs-grain',[['all','全部'],['day','日'],['week','周'],['month','月']],grain)}${obsPeriodPicker()}${manage}</div><div class="obs-scopeline"><span>统计范围</span>${chips.join('')}<span class="obs-info" tabindex="0">${obsIcon('info',13)}口径说明<span class="obs-tip" role="tooltip"${obsUi("", " data-i18n-data")}>${escapeHTML(hint)}</span></span></div></div>`;
+  const manage=obsCanManageSources()?`<button class="obs-btn ghost" id="obsManageSources" type="button" title="${obsUi('外部数据源','Nguồn dữ liệu bên ngoài')}" aria-label="${obsUi('外部数据源','Nguồn dữ liệu bên ngoài')}">${obsIcon('integration')}<span>${obsUi('外部数据源','Nguồn dữ liệu bên ngoài')}</span></button>`:'';
+  return `<div class="obs-fbar"><div class="obs-fbar-row">${obsSeg('data-obs-scope',[['user',obsUi('个人','Cá nhân'),0,'','user'],['project',obsUi('项目','Dự án'),0,'','users']],scope)}${userFilter}${originFilter}${sourceFilter}<span class="obs-sp"></span>${obsSeg('data-obs-grain',[['all',obsUi('全部','Tất cả')],['day',obsUi('日','Ngày')],['week',obsUi('周','Tuần')],['month',obsUi('月','Tháng')]],grain)}${obsPeriodPicker()}${manage}</div><div class="obs-scopeline"><span>${obsUi('统计范围','Phạm vi thống kê')}</span>${chips.join('')}<span class="obs-info" tabindex="0">${obsIcon('info',13)}${obsUi('口径说明','Giải thích cách tính')}<span class="obs-tip" role="tooltip"${obsUi("", " data-i18n-data")}>${escapeHTML(hint)}</span></span></div></div>`;
 }
 function obsFilteredRuns(){
   let runs=scopedRuns(state.data.runs||[]);
@@ -521,7 +521,7 @@ function obsUserTotals(){
 function obsTableCard(title,sub,headers,rows,colspan,pageKey){
   const list=Array.isArray(rows)?rows:(rows?[rows]:[]);
   const paged=pageKey?paginateList(pageKey,list):{items:list,total:list.length,size:list.length||1,page:1,pages:1,start:0,end:list.length};
-  const body=paged.items.join('')||`<tr><td colspan="${colspan||headers.length}" class="detail-empty">暂无数据</td></tr>`;
+  const body=paged.items.join('')||`<tr><td colspan="${colspan||headers.length}" class="detail-empty">${obsUi('暂无数据','Chưa có dữ liệu')}</td></tr>`;
   return `<div class="obs-card" style="margin-bottom:14px"><div class="obs-card-title">${title}${sub?`<span class="sub">${sub}</span>`:''}</div><table class="obs-table"><thead><tr>${headers.map(h=>`<th>${obsReportText(h)}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>${pageKey?pagerHTML(pageKey,paged):''}</div>`;
 }
 // costLabel 区分"成本为 0"与"成本未识别"，未识别时展示占位而不是 ¥0。
@@ -667,7 +667,7 @@ function obsSeg(attr,items,active,small){
 }
 function obsCard(key,title,sub,tools,body,opts){
   opts=opts||{};
-  const expand=opts.expand?`<button type="button" class="obs-x-btn" data-obs-expand="${escapeHTML(key)}" title="放大" aria-label="放大查看">${OBS_EXPAND_ICON}</button>`:'';
+  const expand=opts.expand?`<button type="button" class="obs-x-btn" data-obs-expand="${escapeHTML(key)}" title="${obsUi('放大','Phóng to')}" aria-label="${obsUi('放大查看','Phóng to để xem')}">${OBS_EXPAND_ICON}</button>`:'';
   return `<section class="obs-card2 ${opts.klass||''}" data-obs-card="${escapeHTML(key)}"><header class="obs-card-head"><div class="obs-card-heading"><h3>${title}</h3>${sub?`<p>${sub}</p>`:''}</div><div class="obs-card-tools">${tools||''}${expand}</div></header>${body}</section>`;
 }
 function obsSpark(values){
@@ -848,7 +848,7 @@ function obsDetailTable(tbl,query,highlight){
   const body=paged.items.map(r=>{
     const cls=[r.cls,hl&&obsRowText(r).includes(hl)?'obs-row-hl':''].filter(Boolean).join(' ');
     return `<tr${cls?` class="${cls}"`:''}${r.attrs?' '+r.attrs:''}>${r.cells.map(c=>`<td>${c}</td>`).join('')}</tr>`;
-  }).join('')||`<tr><td colspan="${tbl.headers.length}" class="detail-empty">${q?'没有匹配的行':escapeHTML(tbl.empty||'暂无数据')}</td></tr>`;
+  }).join('')||`<tr><td colspan="${tbl.headers.length}" class="detail-empty">${q?obsUi('没有匹配的行','Không có dòng phù hợp'):escapeHTML(tbl.empty||obsUi('暂无数据','Chưa có dữ liệu'))}</td></tr>`;
   return `${tbl.title?`<h4 class="obs-dtable-title">${tbl.title}${tbl.sub?`<span>${tbl.sub}</span>`:''}</h4>`:''}${tbl.lead||''}<div class="obs-tw"><table class="obs-table obs-dtable"><thead><tr>${tbl.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>${tbl.pageKey?pagerHTML(tbl.pageKey,paged):''}`;
 }
 function obsDetailPanel(groups,active){
@@ -859,9 +859,9 @@ function obsDetailPanel(groups,active){
   const nav=groups.map(g=>`<h6>${g.group}</h6>`+g.items.map(it=>`<button type="button" data-obs-detail="${escapeHTML(it.key)}" class="${it.key===item.key?'active':''}">${it.title}<i>${obsDetailCount(it)}</i></button>`).join('')).join('');
   const query=state.obsDetailQuery||'';
   const tables=item.tables?.length;
-  const tools=tables?`<input type="search" class="obs-dsearch" data-obs-detail-search placeholder="筛选当前表…" value="${escapeHTML(query)}" aria-label="筛选当前表"><button type="button" class="obs-btn" data-obs-export-csv="${escapeHTML(item.key)}">${obsIcon('download')}CSV</button>`:'';
+  const tools=tables?`<input type="search" class="obs-dsearch" data-obs-detail-search placeholder="${obsUi('筛选当前表…','Lọc bảng hiện tại…')}" value="${escapeHTML(query)}" aria-label="${obsUi('筛选当前表','Lọc bảng hiện tại')}"><button type="button" class="obs-btn" data-obs-export-csv="${escapeHTML(item.key)}">${obsIcon('download')}CSV</button>`:'';
   const body=tables?item.tables.map(t=>obsDetailTable(t,query,state.obsDetailHighlight)).join(''):(item.html||'');
-  return `<section class="obs-dx" data-obs-card="detail" id="obsDetail"><nav class="obs-dnav" aria-label="明细分组">${nav}</nav><div class="obs-dmain"><div class="obs-dtool"><div class="obs-dtool-title"><h3>${item.title}</h3>${item.sub?`<p>${item.sub}</p>`:''}</div>${tools}</div>${body}</div></section>`;
+  return `<section class="obs-dx" data-obs-card="detail" id="obsDetail"><nav class="obs-dnav" aria-label="${obsUi('明细分组','Nhóm chi tiết')}">${nav}</nav><div class="obs-dmain"><div class="obs-dtool"><div class="obs-dtool-title"><h3>${item.title}</h3>${item.sub?`<p>${item.sub}</p>`:''}</div>${tools}</div>${body}</div></section>`;
 }
 function obsDetailCard(){return obsDetailPanel(obsDetailGroups(),(state.obsDetailKeys||{})[obsDetailScope()])}
 function obsPageToHighlight(item,highlight){
@@ -910,7 +910,7 @@ function obsCsvContent(tables){
 function obsCsvFileName(title){
   const project=currentProject();
   const clean=s=>String(s||'').replace(/<[^>]+>/g,'').replace(/[\\/:*?"<>|\s]+/g,'_').replace(/^_+|_+$/g,'');
-  return `${clean(title)||'明细'}-${clean(project?.name||project?.id||'全部项目')}-${new Date().toISOString().slice(0,10)}.csv`;
+  return `${clean(title)||obsUi('明细','chi-tiet')}-${clean(project?.name||project?.id||obsUi('全部项目','tat-ca-du-an'))}-${new Date().toISOString().slice(0,10)}.csv`;
 }
 function obsExportCsv(key){
   let item=null;
@@ -953,7 +953,7 @@ function obsExpandExtra(key){
   if(!list.length)return '';
   const sel=obsPeriodKey();
   const rows=list.slice().reverse().map(p=>{const rate=obsTrendModeValue(p,'rate'),hit=obsTrendCacheHit(p);return `<tr class="run-row${p.date===sel?' obs-row-hl':''}" data-obs-period="${escapeHTML(p.date||'')}"><td>${escapeHTML(obsTrendLabel(p))}</td><td>${formatTokens(p.tokens)}</td><td>${costLabel(p.costCny,!p.costUnknownRuns)}</td><td>${p.runs||0}</td><td>${p.issues||0}</td><td>${rate==null?'—':rate.toFixed(0)+'%'}</td><td>${hit==null?'—':hit.toFixed(0)+'%'}</td></tr>`}).join('');
-  return `<h4>逐${obsGrainCaption()}数据<span>点一行等同点图</span></h4><div class="obs-tw"><table class="obs-table"><thead><tr><th>${obsGrainCaption()}</th><th>Token</th><th>成本</th><th>运行</th><th>需求</th><th>成功率</th><th>缓存命中</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  return `<h4>${obsUi(`逐${obsGrainCaption()}数据`,`Dữ liệu theo ${obsGrainCaption()}`)}<span>${obsUi('点一行等同点图','Nhấp một dòng để chọn kỳ tương ứng trên biểu đồ')}</span></h4><div class="obs-tw"><table class="obs-table"><thead><tr><th>${obsGrainCaption()}</th><th>Token</th><th>成本</th><th>运行</th><th>需求</th><th>成功率</th><th>缓存命中</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function obsRenderExpandExtra(){
   const box=(obsExpandState?.modal||document.getElementById('obsExpand'))?.querySelector('.obs-expand-box');
@@ -1199,7 +1199,7 @@ function obsBreakdownRows(dim,metric){
   if(rows.length<=limit)return [...rows,...pinned];
   // Conversation usage is often small: keep it visible instead of folding it.
   const rest=rows.slice(limit-1);
-  return [...rows.slice(0,limit-1),{key:'__other',name:`其他 ${rest.length} 项`,tokens:rest.reduce((n,r)=>n+Number(r.tokens||0),0),costCny:rest.reduce((n,r)=>n+Number(r.costCny||0),0),other:true},...pinned];
+  return [...rows.slice(0,limit-1),{key:'__other',name:obsUi(`其他 ${rest.length} 项`,`Khác (${rest.length} mục)`),tokens:rest.reduce((n,r)=>n+Number(r.tokens||0),0),costCny:rest.reduce((n,r)=>n+Number(r.costCny||0),0),other:true},...pinned];
 }
 function obsBreakdownState(){
   let dim=OBS_BREAKDOWN_DIMS.some(([k])=>k===state.obsBdDim)?state.obsBdDim:'sop';
@@ -1218,7 +1218,7 @@ function obsBreakdownCard(){
   const fmt=metric==='cost'?(v=>'¥'+Number(v||0).toFixed(2)):formatTokens;
   const dims=obsSeg('data-obs-bd-dim',OBS_BREAKDOWN_DIMS.map(([k,l])=>{const n=obsBreakdownRows(k,metric).length;return [k,l,n<2,n<2?'该维度只有一项或没有数据':'']}),dim,true);
   const metrics=obsSeg('data-obs-bd-metric',[['tokens','Token'],['cost','成本']],metric,true);
-  const legend=rows.map((r,i)=>`<button type="button" class="obs-bd-row" data-obs-bd-row="${i}" title="查看明细"><i style="background:${r.conversation?OBS_CONVERSATION_COLOR:['var(--c1)','var(--c2)','var(--c3)','var(--muted-2)','var(--c4)','var(--panel-3)'][Math.min(i,5)]}"></i><span>${escapeHTML(r.name)}</span><b>${fmt(obsBreakdownValue(r,metric))}</b><em>${total?(obsBreakdownValue(r,metric)*100/total).toFixed(0):0}%</em></button>`).join('');
+  const legend=rows.map((r,i)=>`<button type="button" class="obs-bd-row" data-obs-bd-row="${i}" title="${obsUi('查看明细','Xem chi tiết')}"><i style="background:${r.conversation?OBS_CONVERSATION_COLOR:['var(--c1)','var(--c2)','var(--c3)','var(--muted-2)','var(--c4)','var(--panel-3)'][Math.min(i,5)]}"></i><span>${escapeHTML(r.name)}</span><b>${fmt(obsBreakdownValue(r,metric))}</b><em>${total?(obsBreakdownValue(r,metric)*100/total).toFixed(0):0}%</em></button>`).join('');
   const chart=obsChartSlot('breakdown',{
     empty:!rows.length,emptyText:'暂无用量',
     option:(theme,reduced)=>obsBreakdownOption(rows,metric,obsChartFormatters(theme,reduced)),
@@ -1226,8 +1226,8 @@ function obsBreakdownCard(){
     on:{click:p=>obsBreakdownJump(p.dataIndex),mouseover:p=>obsBreakdownMark(p.dataIndex),mouseout:()=>obsBreakdownMark(null)}
   },200);
   const cumulative=obsTrendGrain()!=='all';
-  const center=rows.length?`<div class="obs-bd-center"><b>${fmt(total)}</b><span>${cumulative?'累计':''}${metric==='cost'?'成本':'Token'}</span></div>`:'';
-  return obsCard('breakdown',metric==='cost'?'成本去向':'Token 去向',cumulative?'累计口径，不随所选时段变化；点一项跳到对应明细':'按维度拆分；点一项跳到对应明细',`${metrics}`,`<div class="obs-bd-dims">${dims}</div><div class="obs-bd"><div class="obs-bd-ring">${chart}${center}</div><div class="obs-bd-legend">${legend}</div></div>`,{expand:true});
+  const center=rows.length?`<div class="obs-bd-center"><b>${fmt(total)}</b><span>${cumulative?obsUi('累计','Lũy kế '):''}${metric==='cost'?obsUi('成本','Chi phí'):'Token'}</span></div>`:'';
+  return obsCard('breakdown',metric==='cost'?obsUi('成本去向','Phân bổ chi phí'):obsUi('Token 去向','Phân bổ token'),cumulative?obsUi('累计口径，不随所选时段变化；点一项跳到对应明细','Dữ liệu lũy kế, không thay đổi theo kỳ; nhấp để xem chi tiết'):obsUi('按维度拆分；点一项跳到对应明细','Phân nhóm theo loại; nhấp để xem chi tiết'),`${metrics}`,`<div class="obs-bd-dims">${dims}</div><div class="obs-bd"><div class="obs-bd-ring">${chart}${center}</div><div class="obs-bd-legend">${legend}</div></div>`,{expand:true});
 }
 function obsBreakdownMark(i){
   document.querySelectorAll('[data-obs-bd-row]').forEach(r=>r.classList.toggle('is-hover',i!=null&&Number(r.dataset.obsBdRow)===i));
@@ -1290,10 +1290,10 @@ function obsHeatCard(){
   const chart=obsChartSlot('heat',{
     empty:!list.length,emptyText:'暂无执行时段数据',
     option:(theme,reduced)=>obsHeatOption(list,metric,obsChartFormatters(theme,reduced)),
-    fallback:()=>{const grid=obsHeatMatrix(list);const max=Math.max(1,...grid.flat().map(c=>metric==='runs'?c.runs:c.tokens));return `<div class="obs-heat-fallback">${grid.map((row,d)=>`<div><span>${OBS_WEEKDAYS[d]}</span>${row.map((c,h)=>{const v=metric==='runs'?c.runs:c.tokens;return `<i title="${OBS_WEEKDAYS[d]} ${h}:00 · ${metric==='runs'?v+' 次':formatTokens(v)}" style="opacity:${v?(.15+.85*v/max).toFixed(2):.06}"></i>`}).join('')}</div>`).join('')}</div>`}
+    fallback:()=>{const grid=obsHeatMatrix(list);const max=Math.max(1,...grid.flat().map(c=>metric==='runs'?c.runs:c.tokens));return `<div class="obs-heat-fallback">${grid.map((row,d)=>`<div><span>${OBS_WEEKDAYS[d]}</span>${row.map((c,h)=>{const v=metric==='runs'?c.runs:c.tokens;return `<i title="${OBS_WEEKDAYS[d]} ${h}:00 · ${metric==='runs'?obsUi(v+' 次',v+' lượt'):formatTokens(v)}" style="opacity:${v?(.15+.85*v/max).toFixed(2):.06}"></i>`}).join('')}</div>`).join('')}</div>`}
   },220);
   const tz=obsTimeZone();
-  return obsCard('heat','执行时段',`星期 × 小时（${escapeHTML(tz)}）${peakText?' · '+peakText:''}`,obsSeg('data-obs-heat-metric',[['tokens','Token'],['runs','运行']],metric,true),chart,{expand:true});
+  return obsCard('heat',obsUi('执行时段','Khung giờ thực thi'),obsUi(`星期 × 小时（${escapeHTML(tz)}）${peakText?' · '+peakText:''}`,`Thứ × giờ (${escapeHTML(tz)})${peakText?' · '+peakText:''}`),obsSeg('data-obs-heat-metric',[['tokens','Token'],['runs',obsUi('运行','Lượt chạy')]],metric,true),chart,{expand:true});
 }
 function obsTimeZone(){
   try{return Intl.DateTimeFormat().resolvedOptions().timeZone||''}catch(e){return ''}
@@ -1307,7 +1307,7 @@ function obsTraceRows(traces){
     const issue=t.externalUrl?`<a href="${escapeHTML(safeURL(t.externalUrl))}" target="_blank" rel="noopener noreferrer">${escapeHTML(source+' '+issueRef)}</a>`:`${escapeHTML(source+' '+issueRef)}`;
     const task=t.workflowTaskId?`<code title="${escapeHTML(t.workflowTaskId)}">${escapeHTML(t.workflowTaskId.slice(-12))}</code>`:'—';
     const runId=String(t.runId||''),traceId=String(t.traceId||t.runId||'');
-    const relation=t.origin==='external'?`<code title="${escapeHTML(t.externalId||'')}">外部执行 ${escapeHTML(t.externalId||'')}</code>`:`<div class="obs-trace-ids"><code title="${escapeHTML(runId)}">Run ${escapeHTML(runId.slice(-12))}</code><code title="${escapeHTML(traceId)}">Trace ${escapeHTML(traceId.slice(-12))}</code></div>`;
+    const relation=t.origin==='external'?`<code title="${escapeHTML(t.externalId||'')}">${obsUi('外部执行','Lượt chạy bên ngoài')} ${escapeHTML(t.externalId||'')}</code>`:`<div class="obs-trace-ids"><code title="${escapeHTML(runId)}">Run ${escapeHTML(runId.slice(-12))}</code><code title="${escapeHTML(traceId)}">Trace ${escapeHTML(traceId.slice(-12))}</code></div>`;
     const observed=(t.toolCallsSucceeded||0)+(t.toolCallsFailed||0);
     const tools=observed?obsUi(`${t.toolCallsSucceeded||0}/${observed} 成功`,`${t.toolCallsSucceeded||0}/${observed} thành công`):(t.toolCalls?obsUi(`${t.toolCalls} 次 · 结果未上报`,`${t.toolCalls} lượt · chưa có kết quả`):'—');
     const error=t.errorMessage?`<span class="obs-trace-error" title="${escapeHTML(t.errorMessage)}">${escapeHTML(t.errorNodeId||'Run')} · ${escapeHTML(t.errorMessage)}</span>`:'—';
@@ -1346,7 +1346,7 @@ function obsUsageDetailGroups(view){
       {key:'recent',title:'最近运行',sub:'点击打开对应需求',tables:[recent]},
     ]},
     {group:'用量拆解',items:[
-      {key:'trend',title:'趋势明细',sub:`按${grainName}；点一行查看该时段`,tables:[trendTable]},
+      {key:'trend',title:'趋势明细',sub:obsUi(`按${grainName}；点一行查看该时段`,`Theo ${grainName}; nhấp một dòng để xem kỳ đó`),tables:[trendTable]},
       {key:'sops',title:'SOP 一览',sub:'成功率、返工、取消和各流程占了多少 Token / 成本',tables:[sopTable]},
       {key:'models',title:'各模型用量',sub:'每个模型花了多少 Token 和钱',tables:[modelTable]},
       {key:'users',title:obsScope()==='project'?'成员':'每人每日用量',sub:'责任人 × 自然日',tables:obsScope()==='project'?[memberTable,userTable]:[userTable],count:(a.userUsage||[]).length},
