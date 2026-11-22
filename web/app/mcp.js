@@ -178,6 +178,15 @@ async function saveCustomMCP(e){
     state.editingMCPId='';$('#customMcpModal').classList.remove('open');renderMCPManagement();renderAgents()
 	}catch(err){toast(err.message,'err')}finally{button.disabled=false;button.textContent=wasEditing?'保存修改':'添加 MCP'}
 }
+// Translate complete UI sentences at the rendering boundary; never translate project/user names.
+function mcpScopeDescription(personal, name){
+  if(typeof window!=='undefined'&&window.lfLang?.()==='vi')return personal?`Chỉ ${name} có thể xem.`:`Được thêm vào dự án “${name}”; không xuất hiện ở dự án khác.`;
+  return personal?`仅 ${name} 可见。`:`添加到「${name}」，不会出现在其他项目中。`;
+}
+function mcpEmptyDescription(personal){
+  if(typeof window!=='undefined'&&window.lfLang?.()==='vi')return personal?'Nhấp “Thêm MCP” ở góc trên bên phải để tạo cấu hình cá nhân.':'Nhấp “Thêm MCP” ở góc trên bên phải để kết nối công cụ cho dự án này.';
+  return `点击右上角「添加 MCP」，${personal?'创建个人专属配置':'为本项目接入工具'}。`;
+}
 function renderMCPManagement(){
   const grid=$('#mcpMarketGrid'),hint=$('#mcpScopeHint');if(!grid||!hint)return;
   state.mcpTab='installed';
@@ -187,12 +196,12 @@ function renderMCPManagement(){
   const matchedInstalled=installed.filter(item=>mcpMatchesQuery(item,query));
   const installedCount=$('#mcpInstalledCount');
   if(installedCount)installedCount.textContent=String(matchedInstalled.length);
-  hint.innerHTML=personal?`<b>个人 MCP</b><span>仅 ${escapeHTML(userDisplay(state.currentUser)||'当前用户')} 可见。</span>`:`<b>项目 MCP</b><span>添加到「${escapeHTML(project?.name||'未选择项目')}」，不会出现在其他项目中。</span>`;
+  hint.innerHTML=personal?`<b>个人 MCP</b><span${typeof window!=='undefined'&&window.lfLang?.()==='vi'?' data-i18n-data':''}>${escapeHTML(mcpScopeDescription(true,userDisplay(state.currentUser)||'当前用户'))}</span>`:`<b>项目 MCP</b><span${typeof window!=='undefined'&&window.lfLang?.()==='vi'?' data-i18n-data':''}>${escapeHTML(mcpScopeDescription(false,project?.name||'未选择项目'))}</span>`;
   if(personal&&(!state.currentUser||state.currentUser.isGuest)){grid.innerHTML='<div class="mcp-market-empty"><b>登录后才能管理个人 MCP</b><p>项目级 MCP 仍可在当前项目中管理。</p></div>';return}
   const pagedMCP=paginateList('mcp',matchedInstalled);
   const catalog=personal?'':mcpCatalogSuggestionsHTML(installed,query);
   const cards=pagedMCP.items.map(item=>`<article class="mcp-market-card is-installed"><div class="mcp-card-head"><span class="mcp-card-logo">${mcpMarketLogo(item)}</span><div><h3>${escapeHTML(item.name)}</h3><small>${personal?'个人专属':escapeHTML(project?.name||item.projectId)}</small></div><span class="mcp-installed-badge ${item.marketId?'is-market':'is-custom'}">${item.marketId?'市场':'自定义'}</span></div><p>${escapeHTML(item.description||'暂无说明')}</p><div class="mcp-card-meta">${item.authType==='github-token'?'<span>GitHub 令牌认证</span>':'<span>自定义认证</span>'}<span>${escapeHTML(item.transport||'http')}</span></div><div class="mcp-card-actions"><div class="mcp-action-buttons">${item.marketId?'':`<button class="button ghost small" type="button" data-mcp-edit="${escapeHTML(item.id)}">修改</button>`}<button class="button ghost small danger" type="button" data-mcp-remove="${escapeHTML(item.id)}">移除</button></div></div></article>`).join('');
-  grid.innerHTML=catalog+(cards||(query?'<div class="mcp-market-empty"><b>没有匹配的 MCP</b><p>换个关键词试试。</p></div>':`<div class="mcp-market-empty"><b>当前范围还没有 MCP</b><p>点击右上角「添加 MCP」，${personal?'创建个人专属配置':'为本项目接入工具'}。</p></div>`));
+  grid.innerHTML=catalog+(cards||(query?'<div class="mcp-market-empty"><b>没有匹配的 MCP</b><p>换个关键词试试。</p></div>':`<div class="mcp-market-empty"><b>当前范围还没有 MCP</b><p>${escapeHTML(mcpEmptyDescription(personal))}</p></div>`));
   if(cards)grid.insertAdjacentHTML('beforeend',pagerHTML('mcp',pagedMCP));
   bindMCPLogoFallbacks(grid);
   grid.querySelectorAll('[data-mcp-install]').forEach(button=>button.onclick=()=>installMarketMCP(button.dataset.mcpInstall,button));

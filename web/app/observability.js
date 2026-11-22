@@ -445,6 +445,16 @@ function obsUserChoices(){
     return userDisplay(a).localeCompare(userDisplay(b),'zh');
   });
 }
+function obsUi(zh,vi){return typeof window!=='undefined'&&window.lfLang?.()==='vi'?vi:zh;}
+function obsScopeChipText(scope,projectName,label){
+  if(scope==='project')return obsUi(`项目「${projectName}」全部成员`,`Mọi thành viên của dự án “${projectName}”`);
+  if(label)return obsUi(`「${projectName}」项目内 · ${label} 负责的执行`,`Dự án “${projectName}” · Lượt thực thi do ${label} phụ trách`);
+  return obsUi(`「${projectName}」项目内 · 全部成员`,`Dự án “${projectName}” · Mọi thành viên`);
+}
+function obsScopeHintText(scope,projectName,grain){
+  const prefix=scope==='project'?obsUi(`项目指标 = 顶栏当前项目「${projectName}」全部成员的运行、Token 和交付，不是全平台汇总。`,`Chỉ số dự án = lượt chạy, token và bàn giao của mọi thành viên dự án “${projectName}” trên thanh tiêu đề, không phải toàn nền tảng.`):obsUi(`个人指标 = 责任人在当前项目「${projectName}」里的执行。一人多项目时，下方「各项目」看他在其他项目的量，不会加进上面的 KPI。`,`Chỉ số cá nhân = lượt thực thi do người phụ trách thực hiện trong dự án “${projectName}”. Nếu tham gia nhiều dự án, xem mức sử dụng ở mục từng dự án phía dưới; chúng không được cộng vào KPI phía trên.`);
+  return prefix+obsUi(grain==='all'?'当前看全部历史，趋势按月聚合，点一个月可下钻。':'上方数字和 Loop 指标只含所选时段；点趋势图或用两侧箭头换一天 / 一周 / 一月。',grain==='all'?' Đang xem toàn bộ lịch sử; xu hướng tổng hợp theo tháng, nhấp vào tháng để xem chi tiết.':' Số liệu và chỉ số Loop chỉ tính kỳ đã chọn; nhấp biểu đồ hoặc dùng mũi tên để đổi ngày / tuần / tháng.');
+}
 function obsFilterBar(){
   ensureObsUserFilter();
   const project=currentProject();
@@ -462,17 +472,15 @@ function obsFilterBar(){
   const sourceChoices=[['','全部来源'],['local','本地'],['github','GitHub']];
   const sources=sourceChoices.map(([v,l])=>`<option value="${v}" ${(state.obsSourceFilter||'')===v?'selected':''}>${l}</option>`).join('');
   const grain=obsTrendGrain();
-  const hint=scope==='project'
-    ?`项目指标 = 顶栏当前项目「${projectName}」全部成员的运行、Token 和交付，不是全平台汇总。${grain==='all'?'当前看全部历史，趋势按月聚合，点一个月可下钻。':'上方数字和 Loop 指标只含所选时段；点趋势图或用两侧箭头换一天 / 一周 / 一月。'}`
-    :`个人指标 = 责任人在当前项目「${projectName}」里的执行。一人多项目时，下方「各项目」看他在其他项目的量，不会加进上面的 KPI。${grain==='all'?'当前看全部历史，趋势按月聚合，点一个月可下钻。':'上方数字和 Loop 指标只含所选时段；点趋势图或用两侧箭头换一天 / 一周 / 一月。'}`;
+  const hint=obsScopeHintText(scope,projectName,grain);
   const userFilter=scope==='user'?`<select id="obsUserFilter" data-obs-select data-icon="user" aria-label="责任人">${userOptions.join('')}</select>`:'';
   const originFilter=`<select id="obsOriginFilter" data-obs-select data-icon="run-live" aria-label="执行">${originChoices.map(([v,l])=>`<option value="${v}" ${(state.obsOriginFilter||'')===v?'selected':''}>${l}</option>`).join('')}</select>`;
   const sourceFilter=`<select id="obsSourceFilter" data-obs-select data-icon="connector" aria-label="需求来源">${sources}</select>`;
   const clear=(kind,title)=>`<button type="button" data-obs-clear-filter="${kind}" title="${title}" aria-label="${title}">${obsIcon('close',11)}</button>`;
   const chips=[];
-  if(scope==='project')chips.push(`<span class="obs-chip">项目「${escapeHTML(projectName)}」全部成员</span>`);
-  else if(selected)chips.push(`<span class="obs-chip">「${escapeHTML(projectName)}」项目内 · ${escapeHTML(label)} 负责的执行${clear('user','清除责任人')}</span>`);
-  else chips.push(`<span class="obs-chip">「${escapeHTML(projectName)}」项目内 · 全部成员</span>`);
+  if(scope==='project')chips.push(`<span class="obs-chip"${obsUi("", " data-i18n-data")}>${escapeHTML(obsScopeChipText('project',projectName))}</span>`);
+  else if(selected)chips.push(`<span class="obs-chip"${obsUi("", " data-i18n-data")}>${escapeHTML(obsScopeChipText('user',projectName,label))}${clear('user','清除责任人')}</span>`);
+  else chips.push(`<span class="obs-chip"${obsUi("", " data-i18n-data")}>${escapeHTML(obsScopeChipText('user',projectName))}</span>`);
   if(state.obsOriginFilter)chips.push(`<span class="obs-chip">${escapeHTML((originChoices.find(([v])=>v===state.obsOriginFilter)||[,state.obsOriginFilter])[1])}${clear('origin','清除执行来源')}</span>`);
   if(state.obsSourceFilter)chips.push(`<span class="obs-chip">${escapeHTML(obsSourceLabel(state.obsSourceFilter))}需求${clear('source','清除需求来源')}</span>`);
   if(grain!=='all'){
@@ -480,7 +488,7 @@ function obsFilterBar(){
     chips.push(`<span class="obs-chip">${escapeHTML(range?range.label:obsRangeCaption())}${clear('period','回到全部')}</span>`);
   }
   const manage=obsCanManageSources()?`<button class="obs-btn ghost" id="obsManageSources" type="button" title="外部数据源" aria-label="外部数据源">${obsIcon('integration')}<span>外部数据源</span></button>`:'';
-  return `<div class="obs-fbar"><div class="obs-fbar-row">${obsSeg('data-obs-scope',[['user','个人',0,'','user'],['project','项目',0,'','users']],scope)}${userFilter}${originFilter}${sourceFilter}<span class="obs-sp"></span>${obsSeg('data-obs-grain',[['all','全部'],['day','日'],['week','周'],['month','月']],grain)}${obsPeriodPicker()}${manage}</div><div class="obs-scopeline"><span>统计范围</span>${chips.join('')}<span class="obs-info" tabindex="0">${obsIcon('info',13)}口径说明<span class="obs-tip" role="tooltip">${escapeHTML(hint)}</span></span></div></div>`;
+  return `<div class="obs-fbar"><div class="obs-fbar-row">${obsSeg('data-obs-scope',[['user','个人',0,'','user'],['project','项目',0,'','users']],scope)}${userFilter}${originFilter}${sourceFilter}<span class="obs-sp"></span>${obsSeg('data-obs-grain',[['all','全部'],['day','日'],['week','周'],['month','月']],grain)}${obsPeriodPicker()}${manage}</div><div class="obs-scopeline"><span>统计范围</span>${chips.join('')}<span class="obs-info" tabindex="0">${obsIcon('info',13)}口径说明<span class="obs-tip" role="tooltip"${obsUi("", " data-i18n-data")}>${escapeHTML(hint)}</span></span></div></div>`;
 }
 function obsFilteredRuns(){
   let runs=scopedRuns(state.data.runs||[]);
@@ -1056,13 +1064,13 @@ function obsActivityUsageCard(a,collaborative){
   return {
     label:collaborative?'协作会话 Token':'会话 Token',
     value:!usage?'—':(!reported&&missing?'未采集':formatTokens(usage.tokens||0)),
-    foot:!usage?'暂无用量统计':missing?`${missing} 条回复未采集 · 仅含已记录部分`:`输入 ${formatTokens(usage.inputTokens||0)} / 输出 ${formatTokens(usage.outputTokens||0)}`,
+    foot:!usage?'暂无用量统计':missing?obsUi(`${missing} 条回复未采集 · 仅含已记录部分`,`${missing} phản hồi chưa thu thập · chỉ tính phần đã ghi nhận`):`输入 ${formatTokens(usage.inputTokens||0)} / 输出 ${formatTokens(usage.outputTokens||0)}`,
     tip:[
       collaborative?'当前至少两位用户实际发言的普通会话所消耗的 Token，包含在会话 Token 中，不要重复相加。':'普通会话中已保存回复的模型用量，按回复时间统计；不含 SOP 执行，分支继承的历史回复不重复计入。',
       '总量沿用模型上报的 totalTokens，缺少总量时按输入 + 输出计算；缓存读写单独列出。个人范围展示本人创建或参与的会话整体用量。',
       ['已记录回复',String(reported)],['未采集回复',String(missing)],
       ['缓存读',usage?formatTokens(usage.cacheReadTokens||0):'—'],['缓存写',usage?formatTokens(usage.cacheWriteTokens||0):'—'],
-      ...(undated?[`${undated} 条回复缺少时间，仅计入累计用量。`]:[]),
+      ...(undated?[obsUi(`${undated} 条回复缺少时间，仅计入累计用量。`,`${undated} phản hồi thiếu thời điểm, chỉ tính vào tổng mức sử dụng.`)]:[]),
     ],
   };
 }
@@ -1075,7 +1083,7 @@ function obsActivityKpis(){
     {label:'会话数',value:n('sessions'),foot:'普通对话 · 含已归档会话',tip:['按会话 ID 去重，排除 SOP 自动讨论会话；已删除会话不计入。个人范围包含本人创建或实际参与的会话。']},
     {label:'创建需求',value:n('requirements'),foot:'按需求 ID 去重',tip:['当前范围内创建的需求，含同步需求，不要求已启动 SOP。个人范围按需求责任人筛选；不推断需求由会话创建。']},
     {label:'需求 SOP',value:n('sopRuns'),foot:'已发起的 SOP 执行次数',tip:['仅计关联需求的顶层 SOP 运行；重复发起分别计数，排除对话工作区和子运行。个人范围沿用运行责任人口径。']},
-    {label:'多人协作会话',value:n('collaborativeSessions'),foot:a?(sessions?`占会话 ${rate.toFixed(1)}%`:'暂无会话'):'暂无统计数据',meter:rate,tip:['同一普通会话中至少两位不同用户实际发送过消息。机器人回复、定时触发、系统回执和项目成员数不算参与人数。协作占比 = 多人协作会话 ÷ 会话数。']},
+    {label:'多人协作会话',value:n('collaborativeSessions'),foot:a?(sessions?obsUi(`占会话 ${rate.toFixed(1)}%`,`Chiếm ${rate.toFixed(1)}% số cuộc trò chuyện`):'暂无会话'):obsUi('暂无统计数据','Chưa có dữ liệu thống kê'),meter:rate,tip:['同一普通会话中至少两位不同用户实际发送过消息。机器人回复、定时触发、系统回执和项目成员数不算参与人数。协作占比 = 多人协作会话 ÷ 会话数。']},
     obsActivityUsageCard(a,false),obsActivityUsageCard(a,true),
   ],'数量按创建时间，Token 按回复时间 · '+escapeHTML(obsRangeCaption()))]);
 }
@@ -1107,9 +1115,9 @@ function obsUsageKpis(view){
   ]);
   const output=obsKpiGroup('SOP 产出与质量',[
     {label:`${rangeName}运行`,value:String(total),delta:dl(d('runs')),spark:spark('runs'),foot:`${view.active||0} 进行中${cum(` · 累计 ${summary.totalRuns||0}`)}`,tip:['只统计 SOP 运行，对话工作区不算运行。',['成功',String(succeeded)],['失败',String(failed)],['取消',String(view.cancelled||0)],...deltaTip]},
-    {label:`${rangeName}需求`,value:String(view.uniqueIssues||0),delta:dl(d('issues')),spark:spark('issues'),foot:`每单 ${view.runsPerIssue!=null?Number(view.runsPerIssue).toFixed(1):'—'} 次${cum(` · 累计 ${summary.uniqueIssues||0}`)}`,tip:['有 SOP 运行的需求，按关联的 Issue / TAPD 单去重；对话改代码的需求见下方「对话改代码」。',...deltaTip]},
+    {label:`${rangeName}需求`,value:String(view.uniqueIssues||0),delta:dl(d('issues')),spark:spark('issues'),foot:obsUi(`每单 ${view.runsPerIssue!=null?Number(view.runsPerIssue).toFixed(1):'—'} 次${cum(` · 累计 ${summary.uniqueIssues||0}`)}`,`Mỗi yêu cầu ${view.runsPerIssue!=null?Number(view.runsPerIssue).toFixed(1):'—'} lượt${cum(` · Tổng ${summary.uniqueIssues||0}`)}`),tip:['有 SOP 运行的需求，按关联的 Issue / TAPD 单去重；对话改代码的需求见下方「对话改代码」。',...deltaTip]},
     {label:'成功率',value:total?percent(view.successRate):'—',meter:total?view.successRate:0,foot:successFoot,tip:['成功率 = 成功 ÷（成功 + 失败），不含取消与进行中。']},
-    {label:'P95 执行',value:view.p95?duration(view.p95):'—',foot:`平均 ${view.avgExec?duration(view.avgExec):'—'}${view.wait?` · 等待 ${duration(view.wait)}`:''}`,tip:['P95：95% 的执行在这个时间内完成。外部工作流按其上报的执行耗时统计。']},
+    {label:obsUi('P95 执行','Thời gian thực thi P95'),value:view.p95?duration(view.p95):'—',foot:`平均 ${view.avgExec?duration(view.avgExec):'—'}${view.wait?` · 等待 ${duration(view.wait)}`:''}`,tip:['P95：95% 的执行在这个时间内完成。外部工作流按其上报的执行耗时统计。']},
   ],escapeHTML(rangeName));
   const conv=obsConversationKpis(view,rangeName,totalTokens,totalCost);
   const loop=obsKpiGroup('Loop 自动化',[
