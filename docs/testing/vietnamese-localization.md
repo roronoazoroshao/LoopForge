@@ -195,3 +195,7 @@ Translated shared/owner status, numeric counts and search-result messages at sou
 ### Issue table localized dynamic metadata
 
 Generated issue progress/error/status tooltips and repository counts are now authored in Vietnamese. Owner, repository, branch and user-defined SOP names are protected against runtime DOM translation. Same numeric values and APIs; focused syntax and locale checks passed, full browser/runner pending.
+
+### Requirement composer dynamic copy
+
+Localized multi-repository counter, branch hint and character count while protecting repository/branch names from DOM translation. Isolated source fixture compared Vietnamese and original Chinese, including raw names. Full runner and browser deferred.

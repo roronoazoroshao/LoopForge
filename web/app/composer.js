@@ -1,3 +1,5 @@
+function reqUIVI(){return typeof window!=='undefined'&&window.lfLang?.()==='vi'}
+function reqUICopy(zh,vi){return reqUIVI()?vi:zh}
 function reqIcon(name,size=13){
   return `<svg class="agent-icon harness-icon" data-icon="${name}" width="${size}" height="${size}" aria-hidden="true"></svg>`;
 }
@@ -144,7 +146,7 @@ function syncReqBaseBranch(){
   updateIssueBaseBranchInput(input,hint,selectedReqRepositoryIds());
   if(!input||!hint)return;
   input.title=hint.textContent||'';
-  hint.textContent=input.disabled?'只选一个仓库时可指定分支，否则从各自主分支新建':'';
+  hint.textContent=input.disabled?reqUICopy('只选一个仓库时可指定分支，否则从各自主分支新建','Chỉ một kho mã mới có thể chỉ định nhánh; nếu chọn nhiều, tạo nhánh mới từ nhánh chính của từng kho mã'):'';
   hint.hidden=!hint.textContent;
 }
 function selectedReqBaseBranch(){
@@ -153,8 +155,8 @@ function selectedReqBaseBranch(){
 function reqRepoNames(ids){
   const repos=reqProjectRepositories();
   const names=(ids||[]).map(id=>repos.find(r=>r.id===id)?.name||id);
-  if(!names.length)return '未选择';
-  return names.length===1?names[0]:`${names[0]} 等 ${names.length} 个`;
+  if(!names.length)return reqUICopy('未选择','Chưa chọn');
+  return names.length===1?names[0]:reqUICopy(`${names[0]} 等 ${names.length} 个`,`${names[0]} và ${names.length-1} kho mã khác`);
 }
 function renderReqRepoChip(){
   const chip=$('#reqRepoChip');
@@ -163,7 +165,7 @@ function renderReqRepoChip(){
   const label=$('#reqRepoChipLabel');
   if(!label)return;
   const branch=selectedReqBaseBranch();
-  label.innerHTML=`仓库 <b>${escapeHTML(reqRepoNames(selectedReqRepositoryIds()))}</b>${branch?` · ${escapeHTML(branch)}`:''}`;
+  label.innerHTML=`${reqUICopy('仓库','Kho mã')} <b data-i18n-skip>${escapeHTML(reqRepoNames(selectedReqRepositoryIds()))}</b>${branch?` · <span data-i18n-skip>${escapeHTML(branch)}</span>`:''}`;
 }
 function toggleReqRepoPopover(open){
   const pop=$('#reqRepoPopover');
@@ -234,7 +236,7 @@ function setReqTarget(target){
 }
 function updateReqCharCount(){
   const count=$('#reqCharCount'),len=($('#chatInput')?.value||'').length;
-  if(count)count.textContent=len?`${len} 字`:'';
+  if(count)count.textContent=len?reqUICopy(`${len} 字`,`${len} ký tự`):'';
 }
 function onReqDescriptionInput(){
   updateReqCharCount();
