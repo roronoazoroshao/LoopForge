@@ -1,4 +1,4 @@
-import { chatT } from "./locale";
+import { chatT, artifactSourceLabel } from "./locale";
 import React, { useEffect, useState } from "react";
 import HarnessIcon from "./HarnessIcon";
 import SlidingTabs from "./SlidingTabs";
@@ -143,7 +143,7 @@ export function SubagentSession({ agent, live = false, artifacts = [], onOpenArt
                   <HarnessIcon name="doc" size={17} />
                   <span>
                     <strong>{title}</strong>
-                    <small>{source}</small>
+                    <small>{artifactSourceLabel(source)}</small>
                   </span>
                   <HarnessIcon name="chevron-right" size={14} />
                 </button>
@@ -152,7 +152,7 @@ export function SubagentSession({ agent, live = false, artifacts = [], onOpenArt
                   <HarnessIcon name={missing ? "alert" : "doc"} size={17} />
                   <span>
                     <strong>{title}</strong>
-                    <small>{missing ? chatT("缺少必需交付物", "Thiếu sản phẩm bàn giao bắt buộc") : pending ? chatT("交付物 · 回复完成后可打开", "Sản phẩm bàn giao · có thể mở sau khi phản hồi hoàn tất") : source}</small>
+                    <small>{missing ? chatT("缺少必需交付物", "Thiếu sản phẩm bàn giao bắt buộc") : pending ? chatT("交付物 · 回复完成后可打开", "Sản phẩm bàn giao · có thể mở sau khi phản hồi hoàn tất") : artifactSourceLabel(source)}</small>
                   </span>
                 </div>
               ),

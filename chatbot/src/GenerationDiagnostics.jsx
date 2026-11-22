@@ -1,4 +1,4 @@
-import { chatT } from "./locale";
+import { chatT, chatDateTime } from "./locale";
 import React, { useEffect, useRef, useState } from "react";
 import { api, sessionPath } from "./api.js";
 import HarnessIcon from "./HarnessIcon";
@@ -34,8 +34,7 @@ const toolSources = {
   gateway: chatT("平台网关", "Gateway nền tảng"),
   cli: chatT("CLI 协议", "Giao thức CLI"),
 };
-const time = (value) =>
-  value ? new Date(value).toLocaleString("zh-CN", { hour12: false }) : "—";
+const time = chatDateTime;
 
 async function copyText(text) {
   if (navigator.clipboard?.writeText)

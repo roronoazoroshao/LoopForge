@@ -53,7 +53,7 @@ async function startGitHubConnect(host){
   const poll=async()=>{
     if(!active)return;
     if(!host.isConnected||Number(state.currentUser?.id)!==actor){finish();return}
-    if(Date.now()>=deadline){fail(new Error('授权已过期，请重新连接'));return}
+    if(Date.now()>=deadline){fail(new Error(globalThis.window?.lfLang?.()==='vi'?'Phiên cấp quyền đã hết hạn. Hãy kết nối lại.':'授权已过期，请重新连接'));return}
     try{
       const result=await api('/api/auth/github/poll',{method:'POST',body:JSON.stringify({flowId:flow.flowId})});
       if(!active)return;
@@ -62,12 +62,12 @@ async function startGitHubConnect(host){
         if(typeof storeCredentialUser==='function')storeCredentialUser(result.user);
         if(typeof notifyCredentialsChanged==='function')notifyCredentialsChanged();
         state.gitTokenVerify=null;
-        status.textContent=`已连接 GitHub · ${result.login}`;
+        status.textContent=globalThis.window?.lfLang?.()==='vi'?`Đã kết nối GitHub · ${result.login}`:`已连接 GitHub · ${result.login}`;
         finish();
         host.dispatchEvent(new CustomEvent('github-connected',{bubbles:true}));
         if(typeof credentialWizard!=='undefined'&&credentialWizard?.kind==='gitToken')closeCredentialWizard(true);
         if(document.querySelector('#credentialPanel')&&typeof renderCredentialPanel==='function')renderCredentialPanel();
-        toast(`GitHub 授权已保存 · ${result.login}`,'ok');
+        toast(globalThis.window?.lfLang?.()==='vi'?`Đã lưu quyền truy cập GitHub · ${result.login}`:`GitHub 授权已保存 · ${result.login}`,'ok',2600,globalThis.window?.lfLang?.()==='vi');
         return;
       }
       timer=setTimeout(poll,Math.max(5,result.interval||5)*1000);
@@ -107,7 +107,7 @@ function mountGitHubRepoPicker(host,onSelect){
     const filter=()=>{
       select.replaceChildren(new Option('请选择仓库',''));
       const visible=repositories.filter(repo=>repo.full_name.toLowerCase().includes(search.value.toLowerCase()));
-      for(const repository of visible){const option=document.createElement('option');option.value=repository.full_name;option.textContent=repository.full_name+(repository.private?' · 私有':'');select.append(option)}
+      for(const repository of visible){const option=document.createElement('option');option.value=repository.full_name;option.textContent=repository.full_name+(repository.private?(globalThis.window?.lfLang?.()==='vi'?' · Riêng tư':' · 私有'):'');select.append(option)}
       empty.hidden=visible.length>0;
     };
     search.oninput=filter;

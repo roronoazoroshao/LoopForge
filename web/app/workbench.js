@@ -1618,16 +1618,16 @@ function renderPlatformNav(){
   group.hidden=!isPlatformAdmin();
 }
 const PLATFORM_TABS=[
-  {id:'accounts',zh:'成员账号',en:'Accounts'},
-  {id:'admins',zh:'平台管理员',en:'Admins'},
-  {id:'sharedKey',zh:'共享 CodeBuddy Key',en:'Shared CodeBuddy Key'},
-  {id:'sshTrust',zh:'Git SSH 主机信任',en:'Git SSH Host Trust'},
+  {id:'accounts',zh:'成员账号',en:'Accounts',vi:'Tài khoản thành viên'},
+  {id:'admins',zh:'平台管理员',en:'Admins',vi:'Quản trị viên nền tảng'},
+  {id:'sharedKey',zh:'共享 CodeBuddy Key',en:'Shared CodeBuddy Key',vi:'Khóa CodeBuddy dùng chung'},
+  {id:'sshTrust',zh:'Git SSH 主机信任',en:'Git SSH Host Trust',vi:'Tin cậy máy chủ Git SSH'},
 ];
 function platformTabsHTML(active){
   return `<div class="pa-tabs-wrap platform-tabs-wrap"><div class="pa-tabs platform-tabs" id="platformTabs" role="tablist" aria-label="平台管理分区">${PLATFORM_TABS.map(t=>{
     const on=t.id===active;
     const extra=t.id==='sharedKey'?'<span class="platform-tab-state" data-platform-tab-state hidden></span>':'<span class="pa-tab-n" data-platform-tab-count hidden></span>';
-    return `<button type="button" role="tab" class="pa-tab${on?' on':''}" id="platformTab-${t.id}" data-platform-tab="${t.id}" aria-controls="platformPanel-${t.id}" aria-selected="${on}" tabindex="${on?0:-1}">${lfT(t.zh,t.en)}${extra}</button>`;
+    return `<button type="button" role="tab" class="pa-tab${on?' on':''}" id="platformTab-${t.id}" data-platform-tab="${t.id}" aria-controls="platformPanel-${t.id}" aria-selected="${on}" tabindex="${on?0:-1}">${lfT(t.zh,t.en,t.vi)}${extra}</button>`;
   }).join('')}</div></div>`;
 }
 function platformTabPanel(id,active,body){
@@ -1823,7 +1823,7 @@ function platformAccountsHTML(){
           <h2>给同事开账号</h2>
           <p data-account-intro>填好用户名和初始密码，点创建，再把登录信息发给同事。同事忘记密码时可以在下面重置。</p>
         </div>
-        <span class="platform-admin-count-pill" id="platformAccountCountBadge">${lfT('-- 个账号','-- accounts')}</span>
+        <span class="platform-admin-count-pill" id="platformAccountCountBadge">${lfT('-- 个账号','-- accounts','-- tài khoản')}</span>
       </div>
       <div class="platform-account-create">
         <form id="platformAccountForm" class="platform-account-form" autocomplete="off">

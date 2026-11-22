@@ -1,4 +1,4 @@
-import { chatT } from "./locale";
+import { chatT, artifactSourceLabel } from "./locale";
 import React, { useEffect, useRef, useState } from "react";
 import HarnessIcon from "./HarnessIcon";
 import { api } from "./api";
@@ -309,6 +309,7 @@ export default function ArtifactPanel({
     matches(
       artifact.name,
       artifact.source,
+      artifactSourceLabel(artifact.source),
       artifact.kind,
       artifact.mimeType,
       artifact.asset?.name,
@@ -391,7 +392,7 @@ export default function ArtifactPanel({
           <small>
             {target
               ? `${artifact.kind === "sop" ? "SOP" : chatT("角色", "Vai trò")} · ${artifact.asset?.status === "published" ? chatT("已发布", "Đã phát hành") : chatT("已保存", "Đã lưu")}`
-              : artifact.source}
+              : artifactSourceLabel(artifact.source)}
             {artifact.size
               ? ` · ${artifact.size < 1024 ? `${artifact.size} B` : `${Math.ceil(artifact.size / 1024)} KB`}`
               : ""}

@@ -1,3 +1,6 @@
+function assetVI(){return typeof window!=='undefined'&&window.lfLang?.()==='vi'}
+function assetUICopy(zh,vi){return assetVI()?vi:zh}
+function assetUILabel(text){return assetVI()?(window.lfTranslate?.(text)??text):text}
 function assetScopeKey(type){return ({rules:'ruleScope',skills:'skillScope',dockerfiles:'dockerfileScope',environments:'environmentScope',sandboxes:'sandboxScope'})[type]||'ruleScope'}
 function isProjectSharedAsset(type){return ['rules','skills','dockerfiles','environments','sandboxes'].includes(type)}
 function assetPageCopy(type=state.assetType){
@@ -20,31 +23,31 @@ function assetFindVisible(id){if(!id)return null;const owned=assetScopeItems('pr
 function assetProjectName(a){return (state.data.projects||[]).find(p=>p.id===a?.projectId)?.name||a?.projectId||'平台'}
 function assetIsBuiltin(a,type=state.assetType){return (type==='sandboxes'&&(a?.id==='local'||a?.id==='generic-docker'))||(type==='dockerfiles'&&a?.id==='generic-backend')}
 function assetStatusHTML(a){
-  if(!catalogOwned(a.projectId))return `<span class="asset-status is-from"><i></i>来自 ${escapeHTML(assetProjectName(a))}</span>`;
-  return `<span class="asset-status ${a.shared?'is-on':''}"><i></i>${a.shared?'已共享':'未共享'}</span>`;
+  if(!catalogOwned(a.projectId))return `<span class="asset-status is-from"${assetVI()?' data-i18n-skip':''}><i></i>${assetUICopy(`来自 ${escapeHTML(assetProjectName(a))}`,`Từ dự án ${escapeHTML(assetProjectName(a))}`)}</span>`;
+  return `<span class="asset-status ${a.shared?'is-on':''}"><i></i>${a.shared?assetUICopy('已共享','Đã chia sẻ'):assetUICopy('未共享','Chưa chia sẻ')}</span>`;
 }
 function assetMetaHTML(a){
-  const item=(icon,text)=>`<span>${huiIcon(icon)}${escapeHTML(text)}</span>`;const meta=[];
-  if(state.assetType==='rules'){meta.push(item('priority-bolt',`优先级 ${a.priority||0}`));if(a.global){const bound=(a.workflowIds||[]).length;meta.push(item('globe',bound?`全局 · ${bound} 个 SOP`:'全局'))}}
+  const item=(icon,text)=>`<span${assetVI()?' data-i18n-skip':''}>${huiIcon(icon)}${escapeHTML(text)}</span>`;const meta=[];
+  if(state.assetType==='rules'){meta.push(item('priority-bolt',assetUICopy(`优先级 ${a.priority||0}`,`Ưu tiên ${a.priority||0}`)));if(a.global){const bound=(a.workflowIds||[]).length;meta.push(item('globe',bound?assetUICopy(`全局 · ${bound} 个 SOP`,`Toàn cục · ${bound} SOP`):assetUICopy('全局','Toàn cục')))}}
   if(state.assetType==='skills'){
-    meta.push(item('doc',`${Object.keys(a.files||{}).length+(a.fileRefs||[]).length} 个文件`));
+    meta.push(item('doc',assetUICopy(`${Object.keys(a.files||{}).length+(a.fileRefs||[]).length} 个文件`,`${Object.keys(a.files||{}).length+(a.fileRefs||[]).length} tệp`)));
     const src=assetSkillSource(a);
     if(src){const latest=assetSkillLatest(src);meta.push(latest&&latest!==src.version?`<span class="hui-badge" data-tone="warn" data-size="sm"><span class="hui-lamp"><i></i></span><span class="hui-badge-label">SkillHub v${escapeHTML(src.version)} · 可更新</span></span>`:`<span class="hui-badge" data-tone="accent" data-size="sm">${huiIcon('sparkles')}<span class="hui-badge-label">SkillHub v${escapeHTML(src.version)}</span></span>`)}
   }
-  if(state.assetType==='dockerfiles')meta.push(item('doc',`${(a.content||'').split('\n').length} 行`));
-  if(state.assetType==='environments')meta.push(item('variable',`${Object.keys(a.variables||{}).length} 个变量`));
+  if(state.assetType==='dockerfiles')meta.push(item('doc',assetUICopy(`${(a.content||'').split('\n').length} 行`,`${(a.content||'').split('\n').length} dòng`)));
+  if(state.assetType==='environments')meta.push(item('variable',assetUICopy(`${Object.keys(a.variables||{}).length} 个变量`,`${Object.keys(a.variables||{}).length} biến`)));
   if(state.assetType==='sandboxes')meta.push(item('server',sandboxDriverOption(a.driver)));
   const refs=assetReferenceNames(a).length;
-  meta.push(item(assetRefIconName(),refs?`${refs} 个${assetRefKindLabel()}引用`:'未被引用'));
+  meta.push(item(assetRefIconName(),refs?assetUICopy(`${refs} 个${assetRefKindLabel()}引用`,`${refs} lượt tham chiếu ${assetUILabel(assetRefKindLabel())}`):assetUICopy('未被引用','Chưa được tham chiếu')));
   return meta.join('');
 }
 function assetCardHTML(a){
-  const readonly=!catalogOwned(a.projectId);const go=readonly?'查看':'编辑';
-  return `<article class="asset-card" role="link" tabindex="0" data-asset-id="${escapeHTML(a.id)}" aria-label="${go}${escapeHTML(assetKindLabel())}「${escapeHTML(a.name||a.id)}」"><div class="asset-card-top"><span class="asset-tile">${huiIcon(assetIconName())}</span><div class="asset-card-name"><h3>${escapeHTML(a.name||a.id)}</h3><code class="asset-mono">${escapeHTML(a.id)}</code></div></div><p class="asset-card-desc">${escapeHTML(a.description||'暂无说明')}</p><div class="asset-meta">${assetMetaHTML(a)}</div><div class="asset-card-foot">${assetStatusHTML(a)}<span class="asset-card-go">${go}${huiIcon('chevron-right')}</span></div></article>`;
+  const readonly=!catalogOwned(a.projectId);const go=readonly?assetUICopy('查看','Xem'):assetUICopy('编辑','Sửa');
+  return `<article class="asset-card" role="link" tabindex="0" data-asset-id="${escapeHTML(a.id)}"${assetVI() ? ' data-i18n-aria-skip' : ''} aria-label="${go} ${escapeHTML(assetUILabel(assetKindLabel()))} “${escapeHTML(a.name||a.id)}”"><div class="asset-card-top"><span class="asset-tile">${huiIcon(assetIconName())}</span><div class="asset-card-name"><h3 data-i18n-skip>${escapeHTML(a.name||a.id)}</h3><code class="asset-mono">${escapeHTML(a.id)}</code></div></div><p class="asset-card-desc" data-i18n-skip>${escapeHTML(a.description||assetUICopy('暂无说明','Chưa có mô tả'))}</p><div class="asset-meta">${assetMetaHTML(a)}</div><div class="asset-card-foot">${assetStatusHTML(a)}<span class="asset-card-go">${go}${huiIcon('chevron-right')}</span></div></article>`;
 }
 function assetGridEmptyHTML(){
   const kind=assetKindLabel(),copy=assetPageCopy();
-  if(String(state.assetQuery||'').trim())return `<div class="asset-empty"><b>没有匹配「${escapeHTML(state.assetQuery.trim())}」的${escapeHTML(kind)}</b><p>换个关键词试试。</p></div>`;
+  if(String(state.assetQuery||'').trim())return `<div class="asset-empty"><b${assetVI()?' data-i18n-skip':''}>${assetUICopy(`没有匹配「${escapeHTML(state.assetQuery.trim())}」的${escapeHTML(kind)}`,`Không tìm thấy ${escapeHTML(assetUILabel(kind))} phù hợp với “${escapeHTML(state.assetQuery.trim())}”`)}</b><p>${assetUICopy('换个关键词试试。','Hãy thử từ khóa khác.')}</p></div>`;
   if(state[assetScopeKey(state.assetType)]==='shared'){const hint=['rules','skills'].includes(state.assetType)?'请在资产所属项目中共享，或共享一个引用它的角色。':'请在资产所属项目中共享；共享 SOP 时也会自动共享其环境依赖。';return `<div class="asset-empty"><b>其他项目还没有共享${escapeHTML(kind)}</b><p>${hint}</p></div>`}
   return `<div class="asset-empty"><b>当前项目还没有${/^[A-Za-z]/.test(kind)?' ':''}${escapeHTML(kind)}</b><p>${assetEmptyHint()}</p><button type="button" class="button primary" data-empty-new>${huiIcon('plus')}${escapeHTML(copy.create)}</button></div>`;
 }
@@ -52,7 +55,7 @@ function renderAssetGrid(){
   const list=$('#assetList');if(!list)return;
   const scope=state[assetScopeKey(state.assetType)];
   const items=assetFilteredItems();
-  const count=$('#assetCount');if(count)count.innerHTML=`${scope==='shared'?'共享':'本项目'}${escapeHTML(assetKindLabel())}<b>${items.length}</b>`;
+  const count=$('#assetCount');if(count){if(assetVI())count.setAttribute?.('data-i18n-skip','');else count.removeAttribute?.('data-i18n-skip');count.innerHTML=assetUICopy(`${scope==='shared'?'共享':'本项目'}${escapeHTML(assetKindLabel())}<b>${items.length}</b>`,`${scope==='shared'?'Được chia sẻ':'Dự án này'} · ${escapeHTML(assetUILabel(assetKindLabel()))} <b>${items.length}</b>`)};
   list.innerHTML=items.map(assetCardHTML).join('')||assetGridEmptyHTML();
   list.querySelector('[data-empty-new]')?.addEventListener('click',()=>openAssetDetail('__new__'));
   list.querySelectorAll('[data-asset-id]').forEach(card=>{

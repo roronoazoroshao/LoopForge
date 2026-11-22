@@ -1,3 +1,5 @@
+function issuesVI(){return typeof window!=='undefined'&&window.lfLang?.()==='vi'}
+function issuesCopy(zh,vi){return issuesVI()?vi:zh}
 function setIssueView(view, rerender=true){
   state.issueView=view==='kanban'?'kanban':'table';
   localStorage.setItem('agentflow.issueView',state.issueView);
@@ -68,7 +70,7 @@ function renderIssueAssigneeFilter(projectIssues=[]){
       const uid=String(i.assigneeUserId);
       if(!userMap.has(uid)){
         const u=userById(i.assigneeUserId);
-        userMap.set(uid, u?userDisplay(u):`用户 ${uid}`);
+        userMap.set(uid, u?userDisplay(u):window.lfLang?.()==='vi'?`Người dùng ${uid}`:`用户 ${uid}`);
       }
     }else if(i.assigneeId&&i.assigneeType==='agent'){
       const aid=String(i.assigneeId);
@@ -83,11 +85,11 @@ function renderIssueAssigneeFilter(projectIssues=[]){
       const key=String(uid);
       if(userMap.has(key))return;
       const u=userById(uid);
-      userMap.set(key, u?userDisplay(u):`用户 ${key}`);
+      userMap.set(key, u?userDisplay(u):window.lfLang?.()==='vi'?`Người dùng ${key}`:`用户 ${key}`);
     });
   });
   const owns=(i,id)=>String(i.assigneeUserId)===id||String(i.assigneeId)===id||(i.sopBindings||[]).some(b=>String(b.assigneeUserId)===id);
-  const meta=n=>n?` data-meta="${n} 条"`:'';
+  const meta=n=>n?` data-meta="${window.lfLang?.()==='vi'?`${n} mục`:`${n} 条`}"`:'';
   const unassigned=projectIssues.filter(i=>!i.assigneeUserId&&!i.assigneeId&&!(i.sopBindings||[]).some(b=>b.assigneeUserId)).length;
   let html=`<option value="">全部责任人</option><option value="unassigned"${meta(unassigned)}${current==='unassigned'?' selected':''}>未指定责任人</option>`;
   for(const [id, label] of userMap.entries()){
@@ -270,15 +272,15 @@ function issuePriorityMarkup(value){
 function issueSourceLabel(i){
   const s=metricsIssueSource(i);
   if(s==='github')return 'GitHub';
-  if(s==='gongfeng')return '工蜂';
+  if(s==='gongfeng')return issuesCopy('工蜂','Gongfeng');
   if(s==='tapd')return 'TAPD';
-  return '平台新建';
+  return issuesCopy('平台新建','Tạo trên nền tảng');
 }
 function issueSourceMarkup(i){
   const s=metricsIssueSource(i)||'local';
   const tone=s==='github'?'github':s==='gongfeng'?'gongfeng':s==='tapd'?'tapd':'local';
   const label=issueSourceLabel(i);
-  return `<span class="issue-source-chip tone-${tone}" title="需求来源：${escapeHTML(label)}">${escapeHTML(label)}</span>`;
+  return `<span class="issue-source-chip tone-${tone}" title="${issuesCopy(`需求来源：${escapeHTML(label)}`,`Nguồn yêu cầu: ${escapeHTML(label)}`)}">${escapeHTML(label)}</span>`;
 }
 // 与顶栏、项目成员保持一致：复用统一头像组件（真实头像 + 首字回退），不再自绘姓氏。
 function issueOwnerAvatar(i){
@@ -379,7 +381,7 @@ function issueListProgress(i,run,w){
   return raw;
 }
 function issueRow(i){
-  const {project:p,run,workflow:w}=issueExecution(i),boundRepos=(state.data.repositories||[]).filter(x=>(i.repositoryIds||[]).includes(x.id)||x.id===i.repositoryId||(!((i.repositoryIds||[]).length||i.repositoryId)&&x.id===p?.defaultRepositoryId)),issueRepos=[boundRepos.find(x=>x.id===i.repositoryId),...boundRepos.filter(x=>x.id!==i.repositoryId)].filter(Boolean),repo=issueRepos[0],repoLabel=issueRepos.length>1?`${repo?.name||'未绑定'} 等${issueRepos.length}个`:repo?.name||'未绑定',health=issueRunHealth(i),stage=issueCurrentStage(i),progress=issueListProgress(i,run,w);
+  const {project:p,run,workflow:w}=issueExecution(i),boundRepos=(state.data.repositories||[]).filter(x=>(i.repositoryIds||[]).includes(x.id)||x.id===i.repositoryId||(!((i.repositoryIds||[]).length||i.repositoryId)&&x.id===p?.defaultRepositoryId)),issueRepos=[boundRepos.find(x=>x.id===i.repositoryId),...boundRepos.filter(x=>x.id!==i.repositoryId)].filter(Boolean),repo=issueRepos[0],repoLabel=issueRepos.length>1?issuesCopy(`${repo?.name||'未绑定'} 等${issueRepos.length}个`,`${repo?.name||'Chưa liên kết'} và ${issueRepos.length-1} kho mã khác`):repo?.name||issuesCopy('未绑定','Chưa liên kết'),health=issueRunHealth(i),stage=issueCurrentStage(i),progress=issueListProgress(i,run,w);
   const sop=issueSOPLabel(i);
   const laneDots=issueLaneDots(i);
   const convo=conversationIssueProgress(i,run);
@@ -387,7 +389,7 @@ function issueRow(i){
   const needsConfirm=clarificationNeedsConfirm(i);
   let progressText=`${progress.pct}%`;
   let progressCls='';
-  let progressTitle=`${progress.done}/${progress.total||0} 节点`;
+  let progressTitle=issuesCopy(`${progress.done}/${progress.total||0} 节点`,`${progress.done}/${progress.total||0} bước`);
   let trackWidth=progress.pct;
   if(convo){
     progressText=convo.text;
@@ -395,22 +397,22 @@ function issueRow(i){
     trackWidth=convo.width;
     progressTitle=convo.title;
   }else if(isFailed){
-    progressText='失败';
+    progressText=issuesCopy('失败','Thất bại');
     progressCls=' fail';
     trackWidth=0;
-    progressTitle=`门禁或脚本执行失败（${progress.done}/${progress.total||0} 节点）`;
+    progressTitle=issuesCopy(`门禁或脚本执行失败（${progress.done}/${progress.total||0} 节点）`,`Bước kiểm tra hoặc script thất bại (${progress.done}/${progress.total||0} bước)`);
   }else if(needsConfirm){
-    progressText='需要确认结论';
+    progressText=issuesCopy('需要确认结论','Cần xác nhận kết luận');
     progressCls=' confirm';
     trackWidth=100;
-    progressTitle='澄清已完成，需要确认结论后再触发 SOP';
+    progressTitle=issuesCopy('澄清已完成，需要确认结论后再触发 SOP','Đã làm rõ; cần xác nhận kết luận trước khi kích hoạt SOP');
   }else if(progress.pct>=100){
     progressCls=' done';
   }
   const rowTone=needsConfirm?' needs-confirm':(isFailed?' needs-attention':'');
   const owner=issueOwnerSummary(i);
   const pri=i.priority||'medium';
-  return `<div class="issue-table-row${rowTone}" role="row" data-id="${escapeHTML(i.id)}">${state.issueSelectionMode?`<div class="issue-select-cell">${issueSelectionCheckbox(i)}</div>`:''}<div class="issue-key-cell" title="${escapeHTML(String(issueKeyLabel(i)||''))}">${issueKeyMarkup(i)}</div><div class="issue-title-cell">${issueTitleMarkup(i.title)}</div><div class="issue-source-cell">${issueSourceMarkup(i)}</div><div class="issue-assignee-cell" title="${escapeHTML(owner)}">${issueOwnerAvatar(i)}<span class="issue-assignee-name">${escapeHTML(owner)}</span></div><div class="issue-repository-cell" title="${escapeHTML(issueRepos.map(r=>r.name).join('、')||'未绑定')} · ${escapeHTML(i.baseBranch||repo?.defaultBranch||'')}">${escapeHTML(repoLabel)}</div><div class="issue-priority-cell">${issuePriorityMarkup(pri)}</div><div class="issue-workflow-cell" title="${escapeHTML(sop)}">${escapeHTML(sop)}${laneDots}</div><div class="issue-stage-cell ${stage.key}" title="${escapeHTML(stage.hint)}">${issueStageBadge(stage)}</div><div class="issue-progress-cell${progressCls}" title="${escapeHTML(progressTitle)}"><b>${escapeHTML(progressText)}</b><span class="issue-progress-track"><i style="width:${trackWidth}%"></i></span></div><div class="issue-actions-cell">${issueActionButtons(i)}</div></div>`;
+  return `<div class="issue-table-row${rowTone}" role="row" data-id="${escapeHTML(i.id)}">${state.issueSelectionMode?`<div class="issue-select-cell">${issueSelectionCheckbox(i)}</div>`:''}<div class="issue-key-cell" title="${escapeHTML(String(issueKeyLabel(i)||''))}">${issueKeyMarkup(i)}</div><div class="issue-title-cell">${issueTitleMarkup(i.title)}</div><div class="issue-source-cell">${issueSourceMarkup(i)}</div><div class="issue-assignee-cell"${issuesVI()?' data-i18n-skip':''} title="${escapeHTML(owner)}">${issueOwnerAvatar(i)}<span class="issue-assignee-name">${escapeHTML(owner)}</span></div><div class="issue-repository-cell"${issuesVI()?' data-i18n-skip':''} title="${escapeHTML(issueRepos.map(r=>r.name).join('、')||issuesCopy('未绑定','Chưa liên kết'))} · ${escapeHTML(i.baseBranch||repo?.defaultBranch||'')}">${escapeHTML(repoLabel)}</div><div class="issue-priority-cell">${issuePriorityMarkup(pri)}</div><div class="issue-workflow-cell"${issuesVI()?' data-i18n-skip':''} title="${escapeHTML(sop)}">${escapeHTML(sop)}${laneDots}</div><div class="issue-stage-cell ${stage.key}" title="${escapeHTML(stage.hint)}">${issueStageBadge(stage)}</div><div class="issue-progress-cell${progressCls}" title="${escapeHTML(progressTitle)}"><b>${escapeHTML(progressText)}</b><span class="issue-progress-track"><i style="width:${trackWidth}%"></i></span></div><div class="issue-actions-cell">${issueActionButtons(i)}</div></div>`;
 }
 
 let refreshIssuesPending=null;
@@ -422,7 +424,7 @@ function fillIssueRepositories(projectId,selected){
   const sel=Array.isArray(selected)?selected:(selected?[selected]:repos.map(r=>r.id));
   box.innerHTML=repos.map(r=>{
     const checked=sel.includes(r.id)?' checked':'';
-    return `<label class="repo-check"><input type="checkbox" value="${escapeHTML(r.id)}"${checked}><span>${escapeHTML(r.name)} · ${escapeHTML(r.defaultBranch)}${r.id===def?'（默认）':''}</span></label>`;
+    return `<label class="repo-check"><input type="checkbox" value="${escapeHTML(r.id)}"${checked}><span${issuesVI()?' data-i18n-skip':''}>${escapeHTML(r.name)} · ${escapeHTML(r.defaultBranch)}${r.id===def?issuesCopy('（默认）',' (mặc định)'):''}</span></label>`;
   }).join('');
 }
 function selectedIssueRepositoryIds(){
@@ -469,7 +471,7 @@ function renderIssueRepositoryBranchInputs(input,hint,host,repositoryIds,branche
   input.hidden=repos.length>1;
   if(repos.length===1)input.value=branches[repos[0].id]||'';
   host.hidden=repos.length<2;
-  host.innerHTML=repos.length<2?'':repos.map(repo=>`<label class="repository-branch-row"><span>${escapeHTML(repo.name)}</span><input class="input" data-repository-branch="${escapeHTML(repo.id)}" aria-label="${escapeHTML(repo.name)} 的继续开发分支" value="${escapeHTML(branches[repo.id]||'')}" placeholder="${escapeHTML(repo.defaultBranch?`留空从主分支 ${repo.defaultBranch} 新建`:'留空从配置主分支新建')}" autocomplete="off"></label>`).join('');
+  host.innerHTML=repos.length<2?'':repos.map(repo=>`<label class="repository-branch-row"><span data-i18n-skip>${escapeHTML(repo.name)}</span><input class="input"${issuesVI()?' data-i18n-skip':''} data-repository-branch="${escapeHTML(repo.id)}" aria-label="${issuesVI()?`Nhánh phát triển tiếp của ${escapeHTML(repo.name)}`:`${escapeHTML(repo.name)} 的继续开发分支`}" value="${escapeHTML(branches[repo.id]||'')}" placeholder="${escapeHTML(issuesVI()?(repo.defaultBranch?`Để trống để tạo nhánh từ nhánh chính ${repo.defaultBranch}`:'Để trống để tạo nhánh từ nhánh chính đã cấu hình'):(repo.defaultBranch?`留空从主分支 ${repo.defaultBranch} 新建`:'留空从配置主分支新建'))}" autocomplete="off"></label>`).join('');
   if(repos.length>1&&hint)hint.textContent='分别填写各仓库的已有功能分支，直接继续开发；留空的仓库从各自配置的主分支新建工作分支。';
 }
 function fillIssueAssignees(projectId,value=''){
@@ -481,8 +483,8 @@ function fillIssueAssignees(projectId,value=''){
 function openIssue(issue=null){
   state.selectedIssue=issue?.id||null;
   const f=$('#issueForm'),projects=state.data.projects||[];
-  f.elements.projectId.innerHTML=projects.map(p=>`<option value="${p.id}">${escapeHTML(p.name)}</option>`).join('');
-  f.elements.workflowId.innerHTML=`<option value="">使用来源默认流程</option>`+runnableWorkflowOptions().map(w=>`<option value="${w.id}">${escapeHTML(w.name)}</option>`).join('');
+  f.elements.projectId.innerHTML=projects.map(p=>`<option value="${p.id}" data-i18n-skip>${escapeHTML(p.name)}</option>`).join('');
+  f.elements.workflowId.innerHTML=`<option value="">使用来源默认流程</option>`+runnableWorkflowOptions().map(w=>`<option value="${w.id}" data-i18n-skip>${escapeHTML(w.name)}</option>`).join('');
   const v=issue||{id:'',projectId:state.projectFilter||projects[0]?.id||'',title:'',description:'',priority:'medium',status:'backlog',workflowId:'',repositoryId:'',repositoryIds:[],baseBranch:''};
   ['id','projectId','title','description','priority','status','workflowId','baseBranch','tapdId'].forEach(k=>f.elements[k].value=v[k]||'');
   f.elements.baseBranch.value=storedIssueWorkBranch(v);

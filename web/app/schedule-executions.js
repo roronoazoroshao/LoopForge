@@ -39,13 +39,14 @@ function scheduleExecBadgeHTML(e){
 }
 function scheduleExecTriggerLabel(origin){return origin==='manual_run'?'手动运行':origin==='timer'?'定时触发':(origin||'定时触发')}
 function scheduleExecDurationLabel(ms){
+  const vi=globalThis.window?.lfLang?.()==='vi';
   const n=Number(ms)||0;
   if(n<=0)return '—';
-  if(n<1000)return '<1 秒';
+  if(n<1000)return vi?'Dưới 1 giây':'<1 秒';
   const s=Math.round(n/1000);
-  if(s<60)return `${s} 秒`;
-  if(s<3600)return `${Math.floor(s/60)} 分 ${s%60} 秒`;
-  return `${Math.floor(s/3600)} 小时 ${Math.floor(s%3600/60)} 分`;
+  if(s<60)return vi?`${s} giây`:`${s} 秒`;
+  if(s<3600)return vi?`${Math.floor(s/60)} phút ${s%60} giây`:`${Math.floor(s/60)} 分 ${s%60} 秒`;
+  return vi?`${Math.floor(s/3600)} giờ ${Math.floor(s%3600/60)} phút`:`${Math.floor(s/3600)} 小时 ${Math.floor(s%3600/60)} 分`;
 }
 function scheduleExecShortTrace(trace){return String(trace||'').slice(-8)}
 function scheduleExecTokenNumber(value){const n=Number(value);return Number.isFinite(n)&&n>0?Math.floor(n):0}
@@ -152,6 +153,7 @@ function scheduleExecSummaryLine(e){
   if(error)return `<p class="sched-exec-error${e.status==='waiting'?' is-warn':''}">${escapeHTML(error)}</p>`;
   if(e.jobKind==='assistant')return e.assistantMessage?`<p class="sched-exec-message">${escapeHTML(e.assistantMessage)}</p>`:'';
   const runs=(e.runs||[]).filter(r=>r.runId).map(r=>r.issueTitle||r.issueId||r.runId);
+  if(globalThis.window?.lfLang?.()==='vi')return `<p class="sched-exec-message">Đã chọn ${Number(e.pulled)||0} ứng viên · Đã khởi chạy ${Number(e.dispatched)||0}${runs.length?` · <span data-i18n-skip>${escapeHTML(runs.join(', '))}</span>`:''}</p>`;
   return `<p class="sched-exec-message">候选 ${Number(e.pulled)||0} · 启动 ${Number(e.dispatched)||0}${runs.length?` · ${escapeHTML(runs.join('、'))}`:''}</p>`;
 }
 function scheduleExecRowMenuHTML(e){

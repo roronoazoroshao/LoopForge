@@ -1020,7 +1020,7 @@ export function useChat() {
       await write(
         `${sessionPath(id)}/generation/steer?generationId=${encodeURIComponent(from)}`,
         {
-          content: item.text || "请阅读本轮附件并回答。",
+          content: item.text || chatT("请阅读本轮附件并回答。","Hãy đọc tệp đính kèm của lượt này và trả lời."),
           attachments: item.attachments || [],
           references: item.references || [],
           requireExactModel: true,
@@ -1162,7 +1162,7 @@ export function useChat() {
           changeURL(s.id);
         }
       }
-      const content = text.trim() || "请阅读本轮附件并回答。";
+      const content = text.trim() || chatT("请阅读本轮附件并回答。","Hãy đọc tệp đính kèm của lượt này và trả lời.");
       const pending = {
         role: "user",
         authorId: user?.id,

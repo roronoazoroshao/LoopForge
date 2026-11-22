@@ -1,3 +1,5 @@
+function sopVI(){return typeof window!=='undefined'&&window.lfLang?.()==='vi'}
+function sopUICopy(zh,vi){return sopVI()?vi:zh}
 function renderCatalogScopes(){
   const workflows=state.data?.workflows||[],agents=state.data?.agents||[];
   const sopProject=workflows.filter(w=>!catalogGeneric(w)&&catalogOwned(w.projectId)).length;
@@ -115,17 +117,18 @@ function sopRunRequirements(w){
     const known={codebuddy:['CodeBuddy','codeBuddyApiKey','codeBuddyApiKeyConfigured'],codex:['Codex','codexApiKey','codexApiKeyConfigured'],'claude-code':['Claude Code','claudeCodeApiKey','claudeCodeApiKeyConfigured']}[kind];
     const [label,field,flag]=known||[agentLabels[kind]||kind,'agentCli.'+kind,'agentCliConfigured'];
     if(!known){
-      rows.push({key:'run-key-'+kind,field,fix:'settings',fixLabel:'去个人配置配置',label:label+' API Key',ok:!!user.agentCliCredentials?.[kind]?.apiKeyConfigured,hint:lfT('Agent 节点使用 '+label+'，请在个人配置里配置对应 API Key。','Agent nodes use '+label+'. Configure its API key in Settings.')});
+      rows.push({key:'run-key-'+kind,field,fix:'settings',fixLabel:'去个人配置配置',label:label+' API Key',ok:!!user.agentCliCredentials?.[kind]?.apiKeyConfigured,hint:lfT('Agent 节点使用 '+label+'，请在个人配置里配置对应 API Key。','Agent nodes use '+label+'. Configure its API key in Settings.','Bước Agent dùng '+label+'. Hãy cấu hình API Key tương ứng trong Cài đặt cá nhân.')});
       continue;
     }
-    rows.push({key:'run-key-'+kind,field,fix:'settings',fixLabel:'去个人配置配置',label:label+' API Key',ok:!!user[flag]||!!window.AgentFlowAssistantModels?.catalog().engines?.find(engine=>engine.id===kind&&engine.configured),hint:lfT('Agent 节点使用 '+label+'，请在个人配置里配置对应 API Key。','Agent nodes use '+label+'. Configure its API key in Settings.')});
+    rows.push({key:'run-key-'+kind,field,fix:'settings',fixLabel:'去个人配置配置',label:label+' API Key',ok:!!user[flag]||!!window.AgentFlowAssistantModels?.catalog().engines?.find(engine=>engine.id===kind&&engine.configured),hint:lfT('Agent 节点使用 '+label+'，请在个人配置里配置对应 API Key。','Agent nodes use '+label+'. Configure its API key in Settings.','Bước Agent dùng '+label+'. Hãy cấu hình API Key tương ứng trong Cài đặt cá nhân.')});
   }
   return [...rows,...resources];
 }
 function sopRunRequirementChips(w){
   const rows=sopRunRequirements(w);
   if(!rows.length)return '';
-  return `<div class="sop-requirements" aria-label="运行条件">${rows.map(r=>sopBadge((r.ok?'':'需要 ')+r.label,r.ok?'success':'warn',r.ok?'check':'alert',r.hint)).join('')}</div>`;
+  const required=window.lfLang?.()==='vi'?'Cần: ':'需要 ';
+  return `<div class="sop-requirements" aria-label="运行条件">${rows.map(r=>sopBadge((r.ok?'':required)+r.label,r.ok?'success':'warn',r.ok?'check':'alert',r.hint)).join('')}</div>`;
 }
 // --- 流程模板卡片 -------------------------------------------------------------
 // Each card exposes one primary action; the rest live in the ⋯ popover.
@@ -146,18 +149,18 @@ function sopCardHead(left,hint,right){return `<div class="sop-card-head"><div>${
 function sopCardTitle(w){return `<div class="sop-card-title"><span class="sop-card-tile">${huiIcon('workflow')}</span><h3 title="${escapeHTML(w.name)}">${escapeHTML(w.name)}</h3></div>`}
 function sopCardPrimary(attr,id,label,icon='',title=''){return `<button type="button" class="sop-card-primary" ${attr}="${escapeHTML(id)}" data-hover-ink-control${title?` title="${escapeHTML(title)}"`:''}>${icon?huiIcon(icon):''}${escapeHTML(label)}</button>`}
 function sopCardMoreButton(w){return `<button type="button" class="sop-card-more" data-sop-menu="${escapeHTML(w.id)}" data-hover-ink-control aria-haspopup="menu" aria-expanded="false" aria-label="更多操作" title="更多操作">${huiIcon('more-horizontal')}</button>`}
-function sopRunKpis(m,liveCount){return `<div class="sop-kpis"><span><b>${m.totalRuns||0}</b>运行</span><span><b>${m.succeededRuns||0}</b>成功</span><span${m.failedRuns>0?' class="is-bad"':''}><b>${m.failedRuns||0}</b>失败</span><span><b>${liveCount}</b>进行中</span></div>`}
+function sopRunKpis(m,liveCount){return `<div class="sop-kpis"><span><b>${m.totalRuns||0}</b>${sopUICopy('运行','lượt chạy')}</span><span><b>${m.succeededRuns||0}</b>${sopUICopy('成功','thành công')}</span><span${m.failedRuns>0?' class="is-bad"':''}><b>${m.failedRuns||0}</b>${sopUICopy('失败','thất bại')}</span><span><b>${liveCount}</b>${sopUICopy('进行中','đang chạy')}</span></div>`}
 function sopRunCardBody(w,m,liveCount){
   const health=metricHealth(m,liveCount);
-  return `${sopCardHead(sopHealthBadge(health),m.totalRuns?`${percent(m.successRate)} 成功率`:health.hint,sopStatusBadge(w))}${sopCardTitle(w)}<p>${escapeHTML(w.description||'暂无流程说明')}</p>${sopRunRequirementChips(w)}${sopRunKpis(m,liveCount)}`;
+  return `${sopCardHead(sopHealthBadge(health),m.totalRuns?sopUICopy(`${percent(m.successRate)} 成功率`,`Tỷ lệ thành công ${percent(m.successRate)}`):health.hint,sopStatusBadge(w))}${sopCardTitle(w)}<p>${escapeHTML(w.description||'暂无流程说明')}</p>${sopRunRequirementChips(w)}${sopRunKpis(m,liveCount)}`;
 }
 function projectSOPCard(w,m={},liveCount=0){
   const recent=formatTimestamp(m.lastRunAt);
-  const meta=`${w.owner||'未分配负责人'} · v${w.version||1} · ${recent?`最近 ${recent}`:'尚未运行'}`;
+  const meta=sopUICopy(`${w.owner||'未分配负责人'} · v${w.version||1} · ${recent?`最近 ${recent}`:'尚未运行'}`,`${w.owner||'Chưa có người phụ trách'} · v${w.version||1} · ${recent?`Gần nhất: ${recent}`:'Chưa chạy'}`);
   return `<article class="sop-card" data-sop="${escapeHTML(w.id)}" tabindex="0" role="button" aria-label="打开流程设计器：${escapeHTML(w.name)}">${sopRunCardBody(w,m,liveCount)}<div class="sop-card-foot"><span class="sop-card-meta" title="${escapeHTML(meta)}">${escapeHTML(meta)}</span>${sopCardPrimary('data-open-sop',w.id,'打开')}${sopCardMoreButton(w)}</div></article>`;
 }
 function sharedSOPCard(w,m={},liveCount=0){
-  const from=!w.projectId?'平台':`来自 ${(state.data.projects||[]).find(p=>p.id===w.projectId)?.name||w.projectId}`;
+  const from=!w.projectId?sopUICopy('平台','Nền tảng'):sopUICopy(`来自 ${(state.data.projects||[]).find(p=>p.id===w.projectId)?.name||w.projectId}`,`Từ ${(state.data.projects||[]).find(p=>p.id===w.projectId)?.name||w.projectId}`);
   const meta=`${w.owner?`${w.owner} · `:''}v${w.version||1}`;
   return `<article class="sop-card" data-sop="${escapeHTML(w.id)}" tabindex="0" role="button" aria-label="打开流程设计器：${escapeHTML(w.name)}">${sopRunCardBody(w,m,liveCount)}<div class="sop-card-foot"><span class="sop-card-meta" title="${escapeHTML(`${from} · ${meta}`)}"><span class="sop-card-tag">${escapeHTML(from)}</span>${escapeHTML(meta)}</span>${sopCardPrimary('data-clone-workflow',w.id,'复制到本项目','copy')}</div></article>`;
 }
@@ -431,10 +434,11 @@ async function openGenericTemplateModal(id){
   const w=(state.data?.workflows||[]).find(x=>x.id===id&&catalogGeneric(x));
   if(!w)return toast('通用模板不存在或已下架');
   state.genericTemplateId=id;
-  $('#genericTemplateTitle').textContent=`使用「${w.name}」`;
+  const title=$('#genericTemplateTitle');if(sopVI())title.setAttribute?.('data-i18n-skip','');else title.removeAttribute?.('data-i18n-skip');
+  title.textContent=sopUICopy(`使用「${w.name}」`,`Sử dụng “${w.name}”`);
   $('#genericTemplateIntro').textContent=w.description||'平台提供的通用流程模板，复制后归本项目所有。';
   const nodes=w.nodes||[],agentCount=nodes.filter(n=>n.type==='agent').length,gates=nodes.filter(n=>n.type==='approval').length;
-  $('#genericTemplateStructure').innerHTML=`<span>${nodes.length} 个节点</span><span>${agentCount} 个角色节点</span><span>${gates} 个人工门禁</span>${nodes.some(n=>n.id==='mr')?'<span class="highlight">含「发起 PR」节点</span>':''}<span>复制=归本项目、可自由修改、不再跟随平台更新</span><span>直接运行=始终使用平台最新版</span>`;
+  $('#genericTemplateStructure').innerHTML=`<span>${sopUICopy(`${nodes.length} 个节点`,`${nodes.length} bước`)}</span><span>${sopUICopy(`${agentCount} 个角色节点`,`${agentCount} bước vai trò`)}</span><span>${sopUICopy(`${gates} 个人工门禁`,`${gates} bước phê duyệt thủ công`)}</span>${nodes.some(n=>n.id==='mr')?'<span class="highlight">含「发起 PR」节点</span>':''}<span>复制=归本项目、可自由修改、不再跟随平台更新</span><span>直接运行=始终使用平台最新版</span>`;
   const request=++genericRequirementRequest,modal=$('#genericTemplateModal');
   const needsExecutor=agentCount>0||w.preview?.enabled;
   renderGenericRequirementRows(w,needsExecutor?null:[],true);

@@ -1,7 +1,9 @@
+import { chatT } from "./locale.js";
+
 export function sessionProjectName(projectId, projects) {
   return projectId
     ? projects.find((project) => project.id === projectId)?.name || projectId
-    : "个人对话";
+    : chatT("个人对话", "Hội thoại cá nhân");
 }
 
 // What a history search matches: the names shown for the row, the SOP a run

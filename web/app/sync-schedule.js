@@ -293,10 +293,11 @@ function scheduleSessionModeHint(job){
   const fixed=f.elements.sessionMode.value==='fixed';
   const keepField=$('#scheduleSessionKeepField');if(keepField)keepField.hidden=fixed;
   const pinned=fixed&&job.sessionMode==='fixed'&&job.fixedSessionId&&job.projectId===state.projectFilter?job.fixedSessionId:'';
-  if(!fixed){hint.textContent='每次执行各开一个会话，可在执行记录里打开。';return}
+  if(window.lfLang?.()==='vi')hint.setAttribute?.('data-i18n-skip','');else hint.removeAttribute?.('data-i18n-skip');
+  if(!fixed){hint.textContent=scheduleUICopy('每次执行各开一个会话，可在执行记录里打开。','Mỗi lượt thực thi tạo một hội thoại riêng, có thể mở từ lịch sử thực thi.');return}
   hint.innerHTML=pinned
-    ?`每次执行都接着同一个会话，带上之前的上下文。<a href="${escapeHTML(scheduleExecConversationURL({projectId:job.projectId,sessionId:pinned}))}" target="_blank" rel="noopener" data-open-fixed-session>打开当前会话 ↗</a>`
-    :'每次执行都接着同一个会话，带上之前的上下文。首次执行时创建这个会话；会话被删除后会重新创建。';
+    ?scheduleUICopy(`每次执行都接着同一个会话，带上之前的上下文。<a href="${escapeHTML(scheduleExecConversationURL({projectId:job.projectId,sessionId:pinned}))}" target="_blank" rel="noopener" data-open-fixed-session>打开当前会话 ↗</a>`,`Mỗi lượt thực thi tiếp tục cùng một hội thoại và giữ ngữ cảnh cũ. <a href="${escapeHTML(scheduleExecConversationURL({projectId:job.projectId,sessionId:pinned}))}" target="_blank" rel="noopener" data-open-fixed-session>Mở hội thoại hiện tại ↗</a>`)
+    :scheduleUICopy('每次执行都接着同一个会话，带上之前的上下文。首次执行时创建这个会话；会话被删除后会重新创建。','Mỗi lượt thực thi tiếp tục cùng một hội thoại với ngữ cảnh trước đó. Hội thoại được tạo ở lượt đầu; nếu bị xóa sẽ được tạo lại.');
 }
 function fillScheduleJobForm(job={}){
  resetSharedScheduleVersionEditor(job);
@@ -455,7 +456,7 @@ function renderScheduleJobs(){
   const triggerHint=$('#aiScheduleTriggerHint');if(triggerHint)triggerHint.textContent=canRun?'按计划扫描本项目选定状态、尚未跑过 SOP 的需求，通过基线门禁后派发 SOP。每个项目使用一份触发配置。':disabled;
   $('#aiScheduleRuntimeHint').textContent=!state.projectFilter?'请先在顶栏选择项目，再管理 AI 定时任务。':canRun?'任务以最后保存人的身份和完全权限执行。关闭页面后，任务会继续运行。':disabled;
   $('#aiScheduleProjectName').textContent=currentProject()?.name||'当前项目';
-  $('#aiScheduleCount').textContent=`${assistant.length} 个任务`;
+  $('#aiScheduleCount').textContent=scheduleUICopy(`${assistant.length} 个任务`,`${assistant.length} tác vụ`);
   $('#newAISchedule').disabled=!state.projectFilter;
   const editTrigger=$('#editScheduleTrigger');if(editTrigger){editTrigger.disabled=!state.projectFilter;editTrigger.lastChild.textContent=dispatch.length?'编辑触发配置':'配置触发'}
   const triggerList=$('#aiScheduleTriggerList');
@@ -633,21 +634,22 @@ function scheduleSavedEnabled(id){
   const job=id?(state.data.scheduleJobs||[]).find(j=>j.id===id):null;
   return job?!!job.enabled:true;
 }
+function scheduleUICopy(zh,vi){return window.lfLang?.()==='vi'?vi:zh}
 function scheduleJobOutcomeToast(job){
   if(!job)return;
   if(job.skipDispatch){
-    toast(job.lastStatus==='failed'?`失败：${job.lastError||''}`:'AI 定时任务已执行', job.lastStatus==='failed'?'err':'ok', 4200);
+    toast(job.lastStatus==='failed'?scheduleUICopy(`失败：${job.lastError||''}`,`Thất bại: ${job.lastError||''}`):scheduleUICopy('AI 定时任务已执行','Đã thực thi tác vụ AI theo lịch'), job.lastStatus==='failed'?'err':'ok', 4200,window.lfLang?.()==='vi');
     return;
   }
   if(job.lastStatus==='waiting'){
-    toast(`待对齐基线：${job.lastError||'请先把默认分支合入集成分支'}`, 'info', 4200);
+    toast(scheduleUICopy(`待对齐基线：${job.lastError||'请先把默认分支合入集成分支'}`,`Đang chờ đồng bộ baseline: ${job.lastError||'Hãy hợp nhất nhánh mặc định vào nhánh tích hợp trước'}`), 'info', 4200,window.lfLang?.()==='vi');
     return;
   }
   if(job.lastStatus==='failed'){
-    toast(`失败：${job.lastError||''}`, 'err', 4200);
+    toast(scheduleUICopy(`失败：${job.lastError||''}`,`Thất bại: ${job.lastError||''}`), 'err', 4200,window.lfLang?.()==='vi');
     return;
   }
-  toast(`完成：候选 ${job.lastPulled||0}，启动 ${job.lastDispatched||0}`, 'ok', 4200);
+  toast(scheduleUICopy(`完成：候选 ${job.lastPulled||0}，启动 ${job.lastDispatched||0}`,`Hoàn tất: ${job.lastPulled||0} ứng viên, đã khởi chạy ${job.lastDispatched||0}`), 'ok', 4200,window.lfLang?.()==='vi');
 }
 function noteScheduleJobOutcomes(prev, next){
   const prevMap=Object.fromEntries((prev||[]).map(j=>[j.id,j]));

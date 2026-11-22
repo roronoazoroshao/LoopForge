@@ -7,6 +7,7 @@
 // the same changes the agent made without re-reading tool arguments.
 
 import "../../web/app/git-ssh.js";
+import { chatT } from "./locale.js";
 
 const HUNK = /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@ ?(.*)$/;
 
@@ -19,8 +20,10 @@ const STATUS = {
   U: { code: "U", label: "冲突" },
 };
 
+const statusVI = { A: "Mới", M: "Đã sửa", D: "Đã xóa", R: "Đổi tên", C: "Sao chép", U: "Xung đột" };
 export function statusLabel(code) {
-  return (STATUS[code] || STATUS.M).label;
+  const status = STATUS[code] || STATUS.M;
+  return chatT(status.label, statusVI[status.code]);
 }
 
 // Collapse the two porcelain status columns (index + worktree) into the one
@@ -210,7 +213,7 @@ export function mergeChanges(changes = [], patches = []) {
       dir,
       repository: change.repository || "",
       status: state.code,
-      label: state.label,
+      label: statusLabel(state.code),
       additions: patch?.additions || 0,
       deletions: patch?.deletions || 0,
       patch: patch || null,

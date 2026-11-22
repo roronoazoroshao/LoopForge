@@ -1,3 +1,4 @@
+import {chatT} from "./locale.js";
 export const TITLE_FADE = 260;
 const BASE_STEP = 16,
   MIN_STEP = 10,
@@ -5,7 +6,7 @@ const BASE_STEP = 16,
 
 /** Per-character cadence for the header title; long titles compress the step so the whole reveal stays under ~0.9s. */
 export function titleRevealTiming(title) {
-  const chars = Array.from(title || "新对话");
+  const chars = Array.from(title || chatT("新对话","Hội thoại mới"));
   const gaps = Math.max(1, chars.length - 1);
   const step = Math.max(
     MIN_STEP,

@@ -5,3 +5,24 @@ export function chatLocale() {
   catch { return "zh"; }
 }
 export const chatT = (zh, vi) => chatLocale() === "vi" ? vi : zh;
+
+// Source labels are generated metadata, not filenames, content or protocol IDs.
+const artifactSourceVI = new Map([
+  ["AI 生成", "AI tạo"],
+  ["上传的文件", "Tệp tải lên"],
+  ["已发布", "Đã phát hành"],
+  ["已保存", "Đã lưu"],
+  ["已执行", "Đã thực thi"],
+  ["已完成", "Đã hoàn thành"],
+  ["待确认", "Chờ xác nhận"],
+  ["交付物", "Sản phẩm bàn giao"],
+]);
+export const artifactSourceLabel = source => chatT(source, artifactSourceVI.get(source) ?? source);
+
+// Display-only timestamps; never alter the original API values or diagnostic exports.
+export function chatDateTime(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "—";
+  return date.toLocaleString(chatLocale() === "vi" ? "vi-VN" : "zh-CN", { hour12: false });
+}

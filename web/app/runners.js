@@ -1,3 +1,5 @@
+function runnerUICopy(zh,vi){return typeof window!=='undefined'&&window.lfLang?.()==='vi'?vi:zh}
+function runnerVI(){return typeof window!=='undefined'&&window.lfLang?.()==='vi'}
 function openRunModal(workflowId){const select=$('#runWorkflowChoice'),workflows=runnableWorkflowOptions();select.innerHTML=workflows.map(w=>`<option value="${escapeHTML(w.id)}" ${w.id===workflowId?'selected':''}>${escapeHTML(w.name)}</option>`).join('')||'<option value="">暂无可运行 SOP</option>';$('#confirmRun').disabled=!workflows.length;$('#runModal').classList.add('open');setTimeout(()=>$('#runInput').focus(),0)}
 
 // ---------- 执行机器（bind-cli，个人维度） ----------
@@ -30,9 +32,9 @@ async function ensureRunnerBindCode(silent){
   }catch(e){if(!silent)toast(e.message)}
 }
 function runnerConcurrencyLabel(runner){
-  if(!(Number(runner?.ownerUserId)>0))return '项目共享执行机器';
+  if(!(Number(runner?.ownerUserId)>0))return runnerUICopy('项目共享执行机器','Máy thực thi dùng chung của dự án');
   const limit=Number(runner?.runLimit)||0;
-  return limit>0?`个人机器 · 最多同时运行 ${limit} 条 SOP（不受项目 10 条限额）`:'个人机器 · 不限同时运行数（不受项目 10 条限额）';
+  return limit>0?runnerUICopy(`个人机器 · 最多同时运行 ${limit} 条 SOP（不受项目 10 条限额）`,`Máy cá nhân · chạy đồng thời tối đa ${limit} SOP (không chịu giới hạn 10 SOP của dự án)`):runnerUICopy('个人机器 · 不限同时运行数（不受项目 10 条限额）','Máy cá nhân · không giới hạn số SOP đồng thời (không chịu giới hạn 10 SOP của dự án)');
 }
 function runnerRunLimitHTML(runner){
   if(!(Number(runner?.ownerUserId)>0))return '';
@@ -48,7 +50,7 @@ async function saveRunnerRunLimit(runnerId,raw){
     const runner=await api(`/api/runners/${encodeURIComponent(runnerId)}/run-limit`,{method:'PUT',body:JSON.stringify({runLimit:value})});
     const i=(state.runners||[]).findIndex(r=>r.id===runnerId);
     if(i>=0&&runner?.id)state.runners[i]=runner;
-    toast(value>0?`已设置：最多同时运行 ${value} 条`:'已设为不限','ok');renderRunnersView();
+    toast(value>0?runnerUICopy(`已设置：最多同时运行 ${value} 条`,`Đã thiết lập: tối đa ${value} lượt chạy đồng thời`):runnerUICopy('已设为不限','Đã bỏ giới hạn số lượt chạy đồng thời'),'ok',2600,runnerVI());renderRunnersView();
   }catch(err){toast(err.message);refreshRunners(true)}
 }
 function runnerStatusLabel(status,lastSeen){
@@ -109,8 +111,8 @@ function runnerRuntimeHTML(runner,runtime,shared){
 function runnerLastSeen(value){
   if(!value)return '尚无心跳';
   const seconds=Math.max(0,Math.round((Date.now()-new Date(value).getTime())/1000));
-  if(seconds<60)return `${seconds} 秒前`;
-  if(seconds<3600)return `${Math.floor(seconds/60)} 分钟前`;
+  if(seconds<60)return runnerUICopy(`${seconds} 秒前`,`${seconds} giây trước`);
+  if(seconds<3600)return runnerUICopy(`${Math.floor(seconds/60)} 分钟前`,`${Math.floor(seconds/60)} phút trước`);
   return new Date(value).toLocaleString();
 }
 function runnerCopyCommand(btn,text,message){
@@ -153,13 +155,14 @@ function renderRunnersView(){
     let text='',warn=false;
     if(def){
       warn=def.status!=='online';
-      text=warn?'默认机器已离线，新任务会失败。请启动它或切回云端':`在 ${def.name||def.id} 上执行`;
+      text=warn?runnerUICopy('默认机器已离线，新任务会失败。请启动它或切回云端','Máy mặc định đã ngoại tuyến; tác vụ mới sẽ thất bại. Hãy khởi động máy hoặc chuyển sang đám mây.'):runnerUICopy(`在 ${def.name||def.id} 上执行`,`Thực thi trên máy ${def.name||def.id}`);
     }else if(pool?.configured){
       warn=!pool.online;
-      text=pool.online?`云端执行 · ${pool.online} 台在线`:'云端暂无在线机器，新任务最多等待 10 分钟';
+      text=pool.online?runnerUICopy(`云端执行 · ${pool.online} 台在线`,`Thực thi đám mây · ${pool.online} máy trực tuyến`):runnerUICopy('云端暂无在线机器，新任务最多等待 10 分钟','Hiện không có máy đám mây trực tuyến; tác vụ mới sẽ chờ tối đa 10 phút.');
     }else{
       text='在平台云端执行';
     }
+    if(runnerVI())poolStatus.setAttribute?.('data-i18n-skip','');else poolStatus.removeAttribute?.('data-i18n-skip');
     poolStatus.textContent=text;poolStatus.classList.toggle('warn',warn);
   }
   const focusedMenu=document.activeElement?.dataset.runnerRuntimeMenu;
@@ -241,7 +244,7 @@ function renderRunnersView(){
 }
 async function removeRunner(runnerId){
   const runner=(state.runners||[]).find(r=>r.id===runnerId);
-  if(!await afConfirm({title:'移除执行机器',message:`确定移除 ${runner?.name||runnerId}？之后如需再用这台机器，重新复制接入命令执行即可。`,confirmText:'移除',isDanger:true}))return;
+  if(!await afConfirm({title:'移除执行机器',messageLocalized:runnerVI(),message:runnerUICopy(`确定移除 ${runner?.name||runnerId}？之后如需再用这台机器，重新复制接入命令执行即可。`,`Gỡ máy thực thi “${runner?.name||runnerId}”? Để sử dụng lại, bạn cần sao chép và chạy lại lệnh kết nối.`),confirmText:'移除',isDanger:true}))return;
   try{
     await api(`/api/runners/${encodeURIComponent(runnerId)}`,{method:'DELETE'});
     toast('已移除','ok');refreshRunners(true);
@@ -258,9 +261,9 @@ function runnerVersionAtLeast(have,want){
   return true;
 }
 function runnerDefaultBlocker(r){
-  if(r.status!=='online')return '机器离线';
+  if(r.status!=='online')return runnerUICopy('机器离线','Máy ngoại tuyến');
   const min=state.minRunnerVersion||'';
-  if(min&&!runnerVersionAtLeast(r.runnerVersion,min))return `执行机器版本 ${r.runnerVersion||'未知'} 过低，需升级至 ${min} 及以上`;
+  if(min&&!runnerVersionAtLeast(r.runnerVersion,min))return runnerUICopy(`执行机器版本 ${r.runnerVersion||'未知'} 过低，需升级至 ${min} 及以上`,`Phiên bản máy thực thi ${r.runnerVersion||'không rõ'} quá cũ; cần nâng lên ${min} trở lên`);
   return '';
 }
 async function setDefaultRunner(runnerId){
@@ -275,7 +278,7 @@ function toggleRunnerRuntime(runnerId,provider,enabled){
 async function runnerRuntimeRequest(runnerId,provider,status){
   try{
     await api('/api/runners/runtimes',{method:'PUT',body:JSON.stringify({runnerId,provider,status})});
-    toast(`${runnerCLILabels[provider]||provider} 已${status==='online'?'启用':'停用'}`,'ok');refreshRunners(true);
+    toast(runnerUICopy(`${runnerCLILabels[provider]||provider} 已${status==='online'?'启用':'停用'}`,`${runnerCLILabels[provider]||provider} đã ${status==='online'?'bật':'tắt'}`),'ok',2600,runnerVI());refreshRunners(true);
   }catch(err){toast(err.message);refreshRunners(true)}
 }
 async function setRunnerRuntimeAuth(runnerId,provider,authMode){
@@ -462,13 +465,13 @@ async function checkRunnerUpdate(id){
     if(result.status==='updating'||result.status==='restarting'){
       await followRunnerUpdate(id);
     }else if(result.status==='available'&&result.canUpdate){
-      const confirmed=await afConfirm({title:'Runner 有可用更新',message:`当前版本 ${result.current||'未知'}。更新会重启空闲的 Runner。`,confirmText:'立即更新',info:true});
+      const confirmed=await afConfirm({title:'Runner 有可用更新',messageLocalized:runnerVI(),message:runnerUICopy(`当前版本 ${result.current||'未知'}。更新会重启空闲的 Runner。`,`Phiên bản hiện tại: ${result.current||'không rõ'}. Cập nhật sẽ khởi động lại các Runner đang rảnh.`),confirmText:'立即更新',info:true});
       if(confirmed){
         await api(runnerMaintenancePath(id),{method:'POST',silent:true});
         await followRunnerUpdate(id);
       }
     }else if(result.status==='current'){
-      toast(`Runner ${result.current||''} 已是平台当前版本`.replace('  ',' '),'ok');
+      toast(runnerUICopy(`Runner ${result.current||''} 已是平台当前版本`.replace('  ',' '),`Runner ${result.current||''} đã ở phiên bản hiện tại của nền tảng`.replace('  ',' ')),'ok',2600,runnerVI());
     }else{
       toast(result.message||'暂时无法检查更新','err',5000);
     }

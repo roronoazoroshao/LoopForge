@@ -1,6 +1,9 @@
 // 平台 MCP 目录（/api/mcp-market）不再作为独立「市场」页展示，但它仍是
 // 通用模板角色的可选 MCP、市场 ID/别名映射和 SOP 依赖预检的数据来源，
 // 所以启动后和进入相关页面时都要保证加载过一次；失败时允许下次重试。
+// UI diagnostics are locale-specific; protocol identifiers and imported values remain unchanged.
+function mcpCopy(zh,vi){return typeof window!=='undefined'&&window.lfLang?.()==='vi'?vi:zh}
+function mcpVI(){return typeof window!=='undefined'&&window.lfLang?.()==='vi'}
 let mcpMarketCatalogRequest=null;
 function ensureMCPMarketCatalog(){
   if((state.mcpMarket||[]).length)return Promise.resolve(state.mcpMarket);
@@ -33,7 +36,7 @@ function mcpMarketAdded(item,installed){
 function mcpCatalogSuggestionsHTML(installed,query){
   const items=(state.mcpMarket||[]).filter(item=>!mcpMarketAdded(item,installed)&&mcpMatchesQuery(item,query));
   if(!items.length)return '';
-  return `<section class="mcp-catalog-suggest" aria-label="平台目录"><div><b>平台目录</b><span>通用模板按名称绑定这些 MCP，添加到本项目后即可使用。</span></div><div class="mcp-catalog-actions">${items.map(item=>`<button class="button ghost small" type="button" data-mcp-install="${escapeHTML(item.id)}">＋ ${escapeHTML(item.name)}</button>`).join('')}</div></section>`;
+  return `<section class="mcp-catalog-suggest" aria-label="平台目录"><div><b>平台目录</b><span>通用模板按名称绑定这些 MCP，添加到本项目后即可使用。</span></div><div class="mcp-catalog-actions">${items.map(item=>`<button class="button ghost small" type="button" data-mcp-install="${escapeHTML(item.id)}">＋ <span data-i18n-skip>${escapeHTML(item.name)}</span></button>`).join('')}</div></section>`;
 }
 async function installMarketMCP(marketId,button){
   if(!state.projectFilter)return toast('请先选择项目');
@@ -71,50 +74,50 @@ function bindMCPLogoFallbacks(root){
 function mcpImportPlainObject(value){return value&&typeof value==='object'&&!Array.isArray(value)}
 function mcpImportStringMap(value,field){
   if(value==null)return {};
-  if(!mcpImportPlainObject(value))throw new Error(`${field} 必须是 JSON 对象`);
-  const out={};for(const [key,item] of Object.entries(value)){if(item==null)continue;if(typeof item==='object')throw new Error(`${field}.${key} 必须是字符串`);out[key]=String(item)}return out;
+  if(!mcpImportPlainObject(value))throw new Error(mcpCopy(`${field} 必须是 JSON 对象`,`${field} phải là đối tượng JSON`));
+  const out={};for(const [key,item] of Object.entries(value)){if(item==null)continue;if(typeof item==='object')throw new Error(mcpCopy(`${field}.${key} 必须是字符串`,`${field}.${key} phải là chuỗi`));out[key]=String(item)}return out;
 }
 function mcpImportStringList(value,field){
   if(value==null)return [];
-  if(!Array.isArray(value))throw new Error(`${field} 必须是 JSON 数组`);
-  return value.map((item,index)=>{if(typeof item!=='string')throw new Error(`${field}[${index}] 必须是字符串`);return item});
+  if(!Array.isArray(value))throw new Error(mcpCopy(`${field} 必须是 JSON 数组`,`${field} phải là mảng JSON`));
+  return value.map((item,index)=>{if(typeof item!=='string')throw new Error(mcpCopy(`${field}[${index}] 必须是字符串`,`${field}[${index}] phải là chuỗi`));return item});
 }
 function mcpImportedURL(value){
   const text=String(value||'').trim(),markdown=text.match(/^\[[^\]]+\]\((https?:\/\/[^)\s]+)\)$/i);return markdown?markdown[1]:text;
 }
 function mcpNormalizeImportedServer(raw,key=''){
-  if(!mcpImportPlainObject(raw))throw new Error('MCP server 配置必须是 JSON 对象');
+  if(!mcpImportPlainObject(raw))throw new Error(mcpCopy('MCP server 配置必须是 JSON 对象','Cấu hình MCP server phải là đối tượng JSON'));
   const nested=mcpImportPlainObject(raw.stdio)?raw.stdio:(mcpImportPlainObject(raw.http)?raw.http:{}),value={...raw,...nested};
   let transport=String(value.transport||value.type||'').trim().toLowerCase();
   if(['streamable-http','streamable_http','sse'].includes(transport))transport='http';
   if(!transport)transport=value.url?'http':'stdio';
-  if(!['http','stdio'].includes(transport))throw new Error(`不支持的 MCP transport：${transport}`);
+  if(!['http','stdio'].includes(transport))throw new Error(mcpCopy(`不支持的 MCP transport：${transport}`,`MCP không hỗ trợ phương thức truyền: ${transport}`));
   const id=String(value.id||key||'').trim(),name=String(value.name||id||'').trim();
-  if(!id)throw new Error('mcp.json 中的 server 缺少标识');
-  const args=value.args==null?[]:value.args;if(!Array.isArray(args))throw new Error(`${id}.args 必须是数组`);
+  if(!id)throw new Error(mcpCopy('mcp.json 中的 server 缺少标识','Server trong mcp.json thiếu ID'));
+  const args=value.args==null?[]:value.args;if(!Array.isArray(args))throw new Error(mcpCopy(`${id}.args 必须是数组`,`${id}.args phải là mảng`));
   const timeout=Number(value.timeoutSec??value.toolTimeoutSec??60);
-  if(!Number.isFinite(timeout)||timeout<0||timeout>600)throw new Error(`${id}.timeoutSec 需在 0–600 之间`);
+  if(!Number.isFinite(timeout)||timeout<0||timeout>600)throw new Error(mcpCopy(`${id}.timeoutSec 需在 0–600 之间`,`${id}.timeoutSec phải nằm trong khoảng 0–600`));
   const server={id,name:name||id,description:String(value.description||''),transport,timeoutSec:timeout,url:mcpImportedURL(value.url),authType:String(value.authType||''),headers:mcpImportStringMap(value.headers,'headers'),command:String(value.command||''),args:args.map(item=>String(item)),installScript:String(value.installScript||''),workingDirectory:String(value.workingDirectory??value.cwd??''),pathEntries:mcpImportStringList(value.pathEntries,'pathEntries'),environment:mcpImportStringMap(value.environment??value.env,'env')};
-  if(transport==='http'&&!server.url)throw new Error(`${id} 缺少 HTTP URL`);
-  if(transport==='stdio'&&!server.command)throw new Error(`${id} 缺少 command`);
+  if(transport==='http'&&!server.url)throw new Error(mcpCopy(`${id} 缺少 HTTP URL`,`${id} thiếu HTTP URL`));
+  if(transport==='stdio'&&!server.command)throw new Error(mcpCopy(`${id} 缺少 command`,`${id} thiếu command`));
   return server;
 }
 function mcpImportCandidates(payload){
-  if(!mcpImportPlainObject(payload)&&!Array.isArray(payload))throw new Error('mcp.json 顶层必须是对象或数组');
+  if(!mcpImportPlainObject(payload)&&!Array.isArray(payload))throw new Error(mcpCopy('mcp.json 顶层必须是对象或数组','Dữ liệu gốc mcp.json phải là đối tượng hoặc mảng'));
   const root=mcpImportPlainObject(payload)?(payload.mcpServers??payload.servers??payload):payload;
-  if(Array.isArray(root)){if(!root.length)throw new Error('mcp.json 中没有 server');return root.map((item,index)=>mcpNormalizeImportedServer(item,item?.id||`server-${index+1}`))}
-  if(!mcpImportPlainObject(root))throw new Error('mcpServers / servers 必须是对象或数组');
+  if(Array.isArray(root)){if(!root.length)throw new Error(mcpCopy('mcp.json 中没有 server','mcp.json không có server'));return root.map((item,index)=>mcpNormalizeImportedServer(item,item?.id||`server-${index+1}`))}
+  if(!mcpImportPlainObject(root))throw new Error(mcpCopy('mcpServers / servers 必须是对象或数组','mcpServers / servers phải là đối tượng hoặc mảng'));
   if(root.command||root.url||root.stdio||root.http)return [mcpNormalizeImportedServer(root,root.id||'mcp-server')];
   const entries=Object.entries(root).filter(([,item])=>mcpImportPlainObject(item));
-  if(!entries.length)throw new Error('mcp.json 中没有可识别的 server');
+  if(!entries.length)throw new Error(mcpCopy('mcp.json 中没有可识别的 server','Không tìm thấy server hợp lệ trong mcp.json'));
   return entries.map(([key,item])=>mcpNormalizeImportedServer(item,key));
 }
 function mcpParseJSONText(raw){
-  let text=String(raw||'').replace(/\u00a0/g,' ').trim();if(!text)throw new Error('请先粘贴 mcp.json 配置');
+  let text=String(raw||'').replace(/\u00a0/g,' ').trim();if(!text)throw new Error(mcpCopy('请先粘贴 mcp.json 配置','Hãy dán cấu hình mcp.json trước'));
   const fence=text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);if(fence)text=fence[1].trim();
   try{return JSON.parse(text)}catch{}
   const fragment=text.replace(/;\s*$/,'').replace(/,\s*$/,'');
-  try{return JSON.parse(`{${fragment}}`)}catch{throw new Error('无法解析配置：请检查 JSON 引号、逗号和括号')}
+  try{return JSON.parse(`{${fragment}}`)}catch{throw new Error(mcpCopy('无法解析配置：请检查 JSON 引号、逗号和括号','Không phân tích được cấu hình: hãy kiểm tra dấu nháy, dấu phẩy và dấu ngoặc JSON'))}
 }
 function mcpApplyImportedServer(server){
   const form=$('#customMcpForm');if(!form)return;
@@ -125,13 +128,13 @@ function mcpApplyImportedServer(server){
 async function importMCPJSONText(text){
   const candidates=mcpImportCandidates(mcpParseJSONText(text));let selected=candidates[0];
   if(candidates.length>1){
-    const listing=candidates.map((item,index)=>`${index+1}. ${item.id}（${item.transport}）`).join('；');
-    const choice=await afPrompt({title:'选择要导入的 MCP',message:`粘贴内容包含 ${candidates.length} 个 server：${listing}`,label:'输入序号或标识',defaultValue:'1'});
+    const listing=candidates.map((item,index)=>mcpCopy(`${index+1}. ${item.id}（${item.transport}）`,`${index+1}. ${item.id} (${item.transport})`)).join(mcpCopy('；','; '));
+    const choice=await afPrompt({title:mcpCopy('选择要导入的 MCP','Chọn MCP cần nhập'),messageLocalized:mcpVI(),message:mcpCopy(`粘贴内容包含 ${candidates.length} 个 server：${listing}`,`Nội dung đã dán có ${candidates.length} server: ${listing}`),label:mcpCopy('输入序号或标识','Nhập số thứ tự hoặc ID'),defaultValue:'1'});
     if(choice==null)return;
     const trimmed=choice.trim(),index=/^\d+$/.test(trimmed)?Number(trimmed)-1:-1;selected=index>=0?candidates[index]:candidates.find(item=>item.id===trimmed);
-    if(!selected)throw new Error('没有找到指定的 MCP server');
+    if(!selected)throw new Error(mcpCopy('没有找到指定的 MCP server','Không tìm thấy MCP server đã chọn'));
   }
-  mcpApplyImportedServer(selected);toast(`已从 mcp.json 填入 ${selected.name}`,'ok');
+  mcpApplyImportedServer(selected);toast(mcpCopy(`已从 mcp.json 填入 ${selected.name}`,`Đã điền cấu hình ${selected.name} từ mcp.json`),'ok',2600,mcpVI());
 }
 function openCustomMCPModal(item=null){
   const form=$('#customMcpForm'),editing=Boolean(item?.id);state.editingMCPId=editing?item.id:'';form.reset();
@@ -200,7 +203,7 @@ function renderMCPManagement(){
   if(personal&&(!state.currentUser||state.currentUser.isGuest)){grid.innerHTML='<div class="mcp-market-empty"><b>登录后才能管理个人 MCP</b><p>项目级 MCP 仍可在当前项目中管理。</p></div>';return}
   const pagedMCP=paginateList('mcp',matchedInstalled);
   const catalog=personal?'':mcpCatalogSuggestionsHTML(installed,query);
-  const cards=pagedMCP.items.map(item=>`<article class="mcp-market-card is-installed"><div class="mcp-card-head"><span class="mcp-card-logo">${mcpMarketLogo(item)}</span><div><h3>${escapeHTML(item.name)}</h3><small>${personal?'个人专属':escapeHTML(project?.name||item.projectId)}</small></div><span class="mcp-installed-badge ${item.marketId?'is-market':'is-custom'}">${item.marketId?'市场':'自定义'}</span></div><p>${escapeHTML(item.description||'暂无说明')}</p><div class="mcp-card-meta">${item.authType==='github-token'?'<span>GitHub 令牌认证</span>':'<span>自定义认证</span>'}<span>${escapeHTML(item.transport||'http')}</span></div><div class="mcp-card-actions"><div class="mcp-action-buttons">${item.marketId?'':`<button class="button ghost small" type="button" data-mcp-edit="${escapeHTML(item.id)}">修改</button>`}<button class="button ghost small danger" type="button" data-mcp-remove="${escapeHTML(item.id)}">移除</button></div></div></article>`).join('');
+  const cards=pagedMCP.items.map(item=>`<article class="mcp-market-card is-installed"><div class="mcp-card-head"><span class="mcp-card-logo">${mcpMarketLogo(item)}</span><div><h3 data-i18n-skip>${escapeHTML(item.name)}</h3><small data-i18n-skip>${personal?mcpCopy('个人专属','Cá nhân'):escapeHTML(project?.name||item.projectId)}</small></div><span class="mcp-installed-badge ${item.marketId?'is-market':'is-custom'}">${item.marketId?'市场':'自定义'}</span></div><p data-i18n-skip>${escapeHTML(item.description||mcpCopy('暂无说明','Chưa có mô tả'))}</p><div class="mcp-card-meta">${item.authType==='github-token'?'<span>GitHub 令牌认证</span>':'<span>自定义认证</span>'}<span>${escapeHTML(item.transport||'http')}</span></div><div class="mcp-card-actions"><div class="mcp-action-buttons">${item.marketId?'':`<button class="button ghost small" type="button" data-mcp-edit="${escapeHTML(item.id)}">修改</button>`}<button class="button ghost small danger" type="button" data-mcp-remove="${escapeHTML(item.id)}">移除</button></div></div></article>`).join('');
   grid.innerHTML=catalog+(cards||(query?'<div class="mcp-market-empty"><b>没有匹配的 MCP</b><p>换个关键词试试。</p></div>':`<div class="mcp-market-empty"><b>当前范围还没有 MCP</b><p>${escapeHTML(mcpEmptyDescription(personal))}</p></div>`));
   if(cards)grid.insertAdjacentHTML('beforeend',pagerHTML('mcp',pagedMCP));
   bindMCPLogoFallbacks(grid);
