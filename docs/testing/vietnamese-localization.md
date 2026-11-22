@@ -55,3 +55,7 @@ Localized HTTP fallback, elapsed time, verified confirmation captions, display-o
 ### Notification and execution source audit
 
 Reviewed exact static labels on notification, approval, scheduling and credential screens. Localized new notification presets (never rewritten saved templates), preserved placeholder order and credential/log constraints, and explicitly localized selected durations and GitHub authorization messages. Isolated JavaScript syntax/catalogue/template-variable checks only; actual notification preview data from the server and DOM states still require source classification and browser checks.
+
+### Local preview fixture source audit
+
+All 12 fresh browser-local demo conversations now have Vietnamese titles, 48 messages and 12 activity labels. Locale selection occurs only when the existing preview creation path runs, never when loading previously stored conversations. IDs, roles, model IDs and three original demo artifact filenames remain unchanged. An isolated evaluation confirmed these invariants and absence of Han in Vietnamese demo prose (excluding preserved filenames); the added Vitest file has not been run via the full runner.
