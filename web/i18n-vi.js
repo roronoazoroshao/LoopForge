@@ -6261,3 +6261,40 @@ Object.assign(window.LF_I18N_VI, {"已保存 Git SSH 主机信任":"Đã lưu m�
 Object.assign(window.LF_I18N_VI, {"步骤责任人必须是有效用户":"Người phụ trách bước phải là người dùng hợp lệ","同步到工蜂 Issue 需要先绑定代码仓库":"Hãy liên kết kho mã trước khi đồng bộ yêu cầu sang Gongfeng"});
 
 Object.assign(window.LF_I18N_VI, {"仓库不存在或已被删除":"Không tìm thấy kho mã hoặc kho mã đã bị xóa","编辑代码仓库":"Chỉnh sửa kho mã"});
+
+// Reviewed exact backend API validation messages: translate only display copy.
+Object.assign(window.LF_I18N_VI, {
+  "请通过业务域归属接口调整项目归属": "Hãy dùng API phân quyền miền nghiệp vụ để điều chỉnh miền quản lý của dự án.",
+  "只有项目 Owner 或平台管理员可以修改项目设置": "Chỉ chủ dự án hoặc quản trị viên nền tảng mới được thay đổi cài đặt dự án.",
+  "新项目 Owner 必须为当前用户": "Chủ sở hữu dự án mới phải là người dùng hiện tại.",
+  "项目不存在或已删除": "Không tìm thấy dự án hoặc dự án đã bị xóa.",
+  "项目不存在": "Không tìm thấy dự án.",
+  "只有项目 Owner 或平台管理员可以删除或恢复项目": "Chỉ chủ dự án hoặc quản trị viên nền tảng mới được xóa hoặc khôi phục dự án.",
+  "只有平台管理员和项目 Owner 可以查看归属历史": "Chỉ quản trị viên nền tảng và chủ dự án được xem lịch sử phân quyền miền nghiệp vụ.",
+  "项目 Owner 只能设置首次归属；迁移或清除归属需要平台管理员": "Chủ dự án chỉ được thiết lập miền quản lý lần đầu; chuyển hoặc xóa liên kết cần quản trị viên nền tảng.",
+  "归属调整原因不能超过 500 字": "Lý do điều chỉnh miền quản lý không được vượt quá 500 ký tự.",
+  "项目或业务域不存在": "Không tìm thấy dự án hoặc miền nghiệp vụ.",
+  "业务归属已更新，但读取项目失败，请刷新后重试": "Đã cập nhật miền quản lý nhưng không thể tải lại dự án. Hãy làm mới trang rồi thử lại.",
+  "运行记录无法读取": "Không thể đọc lịch sử lượt chạy.",
+  "本地验收登录未启用或请求来源不允许": "Đăng nhập nghiệm thu cục bộ bị tắt hoặc nguồn yêu cầu không được phép.",
+  "本地验收用户不存在": "Không tìm thấy người dùng nghiệm thu cục bộ.",
+  "TAPD 同步未配置": "Chưa cấu hình đồng bộ TAPD.",
+  "未知的需求套餐": "Không nhận diện được gói yêu cầu.",
+  "limit 必须是整数": "Tham số limit phải là số nguyên.",
+  "offset 必须是非负整数": "Tham số offset phải là số nguyên không âm.",
+  "澄清开始时间不能晚于当前时间": "Thời điểm bắt đầu làm rõ không được muộn hơn hiện tại.",
+  "syncTarget 只能是 local、gongfeng 或 tapd": "syncTarget chỉ được là local, gongfeng hoặc tapd.",
+  "手动 TAPD ID 仅用于平台需求；同步单请使用原始外部 ID": "Chỉ được nhập TAPD ID thủ công cho yêu cầu nội bộ. Với yêu cầu đồng bộ, hãy dùng ID bên ngoài gốc.",
+  "TAPD ID 只能包含数字": "TAPD ID chỉ được chứa chữ số.",
+  "AI 定时任务必须填写提示词": "Tác vụ AI theo lịch phải có prompt.",
+  "单次最多触发需求数必须为 1–10，不配置时默认为 10": "Số yêu cầu kích hoạt tối đa mỗi lượt phải từ 1 đến 10; mặc định là 10.",
+  "触发任务必须选择默认 SOP": "Tác vụ kích hoạt phải chọn SOP mặc định.",
+  "Cron 表达式无效，需为 5 段（分 时 日 月 周，东八区），例如 0 * * * *": "Biểu thức Cron không hợp lệ. Cần 5 trường (phút giờ ngày tháng thứ; UTC+8), ví dụ 0 * * * *.",
+  "没有该项目的定时任务访问权限": "Bạn không có quyền truy cập tác vụ theo lịch của dự án này.",
+  "定时任务不存在": "Không tìm thấy tác vụ theo lịch.",
+  "仅独立 AI 定时任务可以发布共享版本": "Chỉ tác vụ AI theo lịch độc lập mới được phát hành phiên bản dùng chung.",
+  "请填写 baseVersion：首次发布为 0，之后为最新版本号": "Hãy nhập baseVersion: dùng 0 khi phát hành lần đầu, sau đó dùng số phiên bản mới nhất.",
+  "订阅需要明确的共享任务和版本，且必须是 AI 定时任务": "Đăng ký phải chỉ rõ tác vụ dùng chung và phiên bản, đồng thời phải là tác vụ AI theo lịch.",
+  "共享任务版本不存在": "Không tìm thấy phiên bản tác vụ dùng chung.",
+  "只有项目 Owner 或平台管理员可以编辑项目": "Chỉ chủ dự án hoặc quản trị viên nền tảng được chỉnh sửa dự án."
+});

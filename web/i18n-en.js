@@ -1925,3 +1925,40 @@ Object.assign(window.LF_I18N_EN, {"已保存 Git SSH 主机信任":"Git SSH host
 Object.assign(window.LF_I18N_EN, {"步骤责任人必须是有效用户":"The step assignee must be a valid user","同步到工蜂 Issue 需要先绑定代码仓库":"Link a repository before syncing a Gongfeng issue"});
 
 Object.assign(window.LF_I18N_EN, {"仓库不存在或已被删除":"Repository not found or deleted","编辑代码仓库":"Edit code repository"});
+
+// Reviewed exact backend API validation messages: translate only display copy.
+Object.assign(window.LF_I18N_EN, {
+  "请通过业务域归属接口调整项目归属": "Use the business-domain ownership API to change a project's domain.",
+  "只有项目 Owner 或平台管理员可以修改项目设置": "Only the project owner or platform admin can change project settings.",
+  "新项目 Owner 必须为当前用户": "The new project's owner must be the current user.",
+  "项目不存在或已删除": "Project not found or already deleted.",
+  "项目不存在": "Project not found.",
+  "只有项目 Owner 或平台管理员可以删除或恢复项目": "Only the project owner or platform admin may delete or restore a project.",
+  "只有平台管理员和项目 Owner 可以查看归属历史": "Only platform admins and the project owner can view domain ownership history.",
+  "项目 Owner 只能设置首次归属；迁移或清除归属需要平台管理员": "Project owners may set initial domain ownership only; moving or removing it requires a platform admin.",
+  "归属调整原因不能超过 500 字": "The reason for changing ownership must not exceed 500 characters.",
+  "项目或业务域不存在": "Project or business domain not found.",
+  "业务归属已更新，但读取项目失败，请刷新后重试": "Ownership was updated but the project could not be reloaded. Refresh and retry.",
+  "运行记录无法读取": "Run records could not be read.",
+  "本地验收登录未启用或请求来源不允许": "Local acceptance sign-in is disabled or the request origin is not allowed.",
+  "本地验收用户不存在": "Local acceptance user not found.",
+  "TAPD 同步未配置": "TAPD sync is not configured.",
+  "未知的需求套餐": "Unknown request bundle.",
+  "limit 必须是整数": "limit must be an integer.",
+  "offset 必须是非负整数": "offset must be a non-negative integer.",
+  "澄清开始时间不能晚于当前时间": "Clarification start time cannot be in the future.",
+  "syncTarget 只能是 local、gongfeng 或 tapd": "syncTarget must be local, gongfeng or tapd.",
+  "手动 TAPD ID 仅用于平台需求；同步单请使用原始外部 ID": "Manual TAPD IDs are only for platform requests. Synced requests must use their original external ID.",
+  "TAPD ID 只能包含数字": "TAPD ID may only contain digits.",
+  "AI 定时任务必须填写提示词": "An AI scheduled task requires a prompt.",
+  "单次最多触发需求数必须为 1–10，不配置时默认为 10": "The maximum requests per trigger must be 1–10; default is 10.",
+  "触发任务必须选择默认 SOP": "Trigger tasks require a default SOP.",
+  "Cron 表达式无效，需为 5 段（分 时 日 月 周，东八区），例如 0 * * * *": "Invalid Cron expression. Use five fields (minute hour day month weekday; UTC+8), e.g. 0 * * * *.",
+  "没有该项目的定时任务访问权限": "You do not have access to scheduled tasks in this project.",
+  "定时任务不存在": "Scheduled task not found.",
+  "仅独立 AI 定时任务可以发布共享版本": "Only standalone AI scheduled tasks can publish shared versions.",
+  "请填写 baseVersion：首次发布为 0，之后为最新版本号": "Enter baseVersion: use 0 for the first publication, then the latest version number.",
+  "订阅需要明确的共享任务和版本，且必须是 AI 定时任务": "A subscription requires a shared task and version, and must be an AI scheduled task.",
+  "共享任务版本不存在": "Shared task version not found.",
+  "只有项目 Owner 或平台管理员可以编辑项目": "Only the project owner or platform admin can edit the project."
+});

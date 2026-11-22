@@ -159,3 +159,7 @@ The Changes panel now derives Vietnamese labels for Git porcelain codes A/M/D/R/
 ### Chat metadata and personal-group labels
 
 Localized the previously hardcoded personal-chat group title through `chatT` and the `已完成` artifact source marker through the display-only locale mapping. Persisted message-source marker and user-authored project names are unchanged. Isolated RED/GREEN source evaluations check both VI and ZH; full runner/browser QA remains deferred.
+
+### Exact Go API error strings: projects, accounts, issues and schedules
+
+Added 33 reviewed Vietnamese/English whole-message translations for user-visible project permissions, domain ownership, registration, TAPD validation, scheduling and shared-task access errors. Go handlers, status codes, machine-readable fields and existing data are unchanged. These exact entries prevent partial fragment translation such as mixed Owner/项目 text. Catalogue parity and template-variable invariants were evaluated in isolation; full API integration and runner tests remain deferred.
