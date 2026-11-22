@@ -51,3 +51,7 @@ Baseline `f646574683d32b6988e11609e98d1c7933976e78`: 5,733 entries per EN/VI cat
 ### React chat source audit (next slice)
 
 Localized HTTP fallback, elapsed time, verified confirmation captions, display-only artifact source labels, local-preview generated replies/errors/branch title, and approval punctuation. Raw API diagnostics, action tokens, source metadata, names and existing stored conversations are not rewritten. The English chat preference still intentionally follows the existing Chinese path. Focused isolated JavaScript checks were run; the Vitest regression file is added but the repository runner, production build and browser execution are deferred. Existing preview conversation seed text and server-owned error classification remain open inventory items.
+
+### Notification and execution source audit
+
+Reviewed exact static labels on notification, approval, scheduling and credential screens. Localized new notification presets (never rewritten saved templates), preserved placeholder order and credential/log constraints, and explicitly localized selected durations and GitHub authorization messages. Isolated JavaScript syntax/catalogue/template-variable checks only; actual notification preview data from the server and DOM states still require source classification and browser checks.
