@@ -1,3 +1,4 @@
+import { chatT, chatLocale } from "./locale.js";
 import { useEffect, useMemo, useState } from "react";
 import { api, parseReply } from "./api.js";
 
@@ -29,19 +30,19 @@ export function runProblems(run) {
       reason =
         (node.error || "").trim() ||
         (gate.reason || "").trim() ||
-        "节点失败但没有记录错误，可以打开节点查看执行过程";
+        chatT("节点失败但没有记录错误，可以打开节点查看执行过程", "Nút thất bại nhưng không ghi lỗi; mở nút để xem quá trình thực thi");
     else
       reason =
         [gate.reason, gate.actionRequired]
           .map((s) => (s || "").trim())
           .filter(Boolean)
-          .join("；需要处理：") ||
+          .join(chatT("；需要处理：", "; cần xử lý: ")) ||
         (node.error || "")
           .replace(/^\s*agent requested human confirmation:\s*/i, "")
           .trim() ||
         (def.type === "approval"
           ? approvalWaitReason(run, id)
-          : "等待人工确认");
+          : chatT("等待人工确认", "Chờ xác nhận thủ công"));
     const waiting = node.status === "waiting_approval";
     out.push({
       key: [run.id, id, node.attempt, node.reworkCount, node.status].join(":"),
@@ -70,7 +71,7 @@ export function approvalWaitReason(run, nodeId) {
   const nodes = wf.nodes || [];
   const edges = wf.edges || [];
   const index = nodes.findIndex((n) => n.id === nodeId);
-  if (index < 0) return "等待人工确认";
+  if (index < 0) return chatT("等待人工确认", "Chờ xác nhận thủ công");
   const node = nodes[index];
   const name = (id) => `「${nodes.find((n) => n.id === id)?.name || id}」`;
   let upstream = edges
@@ -82,6 +83,15 @@ export function approvalWaitReason(run, nodeId) {
   if (!edges.length) {
     upstream = index > 0 ? [name(nodes[index - 1].id)] : [];
     downstream = index + 1 < nodes.length ? [name(nodes[index + 1].id)] : [];
+  }
+  if (chatLocale() === "vi") {
+    const sop = (wf.name || "").trim() ? `SOP «${wf.name.trim()}»` : "SOP này";
+    let text = `${sop} đặt điều kiện phê duyệt thủ công tại bước này`;
+    text += upstream.length ? `: ${upstream.join(", ")} đã hoàn tất; thành viên có quyền cần kiểm tra kết quả và xác nhận` : "; thành viên có quyền cần xác nhận";
+    text += downstream.length ? `; sau xác nhận, tiếp tục ${downstream.join(", ")}` : "; sau xác nhận, lượt chạy kết thúc";
+    if (node.rejectTo) text += `; nếu không đạt, có thể trả về ${name(node.rejectTo)} để làm lại`;
+    const instructions = (node.taskPrompt || "").trim();
+    return text + "." + (instructions ? ` Yêu cầu xác nhận: ${instructions}` : "");
   }
   const sop = (wf.name || "").trim() ? `SOP「${wf.name.trim()}」` : "该 SOP";
   let text = `${sop}在这一步设置了人工门禁`;

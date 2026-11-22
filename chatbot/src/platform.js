@@ -1,64 +1,65 @@
+import { chatT, chatLocale } from "./locale.js";
 export const actionNames = {
-  runs_start: "启动 SOP",
-  runs_approve: "批准节点",
-  runs_reject: "退回节点",
-  runs_retry: "重试节点",
-  runs_cancel: "取消运行",
-  runs_pause: "暂停运行",
-  runs_resume: "继续运行",
-  issues_dispatch: "派发 SOP",
-  issues_save: "保存需求",
-  issues_import_tapd: "导入 TAPD 需求",
-  issues_chat_clarify: "发起 AI 需求澄清",
-  issues_clarification_save: "保存并回写需求澄清",
-  issues_delete: "删除需求",
-  issues_comments_add: "添加需求评论",
-  issues_reopen: "重新打开需求",
-  workflows_save: "保存 SOP",
-  workflows_clone: "复制 SOP",
-  workflows_publish: "发布 SOP",
-  agents_save: "保存角色",
-  assistant_tasks_save: "保存定时任务",
+  runs_start: chatT("启动 SOP", "Khởi chạy SOP"),
+  runs_approve: chatT("批准节点", "Phê duyệt nút"),
+  runs_reject: chatT("退回节点", "Trả lại nút"),
+  runs_retry: chatT("重试节点", "Thử lại nút"),
+  runs_cancel: chatT("取消运行", "Hủy lượt chạy"),
+  runs_pause: chatT("暂停运行", "Tạm dừng lượt chạy"),
+  runs_resume: chatT("继续运行", "Tiếp tục lượt chạy"),
+  issues_dispatch: chatT("派发 SOP", "Điều phối SOP"),
+  issues_save: chatT("保存需求", "Lưu yêu cầu"),
+  issues_import_tapd: chatT("导入 TAPD 需求", "Nhập yêu cầu TAPD"),
+  issues_chat_clarify: chatT("发起 AI 需求澄清", "Khởi tạo làm rõ yêu cầu bằng AI"),
+  issues_clarification_save: chatT("保存并回写需求澄清", "Lưu và ghi lại kết quả làm rõ"),
+  issues_delete: chatT("删除需求", "Xóa yêu cầu"),
+  issues_comments_add: chatT("添加需求评论", "Thêm bình luận yêu cầu"),
+  issues_reopen: chatT("重新打开需求", "Mở lại yêu cầu"),
+  workflows_save: chatT("保存 SOP", "Lưu SOP"),
+  workflows_clone: chatT("复制 SOP", "Sao chép SOP"),
+  workflows_publish: chatT("发布 SOP", "Phát hành SOP"),
+  agents_save: chatT("保存角色", "Lưu vai trò"),
+  assistant_tasks_save: chatT("保存定时任务", "Lưu tác vụ theo lịch"),
 };
 const entities = {
-  agents: "角色",
+  agents: chatT("角色", "vai trò"),
   workflows: "SOP",
-  projects: "项目",
-  repositories: "仓库",
-  rules: "规则",
-  skills: "技能",
-  mcp_servers: "MCP 服务",
-  schedule_jobs: "平台定时任务",
-  assistant_tasks: "助手定时任务",
-  runs: "运行",
-  issues: "需求",
-  environments: "环境",
-  sandboxes: "沙箱",
+  projects: chatT("项目", "dự án"),
+  repositories: chatT("仓库", "kho mã"),
+  rules: chatT("规则", "quy tắc"),
+  skills: chatT("技能", "kỹ năng"),
+  mcp_servers: chatT("MCP 服务", "dịch vụ MCP"),
+  schedule_jobs: chatT("平台定时任务", "tác vụ nền tảng theo lịch"),
+  assistant_tasks: chatT("助手定时任务", "tác vụ trợ lý theo lịch"),
+  runs: chatT("运行", "lượt chạy"),
+  issues: chatT("需求", "yêu cầu"),
+  environments: chatT("环境", "môi trường"),
+  sandboxes: chatT("沙箱", "sandbox"),
   dockerfiles: "Dockerfile",
-  executors: "执行器",
+  executors: chatT("执行器", "trình thực thi"),
 };
 const verbs = {
-  save: "保存",
-  delete: "删除",
-  publish: "发布",
-  clone: "复制",
-  start: "启动",
-  cancel: "取消",
-  retry: "重试",
-  pause: "暂停",
-  resume: "继续",
-  run: "执行",
-  import: "导入",
-  restore: "恢复",
+  save: chatT("保存", "Lưu"),
+  delete: chatT("删除", "Xóa"),
+  publish: chatT("发布", "Phát hành"),
+  clone: chatT("复制", "Sao chép"),
+  start: chatT("启动", "Khởi chạy"),
+  cancel: chatT("取消", "Hủy"),
+  retry: chatT("重试", "Thử lại"),
+  pause: chatT("暂停", "Tạm dừng"),
+  resume: chatT("继续", "Tiếp tục"),
+  run: chatT("执行", "Thực thi"),
+  import: chatT("导入", "Nhập"),
+  restore: chatT("恢复", "Khôi phục"),
 };
 export const actionName = (tool) => {
   if (actionNames[tool]) return actionNames[tool];
   const match = tool?.match(/^(.*)_([^_]+)$/);
   return match && entities[match[1]] && verbs[match[2]]
-    ? verbs[match[2]] + entities[match[1]]
+    ? verbs[match[2]] + chatT('', ' ') + entities[match[1]]
     : tool
-      ? `执行 ${tool}`
-      : "未指定操作";
+      ? chatT(`执行 ${tool}`, `Thực thi ${tool}`)
+      : chatT("未指定操作", "Chưa chỉ định thao tác");
 };
 export const visibleSidebarArtifact = (a) =>
   !a.draft ||
@@ -77,7 +78,7 @@ export function definitionTarget(artifact, projectId = "") {
   return {
     id: asset.id,
     href: `/${project ? `?projectId=${encodeURIComponent(project)}` : ""}#/${artifact.kind === "sop" ? "flow" : "agents"}/${encodeURIComponent(asset.id)}`,
-    label: artifact.kind === "sop" ? "打开 SOP 编排" : "打开角色定义",
+    label: artifact.kind === "sop" ? chatT("打开 SOP 编排", "Mở điều phối SOP") : chatT("打开角色定义", "Mở định nghĩa vai trò"),
   };
 }
 
@@ -91,7 +92,7 @@ export function projectEntryTarget(draft, currentProjectId = "") {
   if (!id || id === currentProjectId) return null;
   return {
     href: `/?projectId=${encodeURIComponent(id)}#/collaboration`,
-    label: `进入项目「${saved.name || draft.body?.name || id}」继续对话`,
+    label: chatT(`进入项目「${saved.name || draft.body?.name || id}」继续对话`, `Vào dự án «${saved.name || draft.body?.name || id}» để tiếp tục hội thoại`),
   };
 }
 
