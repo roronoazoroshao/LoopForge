@@ -1,3 +1,4 @@
+import { chatT } from "./locale";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, write, sessionPath, newId, mergeEvents, restoreStream, parseReply } from "./api.js";
 import { RichContent } from "./RichContent";
@@ -64,12 +65,12 @@ function DraftNote({ draft, onPlace, onConfigureRole }) {
       ) : null}
       {onConfigureRole ? (
         <button type="button" className="sop-designer-place" onClick={() => onConfigureRole(draft)}>
-          配置并创建角色
+          {chatT("配置并创建角色", "Cấu hình và tạo vai trò")}
         </button>
       ) : null}
       {onPlace ? (
         <button type="button" className="sop-designer-place" onClick={() => onPlace(draft)}>
-          重新放到画布
+          {chatT("重新放到画布", "Đưa lại lên canvas")}
         </button>
       ) : null}
     </div>
@@ -234,7 +235,7 @@ export default function SopDesigner({ search = location.search, canvas = window.
       } else {
         const failed = !["canceled", "cancelled"].includes(g.status);
         if (failed && g.error) setError(g.error);
-        postToCanvas(END, { error: failed ? g.error || "生成失败" : "" }, canvas);
+        postToCanvas(END, { error: failed ? g.error || chatT("生成失败", "Tạo thất bại") : "" }, canvas);
       }
     };
     const connect = () => {
@@ -296,7 +297,7 @@ export default function SopDesigner({ search = location.search, canvas = window.
     const content = value.trim();
     if (!content || busy) return;
     if (!context.projectId) {
-      setError("先在顶栏选择项目");
+      setError(chatT("先在顶栏选择项目", "Chọn dự án trên thanh trên trước"));
       return;
     }
     setError("");
@@ -315,7 +316,7 @@ export default function SopDesigner({ search = location.search, canvas = window.
       canvasRequested = true;
       const begun = await beginOnCanvas(canvas);
       if (currentContext.current !== context) return;
-      if (!begun.ok) throw new Error(begun.error || "画布暂时不能编排");
+      if (!begun.ok) throw new Error(begun.error || chatT("画布暂时不能编排", "Canvas tạm thời không thể điều phối"));
       // A conversation stays on one CLI; another CLI starts a new one and
       // keeps the canvas.
       const locked = stored ? conversationEngine(stored.messages, catalog.models, stored.executor) : "";
@@ -365,11 +366,11 @@ export default function SopDesigner({ search = location.search, canvas = window.
       <div className="sop-designer-scroll" ref={scroll}>
         {!messages.length && !running ? (
           <div className="sop-designer-intro">
-            <h3>您好，我是 <em>AI 编排助手</em></h3>
-            <p>画布是空的，就描述要搭的流程。画布上已经有流程时，直接说改哪一步，我只改你说的地方。</p>
+            <h3>{chatT("您好，我是", "Xin chào, tôi là")} <em>{chatT("AI 编排助手", "Trợ lý điều phối AI")}</em></h3>
+            <p>{chatT("画布是空的，就描述要搭的流程。画布上已经有流程时，直接说改哪一步，我只改你说的地方。", "Nếu canvas trống, mô tả quy trình cần xây dựng. Nếu đã có quy trình, hãy nói bước cần sửa; tôi chỉ sửa phần bạn yêu cầu.")}</p>
             <div className="sop-designer-suggest-head">
-              <span>可以试试这些场景：</span>
-              <button type="button" onClick={() => setPage((n) => n + 1)}>换一批</button>
+              <span>{chatT("可以试试这些场景：", "Có thể thử các tình huống sau:")}</span>
+              <button type="button" onClick={() => setPage((n) => n + 1)}>{chatT("换一批", "Đổi nhóm gợi ý")}</button>
             </div>
             <div className="sop-designer-suggest">
               {scenarioPage(page).map(([label, prompt]) => (
@@ -409,8 +410,8 @@ export default function SopDesigner({ search = location.search, canvas = window.
             ref={input}
             rows={3}
             maxLength={2000}
-            aria-label="描述要编排的流程"
-            placeholder={messages.length ? "直接说要改哪里，例如：在实现后面加一个人工评审" : "告诉我你的目标，我来搞定…"}
+            aria-label={chatT("描述要编排的流程", "Mô tả quy trình cần điều phối")}
+            placeholder={messages.length ? chatT("直接说要改哪里，例如：在实现后面加一个人工评审", "Nói rõ phần cần sửa, ví dụ: thêm bước con người rà soát sau triển khai") : chatT("告诉我你的目标，我来搞定…", "Cho tôi biết mục tiêu, tôi sẽ xử lý…")}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
@@ -430,7 +431,7 @@ export default function SopDesigner({ search = location.search, canvas = window.
                   ...item,
                   icon: "terminal",
                   label: item.name,
-                  detail: item.configured === false ? "未配置 API Key，先到个人配置里添加" : disabled ? "暂无可用模型" : `使用 ${item.name} 与个人 API Key`,
+                  detail: item.configured === false ? chatT("未配置 API Key，先到个人配置里添加", "Chưa cấu hình API Key; thêm trong Cài đặt cá nhân trước") : disabled ? chatT("暂无可用模型", "Chưa có mô hình khả dụng") : chatT(`使用 ${item.name} 与个人 API Key`, `Dùng ${item.name} và API Key cá nhân`),
                   disabled,
                   glyph: hasProviderLogo(brand) ? <ModelProviderIcon brand={brand} size={16} /> : null,
                 };
@@ -446,7 +447,7 @@ export default function SopDesigner({ search = location.search, canvas = window.
             <ModelPicker
               models={models}
               value={model}
-              label={models.find((m) => m.id === model)?.name || model || "模型"}
+              label={models.find((m) => m.id === model)?.name || model || chatT("模型", "Mô hình")}
               open={menu === "model"}
               onOpenChange={(open) => setMenu(open && !busy ? "model" : null)}
               onSelect={(id) => {
@@ -457,17 +458,17 @@ export default function SopDesigner({ search = location.search, canvas = window.
             />
             <span className="toolbar-spacer" />
             {running ? (
-              <button type="button" className="send-button stop" aria-label="停止生成" disabled={generation.cancelRequested} onClick={stop}>
+              <button type="button" className="send-button stop" aria-label={chatT("停止生成", "Dừng tạo")} disabled={generation.cancelRequested} onClick={stop}>
                 <HarnessIcon name="chat-stop" size={14} />
               </button>
             ) : (
-              <button type="submit" className="send-button" aria-label="发送编排要求" disabled={busy || !text.trim()}>
+              <button type="submit" className="send-button" aria-label={chatT("发送编排要求", "Gửi yêu cầu điều phối")} disabled={busy || !text.trim()}>
                 <HarnessIcon name="chat-send" size={20} />
               </button>
             )}
           </footer>
         </div>
-        <small>仅生成草稿，确认后在画布上保存 · 切换 CLI 会开启新对话，画布保留</small>
+        <small>{chatT("仅生成草稿，确认后在画布上保存 · 切换 CLI 会开启新对话，画布保留", "Chỉ tạo bản nháp, lưu trên canvas sau xác nhận · chuyển CLI mở cuộc trò chuyện mới và giữ canvas")}</small>
       </form>
     </div>
   );

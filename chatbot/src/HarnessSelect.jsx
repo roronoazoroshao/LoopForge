@@ -1,3 +1,4 @@
+import { chatT } from "./locale";
 // Harness UI Selector (MIT, see harness-ui-LICENSE.txt)
 // for React: a controlled replacement for <select>. onChange receives
 // {target: {value}} so handlers written for the native select keep working.
@@ -24,7 +25,7 @@ export default function HarnessSelect({
   ariaLabel,
   className = "",
   searchable,
-  placeholder = "请选择",
+  placeholder = chatT("请选择", "Vui lòng chọn"),
 }) {
   const trigger = useRef(null);
   const panel = useRef(null);
@@ -163,8 +164,8 @@ export default function HarnessSelect({
                   <input
                     ref={search}
                     type="search"
-                    aria-label="搜索选项"
-                    placeholder="搜索…"
+                    aria-label={chatT("搜索选项", "Tìm tùy chọn")}
+                    placeholder={chatT("搜索…", "Tìm kiếm…")}
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                   />
@@ -192,7 +193,7 @@ export default function HarnessSelect({
                     </button>
                   );
                 })}
-                {!visible.length ? <div className="harness-select-empty">没有匹配的选项</div> : null}
+                {!visible.length ? <div className="harness-select-empty">{chatT("没有匹配的选项", "Không có tùy chọn phù hợp")}</div> : null}
               </div>
             </div>,
             document.body,

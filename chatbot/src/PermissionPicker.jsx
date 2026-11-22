@@ -6,9 +6,9 @@ import { usePanelPresence } from "./usePanelPresence";
 import "./permission-picker.css";
 
 const modes = [
-  { id: "confirm", icon: "gate", label: chatT("请求批准", "Yêu cầu phê duyệt"), detail: "工作区文件和命令自动执行；平台写入由你确认，外部工具写入需要授权。" },
-  { id: "assisted", icon: "confirmation-check", label: chatT("帮我批准", "Phê duyệt thay tôi"), detail: "工作区文件和命令自动执行；git push 等外部写入命令由 AI 审查直接批准或拒绝；平台写入未通过审查时交给你确认。" },
-  { id: "auto", icon: "priority-bolt", label: chatT("完全权限", "Toàn quyền truy cập"), tone: "danger", detail: "工作区文件和命令自动执行；平台及外部操作使用当前账号权限直接执行。" },
+  { id: "confirm", icon: "gate", label: chatT("请求批准", "Yêu cầu phê duyệt"), detail: chatT("工作区文件和命令自动执行；平台写入由你确认，外部工具写入需要授权。", "Tệp và lệnh trong workspace tự thực thi; bạn xác nhận thao tác ghi nền tảng, thao tác ghi của công cụ bên ngoài cần cấp quyền.") },
+  { id: "assisted", icon: "confirmation-check", label: chatT("帮我批准", "Phê duyệt thay tôi"), detail: chatT("工作区文件和命令自动执行；git push 等外部写入命令由 AI 审查直接批准或拒绝；平台写入未通过审查时交给你确认。", "Tệp và lệnh trong workspace tự thực thi; AI rà soát rồi trực tiếp phê duyệt hoặc từ chối lệnh ghi bên ngoài như git push; thao tác ghi nền tảng không vượt qua rà soát được chuyển cho bạn xác nhận.") },
+  { id: "auto", icon: "priority-bolt", label: chatT("完全权限", "Toàn quyền truy cập"), tone: "danger", detail: chatT("工作区文件和命令自动执行；平台及外部操作使用当前账号权限直接执行。", "Tệp và lệnh trong workspace tự thực thi; thao tác nền tảng và bên ngoài thực thi trực tiếp với quyền của tài khoản hiện tại.") },
 ];
 
 export function normalizeApprovalMode(value) {

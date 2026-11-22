@@ -1,3 +1,4 @@
+import { chatT } from "./locale";
 import React, { useEffect, useRef, useState } from "react";
 import { api, sessionPath } from "./api.js";
 import HarnessIcon from "./HarnessIcon";
@@ -6,32 +7,32 @@ import { CLIInstallAction } from "./cli-install.jsx";
 import "./generation-diagnostics.css";
 
 const phases = {
-  setup: "启动与配置",
-  execution: "CLI 执行",
-  protocol: "结果解析",
-  provider: "模型服务",
-  connection: "连接模型服务",
-  server: "平台服务",
-  orchestration: "对话处理",
+  setup: chatT("启动与配置", "Khởi động và cấu hình"),
+  execution: chatT("CLI 执行", "Thực thi CLI"),
+  protocol: chatT("结果解析", "Phân tích kết quả"),
+  provider: chatT("模型服务", "Dịch vụ mô hình"),
+  connection: chatT("连接模型服务", "Kết nối dịch vụ mô hình"),
+  server: chatT("平台服务", "Dịch vụ nền tảng"),
+  orchestration: chatT("对话处理", "Xử lý cuộc trò chuyện"),
 };
 const statuses = {
-  running: "执行中",
-  completed: "已完成",
-  failed: "失败",
-  cancelled: "已停止",
-  interrupted: "已中断",
-  unfinished: "未完成",
+  running: chatT("执行中", "Đang thực thi"),
+  completed: chatT("已完成", "Đã hoàn tất"),
+  failed: chatT("失败", "Thất bại"),
+  cancelled: chatT("已停止", "Đã dừng"),
+  interrupted: chatT("已中断", "Đã gián đoạn"),
+  unfinished: chatT("未完成", "Chưa hoàn tất"),
 };
 const processStates = {
-  not_started: "未启动",
-  running: "运行中",
-  start_failed: "启动失败",
-  exited: "已退出",
-  unknown_after_interruption: "中断后未知",
+  not_started: chatT("未启动", "Chưa khởi chạy"),
+  running: chatT("运行中", "Đang chạy"),
+  start_failed: chatT("启动失败", "Khởi chạy thất bại"),
+  exited: chatT("已退出", "Đã thoát"),
+  unknown_after_interruption: chatT("中断后未知", "Không rõ sau gián đoạn"),
 };
 const toolSources = {
-  gateway: "平台网关",
-  cli: "CLI 协议",
+  gateway: chatT("平台网关", "Gateway nền tảng"),
+  cli: chatT("CLI 协议", "Giao thức CLI"),
 };
 const time = (value) =>
   value ? new Date(value).toLocaleString("zh-CN", { hour12: false }) : "—";
@@ -47,7 +48,7 @@ async function copyText(text) {
   try {
     input.select();
     if (!document.execCommand("copy"))
-      throw new Error("请手动选择诊断内容复制");
+      throw new Error(chatT("请手动选择诊断内容复制", "Vui lòng chọn nội dung chẩn đoán để sao chép thủ công"));
   } finally {
     input.remove();
   }
@@ -92,7 +93,7 @@ export default function GenerationDiagnostics({
       return data;
     } catch (e) {
       if (current.current === identity)
-        setError(e.message || "读取诊断信息失败，请重试");
+        setError(e.message || chatT("读取诊断信息失败，请重试", "Không đọc được thông tin chẩn đoán, hãy thử lại"));
       return null;
     } finally {
       if (current.current === identity) setLoading(false);
@@ -107,17 +108,17 @@ export default function GenerationDiagnostics({
     if (!data) return;
     try {
       await copyText(JSON.stringify(data, null, 2));
-      if (current.current === identity) setNotice("已复制诊断信息");
+      if (current.current === identity) setNotice(chatT("已复制诊断信息", "Đã sao chép thông tin chẩn đoán"));
     } catch {
       if (current.current === identity)
-        setError("复制失败，请下载诊断文件或手动复制详情");
+        setError(chatT("复制失败，请下载诊断文件或手动复制详情", "Sao chép thất bại, hãy tải tệp chẩn đoán hoặc sao chép chi tiết thủ công"));
     }
   }
   const shown = failure || report?.failure;
   return (
     <section
       className={`generation-diagnostics${compact ? " compact" : " failure"}`}
-      aria-label={failure ? "本轮失败诊断" : "本轮诊断信息"}
+      aria-label={failure ? chatT("本轮失败诊断", "Chẩn đoán thất bại lượt này") : chatT("本轮诊断信息", "Thông tin chẩn đoán lượt này")}
     >
       {!compact && shown ? (
         <>
@@ -146,22 +147,22 @@ export default function GenerationDiagnostics({
               size={14}
               aria-hidden="true"
             />
-            {compact ? "诊断信息" : "查看详情"}
+            {compact ? chatT("诊断信息", "Thông tin chẩn đoán") : chatT("查看详情", "Xem chi tiết")}
           </button>
           {!compact || open ? (
             <>
               <button type="button" onClick={copy} disabled={loading}>
                 <HarnessIcon name="copy" size={14} aria-hidden="true" />
-                复制诊断
+                {chatT("复制诊断", "Sao chép chẩn đoán")}
               </button>
               <a href={`${path}?download=1`} download>
                 <HarnessIcon name="download" size={14} aria-hidden="true" />
-                下载诊断
+                {chatT("下载诊断", "Tải chẩn đoán")}
               </a>
             </>
           ) : null}
           {loading ? (
-            <span role="status">读取中…</span>
+            <span role="status">{chatT("读取中…", "Đang đọc…")}</span>
           ) : notice ? (
             <span role="status">{notice}</span>
           ) : null}
@@ -186,28 +187,28 @@ export default function GenerationDiagnostics({
               ) : null}
               {report.assessment.unknowns?.length ? (
                 <p className="diagnostic-subnote">
-                  边界说明：{report.assessment.unknowns.join(" ")}
+                  {chatT("边界说明：", "Giới hạn: ")}{report.assessment.unknowns.join(" ")}
                 </p>
               ) : null}
               {report.assessment.nextSteps?.length ? (
                 <p className="diagnostic-subnote">
-                  排查建议：{report.assessment.nextSteps.join(" ")}
+                  {chatT("排查建议：", "Gợi ý xử lý: ")}{report.assessment.nextSteps.join(" ")}
                 </p>
               ) : null}
             </div>
           ) : null}
           <dl className="diagnostic-meta">
-            <dt>诊断编号</dt>
+            <dt>{chatT("诊断编号", "ID chẩn đoán")}</dt>
             <dd>
               <code>{report.generationId}</code>
             </dd>
-            <dt>状态</dt>
+            <dt>{chatT("状态", "Trạng thái")}</dt>
             <dd>{statuses[report.status] || report.status}</dd>
-            <dt>开始时间</dt>
+            <dt>{chatT("开始时间", "Thời gian bắt đầu")}</dt>
             <dd>{time(report.startedAt)}</dd>
             {report.termination ? (
               <>
-                <dt>结束原因</dt>
+                <dt>{chatT("结束原因", "Lý do kết thúc")}</dt>
                 <dd>
                   <code>{report.termination.code}</code> ·{" "}
                   {report.termination.message}
@@ -216,13 +217,13 @@ export default function GenerationDiagnostics({
             ) : null}
             {shown?.phase ? (
               <>
-                <dt>失败阶段</dt>
+                <dt>{chatT("失败阶段", "Giai đoạn thất bại")}</dt>
                 <dd>{phases[shown.phase] || shown.phase}</dd>
               </>
             ) : null}
             {report.environment ? (
               <>
-                <dt>运行实例</dt>
+                <dt>{chatT("运行实例", "Instance thực thi")}</dt>
                 <dd>
                   <code>{report.environment.instanceId}</code> ·{" "}
                   {report.environment.platformVersion}
@@ -241,18 +242,18 @@ export default function GenerationDiagnostics({
               <div className="diagnostic-attempt" key={attempt.id}>
                 <div className="diagnostic-attempt-heading">
                   <strong>
-                    调用 {attempt.id?.split("/").at(-1) || index + 1} ·{" "}
+                    {chatT("调用", "Lần gọi")} {attempt.id?.split("/").at(-1) || index + 1} ·{" "}
                     {attempt.engine}
                     {attempt.cliVersion ? ` v${attempt.cliVersion.replace(/^v/i, "")}` : ""}
                   </strong>
                   <span>{attempt.model}</span>
                   <span>{statuses[attempt.status] || attempt.status}</span>
                   {attempt.exitCode != null ? (
-                    <code>退出码 {attempt.exitCode}</code>
+                    <code>{chatT("退出码", "Mã thoát")} {attempt.exitCode}</code>
                   ) : null}
                 </div>
                 <p className="diagnostic-attempt-meta">
-                  {attempt.resume ? "恢复会话" : "新会话"} ·{" "}
+                  {attempt.resume ? chatT("恢复会话", "Khôi phục cuộc trò chuyện") : chatT("新会话", "Cuộc trò chuyện mới")} ·{" "}
                   {phases[attempt.phase] || attempt.phase} ·{" "}
                   {time(attempt.startedAt)}
                   {attempt.endpoint ? ` · ${attempt.endpoint}` : ""}
@@ -260,17 +261,17 @@ export default function GenerationDiagnostics({
                 </p>
                 {proc ? (
                   <p className="diagnostic-attempt-meta">
-                    进程：{processStates[proc.state] || proc.state}
+                    {chatT("进程：", "Tiến trình: ")}{processStates[proc.state] || proc.state}
                     {proc.pid ? ` · PID ${proc.pid}` : ""}
-                    {proc.signal ? ` · 信号 ${proc.signal}` : ""}
-                    {` · 输出 ${proc.stdoutLines || 0}/${proc.stderrLines || 0} 行`}
-                    {lastOut ? ` · 最近输出 ${time(lastOut)}` : ""}
+                    {proc.signal ? chatT(` · 信号 ${proc.signal}`, ` · Tín hiệu ${proc.signal}`) : ""}
+                    {chatT(` · 输出 ${proc.stdoutLines || 0}/${proc.stderrLines || 0} 行`, ` · Đầu ra ${proc.stdoutLines || 0}/${proc.stderrLines || 0} dòng`)}
+                    {lastOut ? chatT(` · 最近输出 ${time(lastOut)}`, ` · Đầu ra gần nhất ${time(lastOut)}`) : ""}
                   </p>
                 ) : null}
                 {attempt.firstError && report.dropped?.protocolEvents > 0 ? (
                   <div className="diagnostic-event">
                     <div>
-                      <strong>首次异常</strong>
+                      <strong>{chatT("首次异常", "Bất thường đầu tiên")}</strong>
                       <code>{attempt.firstError.kind}</code>
                       {attempt.firstError.statusCode ? (
                         <span>HTTP {attempt.firstError.statusCode}</span>
@@ -293,7 +294,7 @@ export default function GenerationDiagnostics({
                       ) : null}
                       {event.code ? <code>{event.code}</code> : null}
                       {event.retryable != null ? (
-                        <span>{event.retryable ? "可重试" : "不可重试"}</span>
+                        <span>{event.retryable ? chatT("可重试", "Có thể thử lại") : chatT("不可重试", "Không thể thử lại")}</span>
                       ) : null}
                     </div>
                     {event.message ? <pre>{event.message}</pre> : null}
@@ -313,7 +314,7 @@ export default function GenerationDiagnostics({
                 report.dropped?.stderrLines > 0 ? (
                   <details className="diagnostic-stderr">
                     <summary>
-                      CLI 起始输出 · 前 {attempt.firstStderr.length} 行
+                      {chatT(`CLI 起始输出 · 前 ${attempt.firstStderr.length} 行`, `Đầu ra CLI ban đầu · ${attempt.firstStderr.length} dòng đầu`)}
                     </summary>
                     <pre>{attempt.firstStderr.join("\n")}</pre>
                   </details>
@@ -321,7 +322,7 @@ export default function GenerationDiagnostics({
                 {attempt.stderr?.length ? (
                   <details className="diagnostic-stderr">
                     <summary>
-                      CLI 错误输出 · 最近 {attempt.stderr.length} 行
+                      {chatT(`CLI 错误输出 · 最近 ${attempt.stderr.length} 行`, `Đầu ra lỗi CLI · ${attempt.stderr.length} dòng gần nhất`)}
                     </summary>
                     <pre>{attempt.stderr.join("\n")}</pre>
                   </details>
@@ -334,7 +335,7 @@ export default function GenerationDiagnostics({
               className="diagnostic-stderr"
               open={report.tools.some((t) => t.status !== "completed")}
             >
-              <summary>工具与网关调用 · {report.tools.length} 次</summary>
+              <summary>{chatT(`工具与网关调用 · ${report.tools.length} 次`, `Lệnh gọi công cụ và gateway · ${report.tools.length} lần`)}</summary>
               <div className="diagnostic-tools">
                 {report.tools.map((tool, i) => (
                   <div className="diagnostic-event" key={`${tool.id}-${i}`}>
@@ -343,7 +344,7 @@ export default function GenerationDiagnostics({
                       <span>{toolSources[tool.source] || tool.source}</span>
                       <span>{statuses[tool.status] || tool.status}</span>
                       {tool.exitCode != null ? (
-                        <code>退出码 {tool.exitCode}</code>
+                        <code>{chatT("退出码", "Mã thoát")} {tool.exitCode}</code>
                       ) : null}
                     </div>
                     {tool.error ? <pre>{tool.error}</pre> : null}
@@ -359,7 +360,7 @@ export default function GenerationDiagnostics({
           ) : null}
           {report.timeline?.length ? (
             <details className="diagnostic-stderr">
-              <summary>执行时间线 · {report.timeline.length} 条记录</summary>
+              <summary>{chatT(`执行时间线 · ${report.timeline.length} 条记录`, `Dòng thời gian thực thi · ${report.timeline.length} bản ghi`)}</summary>
               <pre>
                 {report.timeline
                   .map(
@@ -375,12 +376,11 @@ export default function GenerationDiagnostics({
             <pre className="diagnostic-excerpt">{report.error}</pre>
           ) : null}
           {!report.attempts?.length && !report.error ? (
-            <p className="diagnostic-note">尚未记录 CLI 调用详情。</p>
+            <p className="diagnostic-note">{chatT("尚未记录 CLI 调用详情。", "Chưa ghi chi tiết lệnh gọi CLI.")}</p>
           ) : null}
           <p className="diagnostic-note">
-            已脱敏，包含有限的执行现场与错误片段。Request / Trace ID 仅在 CLI
-            或上游实际返回时显示。
-            {report.truncated ? "部分记录已按大小限制截断。" : ""}
+            {chatT("已脱敏，包含有限的执行现场与错误片段。Request / Trace ID 仅在 CLI 或上游实际返回时显示。", "Đã ẩn dữ liệu nhạy cảm, gồm ngữ cảnh thực thi và đoạn lỗi giới hạn. Request / Trace ID chỉ hiển thị khi CLI hoặc dịch vụ phía trước thực sự trả về.")}
+            {report.truncated ? chatT("部分记录已按大小限制截断。", "Một số bản ghi đã bị cắt theo giới hạn kích thước.") : ""}
           </p>
           {report.status === "running" ? (
             <button
@@ -389,7 +389,7 @@ export default function GenerationDiagnostics({
               onClick={load}
               disabled={loading}
             >
-              刷新诊断
+              {chatT("刷新诊断", "Làm mới chẩn đoán")}
             </button>
           ) : null}
         </div>
