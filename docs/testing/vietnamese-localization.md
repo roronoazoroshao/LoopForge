@@ -43,3 +43,7 @@ bash scripts/scan-secrets.sh
 ```
 
 The strict catalogue check now passes on key coverage. Dynamic Vietnamese stage, round, date, quantity and severity formats also have focused regression tests. Passing it is necessary, not sufficient, for declaring the entire application localized.
+
+## Source audit checkpoint — 2026-11-22
+
+Baseline `f646574683d32b6988e11609e98d1c7933976e78`: 5,733 entries per EN/VI catalogue, verified by evaluating the original catalogues. Ten previously reported translation calls still returned Han text. The first implementation slice explicitly localizes project wizard copy and the recoverable project deletion flow; it protects already-localized dialog/toast text from the fragment observer. Scoped wizard wrapping rules are a candidate, not a visual QA result. Four focused source fixtures (three expected failures on baseline, four passes on the candidate) were evaluated in an isolated JavaScript fixture, not via the repository's full Node/jsdom runner. Full checkout, dependency installation, platform build, browser E2E, independent review and runtime-wide source ownership classification remain mandatory and unverified. Do not merge or advertise a complete Vietnamese release until those gates pass.

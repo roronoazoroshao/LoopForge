@@ -2823,3 +2823,12 @@ textarea.pw-input{height:auto;min-height:64px;padding:9px 12px;line-height:1.55;
   .pw-footer{padding:12px 16px}
   .pw-row2,.pw-actions,.pw-status-list{grid-template-columns:1fr}
 }
+
+/* Vietnamese project wizard: readable text and wrapping, without changing other locales. */
+html[data-lang="vi"] .pw-rail{min-height:0;overflow-y:auto}
+html[data-lang="vi"] .pw-step-copy,html[data-lang="vi"] .pw-card-h>div,html[data-lang="vi"] .pw-row2>*{min-width:0}
+html[data-lang="vi"] .pw-step-desc,html[data-lang="vi"] .pw-card-h span,html[data-lang="vi"] .pw-hint{font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+html[data-lang="vi"] .pw-title,html[data-lang="vi"] .pw-lede,html[data-lang="vi"] .pw-note,html[data-lang="vi"] .pw-status-list{overflow-wrap:anywhere}
+html[data-lang="vi"] .pw-card-h,html[data-lang="vi"] .pw-footer,html[data-lang="vi"] .pw-footer-nav{flex-wrap:wrap}
+html[data-lang="vi"] .pw-btn{height:auto;min-height:36px;line-height:1.4;white-space:normal;padding-block:7px;max-width:100%}
+@media(max-width:520px){html[data-lang="vi"] .pw-row2{grid-template-columns:minmax(0,1fr)}html[data-lang="vi"] .pw-footer{padding-inline:12px}html[data-lang="vi"] .pw-footer-nav{min-width:0;justify-content:flex-end}}

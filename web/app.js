@@ -107,11 +107,12 @@ async function api(path, options={}) {
   }
 }
 const toastActions=new Map();
-function toast(message, type='info', duration=2600){
+function toast(message, type='info', duration=2600, messageLocalized=false){
   const container=$('#toastContainer');
   const legacy=$('#toast');
   if(!container&&legacy){
     const kind=type==='ok'||type==='err'?type:'info';
+    if(messageLocalized)legacy.setAttribute('data-i18n-skip','');else legacy.removeAttribute?.('data-i18n-skip');
     legacy.textContent=message;
     legacy.className=`toast show toast-${kind}`;
     clearTimeout(toastTimer);
@@ -124,7 +125,7 @@ function toast(message, type='info', duration=2600){
   const item=document.createElement('div');
   item.className=`toast-item toast-${kind}`;
   item.setAttribute('role','status');
-  item.innerHTML=`<span class="toast-item-icon"><svg class="agent-icon harness-icon" data-icon="${icons[kind]}" width="16" height="16" aria-hidden="true" focusable="false"></svg></span><span class="toast-item-msg">${escapeHTML(message)}</span><button type="button" class="toast-item-close" title="关闭" aria-label="关闭"><svg class="agent-icon harness-icon" data-icon="close" width="14" height="14" aria-hidden="true" focusable="false"></svg></button>`;
+  item.innerHTML=`<span class="toast-item-icon"><svg class="agent-icon harness-icon" data-icon="${icons[kind]}" width="16" height="16" aria-hidden="true" focusable="false"></svg></span><span class="toast-item-msg"${messageLocalized?' data-i18n-skip':''}>${escapeHTML(message)}</span><button type="button" class="toast-item-close" title="关闭" aria-label="关闭"><svg class="agent-icon harness-icon" data-icon="close" width="14" height="14" aria-hidden="true" focusable="false"></svg></button>`;
   const action=toastActions.get(message);
   if(action){
     const button=document.createElement('button');button.type='button';button.className='button primary small toast-item-action';button.textContent=action.label;
@@ -209,6 +210,7 @@ function afNextDialog(){
   const okBtn=$('#confirmOkBtn'),cancelBtn=$('#confirmCancelBtn');
   cancelBtn.hidden=false;
   let opened;
+  $('#confirmMessage').removeAttribute?.('data-i18n-skip');
   try{opened=job.setup(modal)||{}}catch(err){job.resolve(null);console.error(err);return afNextDialog()}
   window.HuiPopover?.closeAll?.();
   window.HuiTooltip?.hide?.();
@@ -275,6 +277,7 @@ function afConfirm(options){
   return afOpenDialog(()=>{
     const danger=!!opt.danger;
     $('#confirmTitle').textContent=opt.title||(danger?'危险操作确认':'操作确认');
+    if(opt.messageLocalized)$('#confirmMessage').setAttribute('data-i18n-skip','');
     $('#confirmMessage').textContent=opt.message||'确定要继续吗？';
     const okBtn=$('#confirmOkBtn');
     okBtn.textContent=opt.confirmText||(danger?'确定执行':'确定');

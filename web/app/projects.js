@@ -442,7 +442,8 @@ function projectDeleteRow(project){
 }
 async function deleteProjectAdmin(projectId){
   const project=(state.data.projects||[]).find(p=>p.id===projectId);if(!project)return;
-  const ok=await afConfirm({title:'删除项目',message:`确定删除项目「${project.name||project.id}」吗？\n\n项目会从列表中移除，需求、运行记录和设置保留，可以恢复；标识 ${project.id} 仍被占用。`,danger:true,confirmText:'确定删除'});
+  const vi=window.lfLang?.()==='vi';
+  const ok=await afConfirm({title:vi?'Xóa dự án':'删除项目',message:vi?`Xóa dự án “${project.name||project.id}”?\n\nDự án sẽ bị gỡ khỏi danh sách. Yêu cầu, lịch sử lượt chạy và cài đặt được giữ lại; có thể khôi phục dự án. ID ${project.id} vẫn được giữ riêng cho dự án này.`:`确定删除项目「${project.name||project.id}」吗？\n\n项目会从列表中移除，需求、运行记录和设置保留，可以恢复；标识 ${project.id} 仍被占用。`,messageLocalized:vi,danger:true,confirmText:vi?'Xác nhận xóa':'确定删除',...(vi?{cancelText:'Hủy'}:{})});
   if(!ok)return;
   try{
     await api('/api/projects/'+encodeURIComponent(project.id),{method:'DELETE'});
@@ -454,7 +455,7 @@ async function deleteProjectAdmin(projectId){
     }
     resetProjectAdminDetail();
     history.replaceState(null,'',projectAdminHash(''));
-    renderAll();renderProjectAdmin();toast(`已删除项目「${project.name||project.id}」`,'ok');
+    renderAll();renderProjectAdmin();toast(vi?`Đã xóa dự án “${project.name||project.id}”`:`已删除项目「${project.name||project.id}」`,'ok',2600,vi);
   }catch(err){toast(err.message,'err')}
 }
 async function deleteProjectRepository(repoId){
