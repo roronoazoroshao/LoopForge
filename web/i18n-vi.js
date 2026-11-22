@@ -526,5 +526,13 @@ window.LF_I18N_VI = {
   "收起设置导航": "Thu gọn điều hướng cài đặt",
   "展开设置导航": "Mở rộng điều hướng cài đặt",
   "拖动调整侧栏宽度，双击恢复默认": "Kéo để đổi chiều rộng thanh bên, nhấp đúp để khôi phục mặc định",
-  "点击查看个人信息": "Nhấn để xem hồ sơ cá nhân"
+  "点击查看个人信息": "Nhấn để xem hồ sơ cá nhân",
+  "加载通用模板角色失败": "Không thể tải vai trò mẫu chung",
+  "请先选择通用模板": "Vui lòng chọn mẫu chung trước",
+  "共享资产只读": "Tài nguyên dùng chung chỉ đọc",
+  "先保存技能，再上传文件": "Lưu kỹ năng trước khi tải tệp lên",
+  "定时任务执行超时": "Tác vụ theo lịch vượt quá thời gian thực thi",
+  "执行超时必须为 1–240 分钟": "Thời gian thực thi phải từ 1–240 phút",
+  "执行超时（分钟）": "Thời gian thực thi tối đa (phút)",
+  "默认 30 分钟。达到时限会停止本次 AI 执行，已启动的 SOP 继续运行。": "Mặc định 30 phút. Khi hết thời gian, tác vụ AI này sẽ dừng; SOP đã khởi chạy vẫn tiếp tục."
 };

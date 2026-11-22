@@ -1,3 +1,4 @@
+import { chatT } from "./locale.js";
 import React, { useLayoutEffect, useRef, useState } from "react";
 
 const pageSize = 40;
@@ -40,10 +41,10 @@ export default function MessageHistory({ messages, renderMessage, scroll, follow
   return (
     <div className="message-scroll" ref={scroll} onScroll={onScroll}>
       <div className="message-column">
-        {loading ? <div className="loading-session">正在恢复对话…</div> : null}
+        {loading ? <div className="loading-session">{chatT("正在恢复对话…", "Đang khôi phục cuộc trò chuyện…")}</div> : null}
         {first > 0 ? (
           <button type="button" className="message-history-more" onClick={showEarlier}>
-            显示更早的消息
+            {chatT("显示更早的消息", "Hiện tin nhắn cũ hơn")}
           </button>
         ) : null}
         {messages.slice(first).map((message, offset) => renderMessage(message, first + offset))}

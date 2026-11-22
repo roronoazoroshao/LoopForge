@@ -51,5 +51,5 @@ $('loginForm').onsubmit = async event => {
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || t('操作失败', 'Request failed'));
     location.replace('/');
-  } catch (err) { error.textContent = err.message; button.disabled = false; }
+  } catch (err) { error.textContent = window.lfLang?.() === 'vi' ? ({"code is required":"Bắt buộc cung cấp mã","username is required":"Bắt buộc cung cấp tên người dùng","invalid username":"Tên người dùng không hợp lệ","photo not found":"Không tìm thấy ảnh"}[err.message] ?? err.message) : err.message; button.disabled = false; }
 };
