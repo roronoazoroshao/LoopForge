@@ -216,7 +216,7 @@
   function rawURL(id) { return '/api/spaces/' + encodeURIComponent(space().id) + '/artifacts/' + encodeURIComponent(id) + '/raw'; }
   function isImage(format) { return format === 'png' || format === 'jpeg' || format === 'gif' || format === 'webp'; }
   function scrubPaths(text) {
-    return String(text || '').replace(/(^|[\s`（(])((?:\/(?:tmp|data|home|var|root|Users|workspace|opt)|~)(?:\/[^\s`'"）)]+)+)/g, (_match,prefix)=>prefix+wbCopy('（云端路径打不开，产物在旁边打开）',' (Không thể mở đường dẫn đám mây; sản phẩm được hiển thị bên cạnh)'));
+    return String(text || '').replace(/(^|[\s`（(])((?:\/(?:tmp|data|home|var|root|Users|workspace|opt)|~)(?:\/[^\s`'"）)]+)+)/g, (_match,prefix)=>prefix+wbCopy('（云端路径打不开，产物在旁边打开）','(Không thể mở đường dẫn đám mây; sản phẩm được hiển thị bên cạnh)'));
   }
   function attachmentHTML(m) {
     const s = space();

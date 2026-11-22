@@ -18,6 +18,7 @@ test('Workbench protects user messages, filenames and AI output from DOM transla
  assert.match(vi.ai,/class="msg-body" data-i18n-skip>Generated 代码/);
  assert.match(vi.path,/Không thể mở đường dẫn đám mây/);
  assert.doesNotMatch(vi.path,/\/tmp\/secret.txt/);
+ assert.doesNotMatch(vi.path,/  \(/);
  const zh=outputs('zh');
  assert.match(zh.path,/云端路径打不开/);
  assert.match(outputs('en').user,/>You<\/span>/);
