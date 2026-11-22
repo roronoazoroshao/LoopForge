@@ -186,7 +186,7 @@ function bindAccessTokenSetup(panel,token){
     const spec = accessMcpClientSpec(id,base,token);
     clientIcon.src = choice.closest('label').querySelector('img').src;
     clientIcon.dataset.client = id;
-    title.textContent = window.lfT(`在 ${spec.label} 中配置`, `Set up in ${spec.label}`);
+    title.textContent = window.lfT(`在 ${spec.label} 中配置`, `Set up in ${spec.label}`, `Cấu hình trong ${spec.label}`);
     hint.textContent = window.lfT(
       `将提示词粘贴到你自己的 ${spec.label} 对话中并发送，助手会配置并验证连接。`,
       `Paste the prompt into your own ${spec.label} chat and send it. Your assistant will set up and verify the connection.`

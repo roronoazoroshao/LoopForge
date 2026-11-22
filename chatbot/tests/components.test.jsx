@@ -342,6 +342,29 @@ describe("content and panels", () => {
     expect(existingChat.linkIssue).toHaveBeenCalledWith("");
   });
 
+  test("localizes the artifact empty state and searches by Vietnamese group labels", async () => {
+    const previous = localStorage.getItem("loopforge.lang");
+    localStorage.setItem("loopforge.lang", "vi");
+    try {
+      const props = { chat, selected: null, setSelected: vi.fn(), onClose: vi.fn() };
+      const { rerender } = render(<SidePanel {...props} tab="files" setTab={vi.fn()} />);
+      expect(screen.getByText("Hình ảnh, tệp, biểu đồ, mã và bản nháp SOP trong cuộc trò chuyện được tự động tập hợp tại đây. Nhấp để xem.")).toBeInTheDocument();
+      rerender(
+        <div className="chat-shell">
+          <header className="conversation-header" />
+          <main className="conversation-main" />
+          <ArtifactPanel {...props} artifacts={[{ id: "f1", name: "readme.md", kind: "code", content: "text" }]} runs={[]} open />
+        </div>,
+      );
+      const user = userEvent.setup();
+      await user.type(screen.getByLabelText("Tìm sản phẩm đầu ra"), "Tệp");
+      expect(screen.getByText("readme.md")).toBeInTheDocument();
+    } finally {
+      if (previous === null) localStorage.removeItem("loopforge.lang");
+      else localStorage.setItem("loopforge.lang", previous);
+    }
+  });
+
   test("renders side panel tabs, draft card and artifact directory", async () => {
     const user = userEvent.setup();
     const setSelected = vi.fn();

@@ -36,6 +36,23 @@ async function openPicker() {
 }
 
 describe("execution machine picker", () => {
+  test("localizes offline machine status in Vietnamese without changing its name or ID", async () => {
+    const previous = localStorage.getItem("loopforge.lang");
+    localStorage.setItem("loopforge.lang", "vi");
+    try {
+      const chat = fixture();
+      render(<ExecutionMachinePicker chat={chat} />);
+      const user = userEvent.setup();
+      await user.click(screen.getByRole("button", { name: /^Máy thực thi:/ }));
+      const option = screen.getByRole("option", { name: /测试 Linux.*Ngoại tuyến, cần khởi động trước khi thực thi/ });
+      await user.click(option);
+      expect(chat.selectMachine).toHaveBeenCalledWith("linux");
+    } finally {
+      if (previous === null) localStorage.removeItem("loopforge.lang");
+      else localStorage.setItem("loopforge.lang", previous);
+    }
+  });
+
   test("an existing empty cloud draft still offers machine selection", async () => {
     render(<ExecutionMachinePicker chat={fixture({session:{id:"draft",messages:[],executionTarget:{pool:"cloud"}}})} />);
     const { user } = await openPicker();
