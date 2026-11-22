@@ -1,3 +1,4 @@
+import { chatT, chatLocale } from "./locale.js";
 // Both the live stream and saved message metadata use this reducer. Tool updates
 // retain their original position; completion events never create duplicate rows.
 export function mergeActivity(previous = [], events = []) {
@@ -372,6 +373,15 @@ const groupNouns = {
   查看: "查看文件",
 };
 export function activityGroupSummary(steps = [], { active = false } = {}) {
+  if (chatLocale() === "vi") {
+    const nouns = { "chạy": "chạy lệnh", "đọc": "đọc tệp", "chỉnh sửa": "chỉnh sửa tệp", "tìm kiếm": "tìm kiếm mã", "xem": "xem tệp" };
+    const parts = [...new Set(steps.filter(step => step.kind !== "thinking" && step.kind !== "status").map(step => {
+      const label = activityFace(step).done.replace(/^Đã /, "");
+      const part = label.charAt(0).toLowerCase() + label.slice(1);
+      return nouns[part] || part;
+    }))];
+    return (active ? "Đang " : "Đã ") + (parts.length ? parts.slice(0, 3).join(", ") + (parts.length > 3 ? ", v.v." : "") : "suy nghĩ");
+  }
   const parts = [];
   for (const step of steps) {
     if (step.kind === "thinking" || step.kind === "status") continue;
@@ -452,9 +462,13 @@ export function activityForReply(message, generation, liveSteps = []) {
     return liveSteps;
   return [];
 }
+function platformDescription(type, action) {
+  const noun = { workflows: "SOP", agents: "vai trò", issues: "yêu cầu", runs: "lượt chạy", repositories: "kho mã", rules: "quy tắc", skills: "kỹ năng" }[type];
+  return ({ list: "xem danh sách", get: "đọc", save: "lưu", clone: "sao chép", publish: "phát hành" }[action]) + " " + noun;
+}
 export function activityFace(step) {
   if (step.kind === "thinking")
-    return { kind: "thinking", busy: "正在思考", done: "已思考" };
+    return { kind: "thinking", busy: chatT("正在思考", "Đang suy nghĩ"), done: chatT("已思考", "Đã suy nghĩ") };
   if (step.kind === "status")
     return { kind: "status", busy: step.text, done: step.text };
   const tool = (step.tool || "")
@@ -462,29 +476,29 @@ export function activityFace(step) {
     .replace(/^agentflow__/, "");
   const name = tool.toLowerCase();
   if (name === "verification")
-    return { kind: "verify", busy: "正在验证", done: "已验证" };
+    return { kind: "verify", busy: chatT("正在验证", "Đang xác minh"), done: chatT("已验证", "Đã xác minh") };
   if (/submit_gate_result/.test(name))
-    return { kind: "verify", busy: "正在提交节点结果", done: "已提交节点结果" };
+    return { kind: "verify", busy: chatT("正在提交节点结果", "Đang gửi kết quả nút"), done: chatT("已提交节点结果", "Đã gửi kết quả nút") };
   if (/workbench_workspace_open/.test(name))
-    return { kind: "workflow", busy: "正在打开工作区", done: "已打开工作区" };
+    return { kind: "workflow", busy: chatT("正在打开工作区", "Đang mở workspace"), done: chatT("已打开工作区", "Đã mở workspace") };
   if (name === "workspace_docker_build")
-    return { kind: "workflow", busy: "正在构建 Docker 镜像", done: "已构建 Docker 镜像" };
+    return { kind: "workflow", busy: chatT("正在构建 Docker 镜像", "Đang build image Docker"), done: chatT("已构建 Docker 镜像", "Đã build image Docker") };
   if (/workbench_delivery_register/.test(name))
-    return { kind: "workflow", busy: "正在登记交付", done: "已登记交付" };
+    return { kind: "workflow", busy: chatT("正在登记交付", "Đang đăng ký bàn giao"), done: chatT("已登记交付", "Đã đăng ký bàn giao") };
   if (/workbench_publish_artifact/.test(name))
-    return { kind: "tool", busy: "正在发布产物", done: "已发布产物" };
+    return { kind: "tool", busy: chatT("正在发布产物", "Đang phát hành sản phẩm đầu ra"), done: chatT("已发布产物", "Đã phát hành sản phẩm đầu ra") };
   if (/todo/.test(name))
-    return { kind: "plan", busy: "正在更新计划", done: "已更新计划" };
+    return { kind: "plan", busy: chatT("正在更新计划", "Đang cập nhật kế hoạch"), done: chatT("已更新计划", "Đã cập nhật kế hoạch") };
   if (/^(task|agent)$/.test(name)) {
     const who = step.role || step.subagent;
     return who
-      ? { kind: "role", busy: `「${who}」正在处理`, done: `「${who}」已完成` }
-      : { kind: "role", busy: "正在委派子任务", done: "已委派子任务" };
+      ? { kind: "role", busy: chatT(`「${who}」正在处理`, `Đang xử lý: ${who}`), done: chatT(`「${who}」已完成`, `Đã hoàn tất: ${who}`) }
+      : { kind: "role", busy: chatT("正在委派子任务", "Đang giao tác vụ con"), done: chatT("已委派子任务", "Đã giao tác vụ con") };
   }
   if (/toolsearch|search_tools|tools_search/.test(name))
-    return { kind: "search", busy: "正在查找工具", done: "已查找工具" };
+    return { kind: "search", busy: chatT("正在查找工具", "Đang tìm công cụ"), done: chatT("已查找工具", "Đã tìm công cụ") };
   if (/tool_schema|lookup_tool_param_schema/.test(name))
-    return { kind: "search", busy: "正在查看工具说明", done: "已查看工具说明" };
+    return { kind: "search", busy: chatT("正在查看工具说明", "Đang xem mô tả công cụ"), done: chatT("已查看工具说明", "Đã xem mô tả công cụ") };
   const platform = name.match(
     /^(workflows|agents|issues|runs|repositories|rules|skills)_(list|get|save|clone|publish)$/,
   );
@@ -517,30 +531,30 @@ export function activityFace(step) {
               : action === "list"
                 ? "search"
                 : "tool",
-      busy: `正在${verb[0]}${type === "workflows" ? " " : ""}${verb[1]}`,
-      done: `已${verb[0]}${type === "workflows" ? " " : ""}${verb[1]}`,
+      busy: chatT(`正在${verb[0]}${type === "workflows" ? " " : ""}${verb[1]}`, "Đang " + platformDescription(type, action)),
+      done: chatT(`已${verb[0]}${type === "workflows" ? " " : ""}${verb[1]}`, "Đã " + platformDescription(type, action)),
     };
   }
   if (/bash|shell|command|terminal|^exec/.test(name))
-    return { kind: "command", busy: "正在运行", done: "已运行" };
+    return { kind: "command", busy: chatT("正在运行", "Đang chạy"), done: chatT("已运行", "Đã chạy") };
   if (/imagegen|generate.?image|生图|画图/.test(name))
-    return { kind: "image", busy: "正在生成图片", done: "已生成图片" };
+    return { kind: "image", busy: chatT("正在生成图片", "Đang tạo hình ảnh"), done: chatT("已生成图片", "Đã tạo hình ảnh") };
   if (/browser|fetch|web.?search|navigate/.test(name))
-    return { kind: "web", busy: "正在浏览", done: "已浏览" };
+    return { kind: "web", busy: chatT("正在浏览", "Đang duyệt web"), done: chatT("已浏览", "Đã duyệt web") };
   if (/write|edit|patch/.test(name))
-    return { kind: "edit", busy: "正在编辑", done: "已编辑" };
+    return { kind: "edit", busy: chatT("正在编辑", "Đang chỉnh sửa"), done: chatT("已编辑", "Đã chỉnh sửa") };
   if (/read|attachment/.test(name))
-    return { kind: "read", busy: "正在读取", done: "已读取" };
+    return { kind: "read", busy: chatT("正在读取", "Đang đọc"), done: chatT("已读取", "Đã đọc") };
   if (/search|grep|glob|find/.test(name))
-    return { kind: "search", busy: "正在搜索", done: "已搜索" };
+    return { kind: "search", busy: chatT("正在搜索", "Đang tìm kiếm"), done: chatT("已搜索", "Đã tìm kiếm") };
   if (/workflow|sop/.test(name))
-    return { kind: "workflow", busy: "正在处理 SOP", done: "已处理 SOP" };
+    return { kind: "workflow", busy: chatT("正在处理 SOP", "Đang xử lý SOP"), done: chatT("已处理 SOP", "Đã xử lý SOP") };
   if (/list|tree/.test(name))
-    return { kind: "search", busy: "正在查看", done: "已查看" };
+    return { kind: "search", busy: chatT("正在查看", "Đang xem"), done: chatT("已查看", "Đã xem") };
   return {
     kind: "tool",
-    busy: "正在调用工具",
-    done: "已调用工具",
+    busy: chatT("正在调用工具", "Đang gọi công cụ"),
+    done: chatT("已调用工具", "Đã gọi công cụ"),
   };
 }
 
