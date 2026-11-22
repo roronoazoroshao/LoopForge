@@ -169,6 +169,8 @@
   function translateAttrs(el) {
     if (el.closest && el.closest(SKIP_SEL)) return;
     for (const name of ATTRS) {
+      // Some source-localized accessibility labels include user-owned names.
+      if (name === 'aria-label' && el.hasAttribute?.('data-i18n-aria-skip')) continue;
       // Option metadata is rendered as a visible subtitle by HuiSelect.
       if (name === 'data-meta' && el.tagName !== 'OPTION') continue;
       const value = el.getAttribute && el.getAttribute(name);

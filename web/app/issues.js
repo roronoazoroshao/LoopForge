@@ -424,7 +424,7 @@ function fillIssueRepositories(projectId,selected){
   const sel=Array.isArray(selected)?selected:(selected?[selected]:repos.map(r=>r.id));
   box.innerHTML=repos.map(r=>{
     const checked=sel.includes(r.id)?' checked':'';
-    return `<label class="repo-check"><input type="checkbox" value="${escapeHTML(r.id)}"${checked}><span>${escapeHTML(r.name)} · ${escapeHTML(r.defaultBranch)}${r.id===def?'（默认）':''}</span></label>`;
+    return `<label class="repo-check"><input type="checkbox" value="${escapeHTML(r.id)}"${checked}><span${issuesVI()?' data-i18n-skip':''}>${escapeHTML(r.name)} · ${escapeHTML(r.defaultBranch)}${r.id===def?issuesCopy('（默认）',' (mặc định)'):''}</span></label>`;
   }).join('');
 }
 function selectedIssueRepositoryIds(){
@@ -471,7 +471,7 @@ function renderIssueRepositoryBranchInputs(input,hint,host,repositoryIds,branche
   input.hidden=repos.length>1;
   if(repos.length===1)input.value=branches[repos[0].id]||'';
   host.hidden=repos.length<2;
-  host.innerHTML=repos.length<2?'':repos.map(repo=>`<label class="repository-branch-row"><span>${escapeHTML(repo.name)}</span><input class="input" data-repository-branch="${escapeHTML(repo.id)}" aria-label="${escapeHTML(repo.name)} 的继续开发分支" value="${escapeHTML(branches[repo.id]||'')}" placeholder="${escapeHTML(repo.defaultBranch?`留空从主分支 ${repo.defaultBranch} 新建`:'留空从配置主分支新建')}" autocomplete="off"></label>`).join('');
+  host.innerHTML=repos.length<2?'':repos.map(repo=>`<label class="repository-branch-row"><span data-i18n-skip>${escapeHTML(repo.name)}</span><input class="input"${issuesVI()?' data-i18n-skip':''} data-repository-branch="${escapeHTML(repo.id)}" aria-label="${issuesVI()?`Nhánh phát triển tiếp của ${escapeHTML(repo.name)}`:`${escapeHTML(repo.name)} 的继续开发分支`}" value="${escapeHTML(branches[repo.id]||'')}" placeholder="${escapeHTML(issuesVI()?(repo.defaultBranch?`Để trống để tạo nhánh từ nhánh chính ${repo.defaultBranch}`:'Để trống để tạo nhánh từ nhánh chính đã cấu hình'):(repo.defaultBranch?`留空从主分支 ${repo.defaultBranch} 新建`:'留空从配置主分支新建'))}" autocomplete="off"></label>`).join('');
   if(repos.length>1&&hint)hint.textContent='分别填写各仓库的已有功能分支，直接继续开发；留空的仓库从各自配置的主分支新建工作分支。';
 }
 function fillIssueAssignees(projectId,value=''){
@@ -483,8 +483,8 @@ function fillIssueAssignees(projectId,value=''){
 function openIssue(issue=null){
   state.selectedIssue=issue?.id||null;
   const f=$('#issueForm'),projects=state.data.projects||[];
-  f.elements.projectId.innerHTML=projects.map(p=>`<option value="${p.id}">${escapeHTML(p.name)}</option>`).join('');
-  f.elements.workflowId.innerHTML=`<option value="">使用来源默认流程</option>`+runnableWorkflowOptions().map(w=>`<option value="${w.id}">${escapeHTML(w.name)}</option>`).join('');
+  f.elements.projectId.innerHTML=projects.map(p=>`<option value="${p.id}" data-i18n-skip>${escapeHTML(p.name)}</option>`).join('');
+  f.elements.workflowId.innerHTML=`<option value="">使用来源默认流程</option>`+runnableWorkflowOptions().map(w=>`<option value="${w.id}" data-i18n-skip>${escapeHTML(w.name)}</option>`).join('');
   const v=issue||{id:'',projectId:state.projectFilter||projects[0]?.id||'',title:'',description:'',priority:'medium',status:'backlog',workflowId:'',repositoryId:'',repositoryIds:[],baseBranch:''};
   ['id','projectId','title','description','priority','status','workflowId','baseBranch','tapdId'].forEach(k=>f.elements[k].value=v[k]||'');
   f.elements.baseBranch.value=storedIssueWorkBranch(v);

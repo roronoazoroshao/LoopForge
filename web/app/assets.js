@@ -43,7 +43,7 @@ function assetMetaHTML(a){
 }
 function assetCardHTML(a){
   const readonly=!catalogOwned(a.projectId);const go=readonly?assetUICopy('查看','Xem'):assetUICopy('编辑','Sửa');
-  return `<article class="asset-card" role="link" tabindex="0" data-asset-id="${escapeHTML(a.id)}" aria-label="${go} ${escapeHTML(assetUILabel(assetKindLabel()))} “${escapeHTML(a.name||a.id)}”"><div class="asset-card-top"><span class="asset-tile">${huiIcon(assetIconName())}</span><div class="asset-card-name"><h3 data-i18n-skip>${escapeHTML(a.name||a.id)}</h3><code class="asset-mono">${escapeHTML(a.id)}</code></div></div><p class="asset-card-desc" data-i18n-skip>${escapeHTML(a.description||assetUICopy('暂无说明','Chưa có mô tả'))}</p><div class="asset-meta">${assetMetaHTML(a)}</div><div class="asset-card-foot">${assetStatusHTML(a)}<span class="asset-card-go">${go}${huiIcon('chevron-right')}</span></div></article>`;
+  return `<article class="asset-card" role="link" tabindex="0" data-asset-id="${escapeHTML(a.id)}"${assetVI() ? ' data-i18n-aria-skip' : ''} aria-label="${go} ${escapeHTML(assetUILabel(assetKindLabel()))} “${escapeHTML(a.name||a.id)}”"><div class="asset-card-top"><span class="asset-tile">${huiIcon(assetIconName())}</span><div class="asset-card-name"><h3 data-i18n-skip>${escapeHTML(a.name||a.id)}</h3><code class="asset-mono">${escapeHTML(a.id)}</code></div></div><p class="asset-card-desc" data-i18n-skip>${escapeHTML(a.description||assetUICopy('暂无说明','Chưa có mô tả'))}</p><div class="asset-meta">${assetMetaHTML(a)}</div><div class="asset-card-foot">${assetStatusHTML(a)}<span class="asset-card-go">${go}${huiIcon('chevron-right')}</span></div></article>`;
 }
 function assetGridEmptyHTML(){
   const kind=assetKindLabel(),copy=assetPageCopy();
