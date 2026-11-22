@@ -119,3 +119,7 @@ Source-localized upload labels, hints, overflow counts and validation errors in 
 ### SSH trust confirmation safety
 
 Fixed SSH-host removal copy: Vietnamese dialogs now describe removal in Vietnamese while preserving the hostname verbatim, rather than falling back to English with a mixed-language raw host. The trust-fingerprint prompt uses the existing `messageLocalized` dialog boundary, protecting hostnames and server fingerprint lines from fragment translation. Added two success notices to EN/VI dictionaries. Isolated language fixtures confirmed VI, ZH and EN branches; no SSH keys, hosts, API parameters or fingerprint contents were rewritten.
+
+### Project draft and repository deletion confirmations
+
+Localized abandoning a project draft and deleting a linked repository at the dialog source. User-provided names are preserved by `messageLocalized`, and the repository warning retains its consequences: running SOPs continue, deletion cannot be undone, and deleting the default repository leaves no default. An isolated RED/GREEN fixture checked both VI and unchanged ZH confirmation copy; full DOM/browser checks remain deferred.
