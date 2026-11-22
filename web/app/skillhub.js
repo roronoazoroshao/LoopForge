@@ -87,12 +87,12 @@ function skillhubCardHTML(item,index){
   const labels=skillhubLabelBadges(item.labels).map(([tone,label])=>skillhubBadge(tone,label)).join('');
   const status=st.state==='installed'?skillhubBadge('success',`已安装 v${st.version}`,huiIcon('check'))
     :st.state==='update'?skillhubBadge('warn',`有新版本 v${item.version}`,skillhubLamp())
-    :`<span class="asset-status">${escapeHTML(item.ownerName||item.namespace||'')}</span>`;
+    :`<span class="asset-status" data-i18n-skip>${escapeHTML(item.ownerName||item.namespace||'')}</span>`;
   const noProject=!state.projectFilter;
   const action=st.state==='update'?`<button type="button" class="button small hui-btn-soft" data-skillhub-update="${index}">${huiIcon('refresh')}更新</button>`
     :st.state==='installed'?`<span class="asset-card-go">详情${huiIcon('chevron-right')}</span>`
     :`<button type="button" class="button small hui-btn-soft" data-skillhub-install="${index}"${noProject?' disabled title="请先选择项目"':''}>${huiIcon('plus')}安装</button>`;
-  return `<article class="asset-card skillhub-card" role="link" tabindex="0" data-skillhub-open="${index}" aria-label="查看「${escapeHTML(item.name||item.slug)}」"><div class="asset-card-top"><span class="asset-tile skillhub-tile">${skillhubTile(item.name||item.slug)}</span><div class="asset-card-name"><h3>${escapeHTML(item.name||item.slug)}</h3><code class="asset-mono">${escapeHTML(item.slug)}${item.version?` · v${escapeHTML(item.version)}`:''}</code></div></div><p class="asset-card-desc">${escapeHTML(item.description||'暂无说明')}</p><div class="asset-meta"><span>${huiIcon('download')}${escapeHTML(skillhubCount(item.downloads))}</span><span>${huiIcon('star')}${escapeHTML(skillhubCount(item.stars))}</span>${item.category?`<span>${huiIcon('layers')}${escapeHTML(skillhubCategoryName(item.category))}</span>`:''}${labels}</div><div class="asset-card-foot">${status}${action}</div></article>`;
+  return `<article class="asset-card skillhub-card" role="link" tabindex="0" data-skillhub-open="${index}" aria-label="查看「${escapeHTML(item.name||item.slug)}」"><div class="asset-card-top"><span class="asset-tile skillhub-tile">${skillhubTile(item.name||item.slug)}</span><div class="asset-card-name"><h3 data-i18n-skip>${escapeHTML(item.name||item.slug)}</h3><code class="asset-mono">${escapeHTML(item.slug)}${item.version?` · v${escapeHTML(item.version)}`:''}</code></div></div><p class="asset-card-desc" data-i18n-skip>${escapeHTML(item.description||'暂无说明')}</p><div class="asset-meta"><span>${huiIcon('download')}${escapeHTML(skillhubCount(item.downloads))}</span><span>${huiIcon('star')}${escapeHTML(skillhubCount(item.stars))}</span>${item.category?`<span>${huiIcon('layers')}${escapeHTML(skillhubCategoryName(item.category))}</span>`:''}${labels}</div><div class="asset-card-foot">${status}${action}</div></article>`;
 }
 function skillhubSecurityRows(reports){
   return Object.entries(reports||{}).map(([vendor,r])=>({vendor,status:r?.status||'',text:r?.statusText||r?.status||'未知',url:skillhubSafeURL(r?.reportUrl),safe:!!r?.safe})).sort((a,b)=>a.vendor.localeCompare(b.vendor));
@@ -168,12 +168,13 @@ function renderSkillhubGrid(){
   const s=skillhubState(),grid=$('#skillhubGrid');if(!grid)return;
   const count=$('#skillhubCount');
   const sortName=(SKILLHUB_SORTS.find(x=>x[0]===s.sortBy)||SKILLHUB_SORTS[0])[1];
-  const scopeName=s.keyword?`搜索「${s.keyword}」`:(s.category?skillhubCategoryName(s.category):'全部分类');
-  if(count)count.innerHTML=s.loading&&!s.loaded?'正在加载 SkillHub 技能…':`${escapeHTML(scopeName)} · ${escapeHTML(sortName)}<b>${escapeHTML((Number(s.total)||0).toLocaleString('zh-CN'))}</b>`;
+  const scopeName=s.keyword?skillhubText(`搜索「${s.keyword}」`,`Tìm “${s.keyword}”`):(s.category?skillhubCategoryName(s.category):skillhubText('全部分类','Tất cả danh mục'));
+  if(count){if(skillhubVI())count.setAttribute('data-i18n-skip','');else count.removeAttribute('data-i18n-skip');
+    count.innerHTML=s.loading&&!s.loaded?skillhubText('正在加载 SkillHub 技能…','Đang tải kỹ năng SkillHub…'):`${escapeHTML(scopeName)} · ${escapeHTML(sortName)}<b>${escapeHTML((Number(s.total)||0).toLocaleString(skillhubVI()?'vi-VN':'zh-CN'))}</b>`;}
   grid.setAttribute('aria-busy',String(!!s.loading));
   if(s.loading)grid.innerHTML=Array.from({length:6},()=>'<div class="skillhub-skel" aria-hidden="true"></div>').join('');
-  else if(s.error)grid.innerHTML=`<div class="asset-empty"><b>SkillHub 暂时无法访问</b><p>${escapeHTML(s.error)}</p><button type="button" class="button" data-skillhub-retry>${huiIcon('refresh')}重试</button></div>`;
-  else if(!s.items.length)grid.innerHTML=`<div class="asset-empty"><b>${s.keyword?`没有找到与「${escapeHTML(s.keyword)}」相关的技能`:'该分类下暂无技能'}</b><p>换个关键词或分类试试。</p></div>`;
+  else if(s.error)grid.innerHTML=`<div class="asset-empty"><b>${skillhubText('SkillHub 暂时无法访问','Tạm thời không thể truy cập SkillHub')}</b><p data-i18n-skip>${escapeHTML(s.error)}</p><button type="button" class="button" data-skillhub-retry>${huiIcon('refresh')}${skillhubText('重试','Thử lại')}</button></div>`;
+  else if(!s.items.length)grid.innerHTML=`<div class="asset-empty"><b${skillhubVI()?' data-i18n-skip':''}>${s.keyword?skillhubText(`没有找到与「${escapeHTML(s.keyword)}」相关的技能`,`Không tìm thấy kỹ năng phù hợp với “${escapeHTML(s.keyword)}”`):skillhubText('该分类下暂无技能','Danh mục này chưa có kỹ năng')}</b><p>${skillhubText('换个关键词或分类试试。','Hãy thử từ khóa hoặc danh mục khác.')}</p></div>`;
   else grid.innerHTML=s.items.map((item,i)=>skillhubCardHTML(item,i)).join('');
   renderSkillhubPager();
 }

@@ -167,3 +167,7 @@ Added 33 reviewed Vietnamese/English whole-message translations for user-visible
 ### Date picker and SOP palette
 
 The date calendar produces Vietnamese weekday headings and month navigation directly (the legacy Chinese branch is unchanged); the option search uses Vietnamese accessible labels. Flow palette grouping, role metadata, SOP status and copy confirmations now author Vietnamese at render source, with user-provided workflow/role names excluded from a second DOM translation pass. Focused syntax and isolated locale fixtures passed; browser QA remains pending.
+
+### SkillHub and shared subscription data boundary
+
+Localized SkillHub filter/empty/error UI at source (including Vietnamese number formatting), and protected raw search terms, skill titles/descriptions, shared-task titles/source names and backend diagnostics from the DOM dictionary pass. User data and API payloads are preserved. RED/GREEN isolated empty-search fixtures and syntax checks passed; actual browser and runner checks remain deferred.

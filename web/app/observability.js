@@ -466,7 +466,7 @@ function obsFilterBar(){
   const me=String(state.currentUser?.id||'');
   const people=obsUserChoices();
   const userOptions=[`<option value=""${!selected?' selected':''} data-search="all 全部成员">全部责任人</option>`,
-    ...people.map(u=>{const id=String(u.id);return `<option value="${escapeHTML(id)}"${id===String(selected)?' selected':''} data-search="${escapeHTML(`${u.loginName||''} ${u.chineseName||''}`)}"${id===me?' data-meta="我"':''}>${escapeHTML(userDisplay(u))}</option>`})];
+    ...people.map(u=>{const id=String(u.id);return `<option value="${escapeHTML(id)}"${id===String(selected)?' selected':''} data-search="${escapeHTML(`${u.loginName||''} ${u.chineseName||''}`)}"${id===me?` data-meta="${obsUi('我','Tôi')}"`:''}>${escapeHTML(userDisplay(u))}</option>`})];
   if(selected&&!people.some(u=>String(u.id)===String(selected)))userOptions.push(`<option value="${escapeHTML(String(selected))}" selected>${escapeHTML(label)}</option>`);
   const originChoices=[['','全部执行'],['internal','平台内'],['external','外部工作流']];
   const sourceChoices=[['','全部来源'],['local','本地'],['github','GitHub']];
