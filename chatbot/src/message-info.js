@@ -1,4 +1,4 @@
-import { chatT } from "./locale.js";
+import { chatT, chatLocale } from "./locale.js";
 import { elapsedSeconds, formatElapsed } from "./api.js";
 import { replyEngineLabel } from "./engines.js";
 
@@ -15,9 +15,11 @@ function validDate(value) {
 
 export function fullTime(value) {
   const date = validDate(value);
-  return date
-    ? `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
-    : NOT_REPORTED;
+  if (!date) return NOT_REPORTED;
+  const clock = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return chatLocale() === "vi"
+    ? `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${clock}`
+    : `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${clock}`;
 }
 
 /**
@@ -38,12 +40,13 @@ export function messageSentAt(messages, index) {
 export function messageTimeLabel(date, now = new Date()) {
   if (!date) return "";
   const time = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
-  if (
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate()
-  )
-    return time;
+  if (date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate()) return time;
+  if (chatLocale() === "vi") {
+    const day = `${pad(date.getDate())}/${pad(date.getMonth() + 1)}`;
+    return date.getFullYear() === now.getFullYear()
+      ? `${day} ${time}`
+      : `${day}/${date.getFullYear()} ${time}`;
+  }
   const day = `${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
   return date.getFullYear() === now.getFullYear()
     ? `${day} ${time}`
@@ -51,7 +54,7 @@ export function messageTimeLabel(date, now = new Date()) {
 }
 
 export const formatTokens = (n) =>
-  Math.max(0, Number(n) || 0).toLocaleString("en-US");
+  Math.max(0, Number(n) || 0).toLocaleString(chatLocale() === "vi" ? "vi-VN" : "en-US");
 
 const tokenParts = [
   ["input", chatT("输入", "Đầu vào"), "inputTokens"],

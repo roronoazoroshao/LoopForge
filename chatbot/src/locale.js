@@ -18,3 +18,11 @@ const artifactSourceVI = new Map([
   ["交付物", "Sản phẩm bàn giao"],
 ]);
 export const artifactSourceLabel = source => chatT(source, artifactSourceVI.get(source) ?? source);
+
+// Display-only timestamps; never alter the original API values or diagnostic exports.
+export function chatDateTime(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "—";
+  return date.toLocaleString(chatLocale() === "vi" ? "vi-VN" : "zh-CN", { hour12: false });
+}
