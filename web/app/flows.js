@@ -748,16 +748,29 @@ const AGENT_PROMPT_PLACEHOLDERS=[
   {t:'{{existingMR}}',l:'已有 MR',d:'本轮是否沿用已有分支与 MR 的说明'},
   {t:'{{pipelineUrl}}',l:'流水线',d:'仓库绑定的流水线地址'},
 ];
+// Present the original, unchanged platform prompt in Vietnamese only when
+// both the seed role identity and the complete original prompt still match.
+// A translated textarea does NOT update state.agentDraft until the user edits.
+const AGENT_BASELINE_PROMPT_ZH="只做基线对齐：fetch 默认分支并 merge 到当前工作分支；解决冲突时保留双方有效实现，拿不准时记录取舍。创建本地合并提交。不要自行 push 或修改默认分支，不要执行与本次基线对齐无关的测试或编写修复报告。";
+const AGENT_BASELINE_PROMPT_VI="Chỉ thực hiện đồng bộ baseline: fetch nhánh mặc định và merge vào nhánh làm việc hiện tại; khi xử lý xung đột, giữ lại các phần triển khai hợp lệ của cả hai phía, nếu không chắc chắn thì ghi rõ phương án đã chọn. Tạo commit merge cục bộ. Không tự push hoặc sửa nhánh mặc định; không chạy kiểm thử không liên quan đến lần đồng bộ baseline này hoặc viết báo cáo sửa lỗi.";
+function agentPublicRolePromptDisplay(a,prompt){
+  return agentVI()&&!a?.projectId&&a?.id==='baseline-align-resolver'&&
+    a?.name==='基线对齐执行员'&&prompt===AGENT_BASELINE_PROMPT_ZH
+    ?AGENT_BASELINE_PROMPT_VI:prompt;
+}
 function renderAgentTaskBook(a){
   const host=$('#agentTaskBookPanel');if(!host)return;
   const d=ensureAgentDraft(a);
+  const displayPrompt=agentPublicRolePromptDisplay(a,d.prompt||'');
+  const translatedSeedPrompt=displayPrompt!==(d.prompt||'');
   host.innerHTML=`<div class="as-prompt-box">
       <div class="as-ph-bar" role="toolbar" aria-label="插入运行时变量"><span>插入</span>${AGENT_PROMPT_PLACEHOLDERS.map(x=>`<button type="button" data-insert-ph="${x.t}" data-tip="${escapeHTML(`${x.t} · ${globalThis.window?.lfLang?.()==='vi'?(window.lfTranslate?.(x.d)??x.d):x.d}`)}">${x.l}</button>`).join('')}</div>
-      <textarea data-tp="prompt" aria-label="角色 prompt" placeholder="${globalThis.window?.lfLang?.()==='vi'?'Nêu rõ vai trò, nhiệm vụ, thứ tự thực hiện và các hành động không được phép.&#10;&#10;Ví dụ: Bạn là chuyên gia phân tích nguyên nhân gốc của issue, chỉ phân tích và không chỉnh sửa. Đọc issue cùng mã nguồn liên quan, xác định nguyên nhân đến tệp và hàm cụ thể rồi ghi vào fix-plan.md. Tái hiện trước, thu hẹp phạm vi, sau đó đề xuất các bước sửa. Không sửa mã nghiệp vụ hoặc chạy kiểm thử.':'写清它是谁、做什么、按什么顺序、哪些事不能做。&#10;&#10;例如：你是 Issue 根因分析师，只分析不修改。读 Issue 和相关源码，把根因定位到具体文件和函数，写进 fix-plan.md。先复现，再缩小范围，最后给出修复步骤。不要改业务代码，也不要跑测试。'}">${escapeHTML(d.prompt||'')}</textarea>
+      <textarea data-tp="prompt" aria-label="角色 prompt" placeholder="${globalThis.window?.lfLang?.()==='vi'?'Nêu rõ vai trò, nhiệm vụ, thứ tự thực hiện và các hành động không được phép.&#10;&#10;Ví dụ: Bạn là chuyên gia phân tích nguyên nhân gốc của issue, chỉ phân tích và không chỉnh sửa. Đọc issue cùng mã nguồn liên quan, xác định nguyên nhân đến tệp và hàm cụ thể rồi ghi vào fix-plan.md. Tái hiện trước, thu hẹp phạm vi, sau đó đề xuất các bước sửa. Không sửa mã nghiệp vụ hoặc chạy kiểm thử.':'写清它是谁、做什么、按什么顺序、哪些事不能做。&#10;&#10;例如：你是 Issue 根因分析师，只分析不修改。读 Issue 和相关源码，把根因定位到具体文件和函数，写进 fix-plan.md。先复现，再缩小范围，最后给出修复步骤。不要改业务代码，也不要跑测试。'}">${escapeHTML(displayPrompt)}</textarea>
     </div>
+    ${translatedSeedPrompt?'<p class="as-prompt-note" data-i18n-skip id="agentPromptSeedNote">Đang hiển thị bản tiếng Việt của prompt hệ thống. Nếu chưa chỉnh sửa, thao tác Lưu vẫn giữ nguyên prompt gốc.</p>':''}
     <p class="as-prompt-note" id="agentPromptNote"></p>`;
   const el=host.querySelector('[data-tp="prompt"]');
-  el.oninput=()=>{d.prompt=el.value;renderAgentSummary();dirty()};
+  el.oninput=()=>{d.prompt=el.value;const hint=host.querySelector('#agentPromptSeedNote');if(hint)hint.textContent='Prompt đã được chỉnh sửa; khi Lưu, nội dung mới sẽ thay thế prompt gốc.';renderAgentSummary();dirty()};
   host.querySelectorAll('[data-insert-ph]').forEach(btn=>{
     // Keep focus (and the caret) in the textarea while clicking a chip.
     btn.onmousedown=e=>e.preventDefault();
@@ -878,7 +891,7 @@ function renderAgentAssetsPanel(a){
   const host=$('#agentAssetsPanel');if(!host)return;
   const d=ensureAgentDraft(a);
   const generic=catalogGeneric(state.workflow);
-  const col=(title,sub,name,items,selected)=>{const vis=name==='mcpServers'?(generic?(items||[]):visibleMCPAssets(items)):(name==='rules'||name==='skills'?(items||[]).filter(item=>catalogVisible(item.projectId,item.shared)):visibleAssets(items));const picked=vis.filter(item=>name==='mcpServers'&&generic?genericMCPChecked(item.id,selected):(selected||[]).includes(item.id)).length;const empty=name==='mcpServers'?(generic?'通用模板绑定市场别名（如 github），运行时落到当前项目已安装的 MCP':'这个项目或你的个人范围还没有 MCP，先到「MCP 管理」里添加'):name==='rules'?'这个项目还没有可用规则，先到「规则管理」里添加或共享':name==='skills'?'这个项目还没有可用技能，先到「技能管理」里添加或共享':'这个项目还没有此类配置，先到「环境资产」里添加';return `<div class="as-asset-col"><div class="as-asset-col-head"><b>${title}</b><span>${sub}${picked?` · 已选 ${picked}`:''}</span></div><div class="as-asset-search"><span>⌕</span><input type="search" data-asset-filter="${name}" placeholder="搜索名称…"></div><div class="as-asset-list" data-asset-list="${name}">${vis.map(x=>`<label class="as-asset-item"><input type="checkbox" name="${name}" value="${escapeHTML(x.id)}" ${(name==='mcpServers'&&generic?genericMCPChecked(x.id,selected):(selected||[]).includes(x.id))?'checked':''}><div><b>${escapeHTML(x.name)}</b><small>${escapeHTML(x.description||x.id)}${x.shared&&x.projectId!==state.projectFilter?' · 共享':''}</small></div></label>`).join('')||`<div class="as-empty">${empty}</div>`}</div></div>`};
+  const col=(title,sub,name,items,selected)=>{const vis=name==='mcpServers'?(generic?(items||[]):visibleMCPAssets(items)):(name==='rules'||name==='skills'?(items||[]).filter(item=>catalogVisible(item.projectId,item.shared)):visibleAssets(items));const picked=vis.filter(item=>name==='mcpServers'&&generic?genericMCPChecked(item.id,selected):(selected||[]).includes(item.id)).length;const empty=name==='mcpServers'?(generic?'通用模板绑定市场别名（如 github），运行时落到当前项目已安装的 MCP':'这个项目或你的个人范围还没有 MCP，先到「MCP 管理」里添加'):name==='rules'?'这个项目还没有可用规则，先到「规则管理」里添加或共享':name==='skills'?'这个项目还没有可用技能，先到「技能管理」里添加或共享':'这个项目还没有此类配置，先到「环境资产」里添加';return `<div class="as-asset-col"><div class="as-asset-col-head"><b>${title}</b><span>${sub}${picked?` · 已选 ${picked}`:''}</span></div><div class="as-asset-search"><span>⌕</span><input type="search" data-asset-filter="${name}" placeholder="搜索名称…"></div><div class="as-asset-list" data-asset-list="${name}">${vis.map(x=>`<label class="as-asset-item"><input type="checkbox" name="${name}" value="${escapeHTML(x.id)}" ${(name==='mcpServers'&&generic?genericMCPChecked(x.id,selected):(selected||[]).includes(x.id))?'checked':''}><div><b data-i18n-skip>${escapeHTML(name==='rules'&&typeof assetDisplayName==='function'?assetDisplayName(x,'rules'):x.name)}</b><small><span data-i18n-skip>${escapeHTML(x.description||x.id)}</span>${x.shared&&x.projectId!==state.projectFilter?agentCopy(' · 共享',' · Dùng chung'):''}</small></div></label>`).join('')||`<div class="as-empty">${empty}</div>`}</div></div>`};
   host.innerHTML=`<section class="as-section-block as-platform-mcp-section"><div class="as-section-head"><b>平台能力</b><small>独立开关，不占用 MCP 列表</small></div><label class="as-switch-row"><span><b>接入平台 MCP（LoopForge）</b><small>开启后，这个角色运行时通过平台 MCP（agentflow-platform）直接调用平台侧功能：需求、任务、运行、项目等平台操作。</small></span><input type="checkbox" name="platformMcp" ${d.platformMcp?'checked':''} role="switch"></label><label class="as-switch-row"><span><b>接入团队知识库</b><small>开启后，这个角色运行时可只读检索团队知识库（agentflow-knowledge），并自动附带「知识库使用规范」规则；产出的 knowledge.md 会进入知识沉淀审核队列。</small></span><input type="checkbox" name="knowledgeBase" ${d.knowledgeBase?'checked':''} role="switch"></label></section><div class="as-assets">${col('必须遵守','规则','rules',state.data.rules,d.rules)}${col('怎么干活','技能','skills',state.data.skills,d.skills)}${col('外部工具','MCP','mcpServers',generic?genericTemplateMCPOptions(d.mcpServers):state.data.mcpServers,d.mcpServers)}</div><section class="as-section-block as-hook-section"><div class="as-section-head"><b>运行时 Hook</b><small>在工具调用前后插一段脚本，比如拦危险命令。一般可以先不配。</small></div><div id="agentHookPanel"></div></section>`;
   host.querySelectorAll('[data-asset-filter]').forEach(input=>input.oninput=()=>{const q=input.value.trim().toLowerCase();input.closest('.as-asset-col').querySelectorAll('.as-asset-item').forEach(row=>row.hidden=!!q&&!row.textContent.toLowerCase().includes(q))});
   host.querySelectorAll('input[type=checkbox]').forEach(el=>el.onchange=()=>{renderAgentSummary();dirty()});
@@ -930,20 +943,20 @@ function renderAgentHookEditors(d){
 function renderAgentSummary(){
   const f=$('#agentForm'),d=state.agentDraft||{};
   const exec=(state.data.executors||[]).find(x=>x.id===(f?.elements?.executorId?.value||d.executorId));
-  const chosen=agentEffectiveModel(f),model=chosen||(exec?.model?`${exec.model}（默认）`:'默认模型');
+  const chosen=agentEffectiveModel(f),model=chosen||(exec?.model?agentCopy(`${exec.model}（默认）`,`${exec.model} (mặc định)`):agentCopy('默认模型','Mô hình mặc định'));
   const effort=(f?.elements?.effort?.value||'').trim();
   const meta=$('#agentRuntimeMeta');
-  if(meta)meta.textContent=[exec?.name,effort?`${model} · ${effort}`:model].filter(Boolean).join(' · ');
+  if(meta)meta.textContent=[exec?.name,effort?`${model} · ${agentEffortLabel(effort,effort)}`:model].filter(Boolean).join(' · ');
   const arts=(d.artifactOutputs||[]).filter(x=>x.name||x.path).length;
   const gates=(d.verification||[]).filter(x=>x.name||(x.commands||[]).length).length;
   const loopOn=f?.elements?.loopEnabled?.checked??d.loop?.enabled;
   const note=$('#agentPromptNote');
   if(note){
-    const parts=['角色名'];
-    if(arts)parts.push(`${arts} 个产物`);
-    if(gates)parts.push(`${gates} 条门禁`);
-    parts.push(loopOn?`最多 ${f?.elements?.loopMaxIterations?.value||d.loop?.maxIterations||3} 轮重试`:'重试策略');
-    note.textContent=`运行时自动附上：${parts.join('、')}`;
+    const parts=[agentCopy('角色名','Tên vai trò')];
+    if(arts)parts.push(agentCopy(`${arts} 个产物`,`${arts} sản phẩm đầu ra`));
+    if(gates)parts.push(agentCopy(`${gates} 条门禁`,`${gates} bước kiểm tra`));
+    parts.push(loopOn?agentCopy(`最多 ${f?.elements?.loopMaxIterations?.value||d.loop?.maxIterations||3} 轮重试`,`Tối đa ${f?.elements?.loopMaxIterations?.value||d.loop?.maxIterations||3} lượt thử lại`):agentCopy('重试策略','Chính sách thử lại'));
+    note.textContent=agentCopy(`运行时自动附上：${parts.join('、')}`,`Tự động đính kèm khi chạy: ${parts.join(', ')}`);
   }
   const desc=f?.elements?.description,count=$('#agentDescCount');
   if(desc&&count)count.textContent=`${desc.value.length}/${desc.maxLength>0?desc.maxLength:160}`;

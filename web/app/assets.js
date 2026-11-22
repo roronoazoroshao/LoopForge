@@ -23,6 +23,7 @@ function assetFindVisible(id){if(!id)return null;const owned=assetScopeItems('pr
 function assetProjectName(a){return (state.data.projects||[]).find(p=>p.id===a?.projectId)?.name||a?.projectId||'平台'}
 // Translate only unedited platform seed names; never rewrite saved resource data.
 const ASSET_SEED_NAMES={
+  'rules:public-engineering':['工程与验证约束','Quy tắc kỹ thuật và xác minh'],
   'dockerfiles:generic-backend':['公共开发环境','Môi trường phát triển dùng chung'],
   'sandboxes:generic-docker':['Docker 隔离沙箱','Sandbox cách ly bằng Docker'],
   'sandboxes:local':['本地执行（仅可信任务）','Thực thi cục bộ (chỉ tác vụ đáng tin cậy)']
