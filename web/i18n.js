@@ -1,13 +1,13 @@
-// Runtime UI translation. The app renders Chinese copy directly; in English
-// mode this layer rewrites text nodes and a few attributes as they appear,
-// using the zh→en dictionary in i18n-en.js. Chinese mode is a no-op.
+// Runtime UI translation. The app renders Chinese copy directly; in English and Vietnamese
+// modes this layer rewrites text nodes and a few attributes as they appear,
+// using the zh→en dictionary in i18n-en.js. Vietnamese preview falls back to English; Chinese mode is a no-op.
 (() => {
   const root = document.documentElement;
-  const lang = root.dataset.lang === 'en' ? 'en' : 'zh';
+  const lang = ['en', 'vi'].includes(root.dataset.lang) ? root.dataset.lang : 'zh';
   window.lfLang = () => lang;
   window.lfSetLang = next => {
-    const value = next === 'en' ? 'en' : 'zh';
-    const current = root.dataset.lang === 'en' ? 'en' : 'zh';
+    const value = ['en', 'vi'].includes(next) ? next : 'zh';
+    const current = ['en', 'vi'].includes(root.dataset.lang) ? root.dataset.lang : 'zh';
     if (value === current || root.classList.contains('lang-leaving')) return;
     try { localStorage.setItem('loopforge.lang', value); } catch { /* A blocked store keeps the previous language after reload. */ }
     const groups = [...document.querySelectorAll('.lang-switch')];
@@ -32,10 +32,10 @@
     }
     setTimeout(finish, 560);
   };
-  window.lfT = (zh, en) => (lang === 'en' ? en : zh);
+  window.lfT = (zh, en) => lang === 'vi' ? (window.LF_I18N_VI?.[zh] ?? en ?? zh) : (lang === 'en' ? en : zh);
 
   function bindLangSwitch() {
-    const current = root.dataset.lang === 'en' ? 'en' : 'zh';
+    const current = ['en', 'vi'].includes(root.dataset.lang) ? root.dataset.lang : 'zh';
     document.querySelectorAll('.lang-switch').forEach(group => {
       group.querySelectorAll('[data-lang-value]').forEach(btn => {
         const on = btn.dataset.langValue === current;
@@ -83,9 +83,9 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startLangMotion, { once: true });
   else startLangMotion();
 
-  if (lang !== 'en') return;
+  if (lang === 'zh') return;
 
-  const dict = window.LF_I18N_EN || {};
+  const dict = lang === 'vi' ? {...(window.LF_I18N_EN || {}), ...(window.LF_I18N_VI || {})} : (window.LF_I18N_EN || {});
   const HAN = /[\u3400-\u9fff\u300c\u300d\uff0c\u3002\uff1a\uff08\uff09\u3001\uff1b\uff01\uff1f]/;
   const SKIP = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'CODE', 'PRE', 'NOSCRIPT']);
   const SKIP_SEL = '[data-i18n-skip],.monaco-editor,.xterm,.log-line,.run-log,.markdown-body,[contenteditable="true"]';

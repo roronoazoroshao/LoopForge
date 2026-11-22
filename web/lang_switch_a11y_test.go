@@ -14,8 +14,8 @@ func TestLanguageSwitchOptionsAreRadios(t *testing.T) {
 			t.Errorf("%s: language switch should be a radiogroup", path)
 		}
 		buttons := option.FindAllString(src, -1)
-		if len(buttons) != 2 {
-			t.Fatalf("%s: language options = %d, want 2", path, len(buttons))
+		if len(buttons) != 3 {
+			t.Fatalf("%s: language options = %d, want 3", path, len(buttons))
 		}
 		for _, button := range buttons {
 			if !strings.Contains(button, `role="radio"`) || !strings.Contains(button, `aria-checked=`) {
