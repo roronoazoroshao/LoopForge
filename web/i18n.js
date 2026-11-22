@@ -32,7 +32,8 @@
     }
     setTimeout(finish, 560);
   };
-  window.lfT = (zh, en) => lang === 'vi' ? (window.LF_I18N_VI?.[zh] ?? en ?? zh) : (lang === 'en' ? en : zh);
+  // Runtime values may supply Vietnamese explicitly rather than falling back to English.
+  window.lfT = (zh, en, vi) => lang === 'vi' ? (vi ?? window.LF_I18N_VI?.[zh] ?? en ?? zh) : (lang === 'en' ? en : zh);
 
   function bindLangSwitch() {
     const current = ['en', 'vi'].includes(root.dataset.lang) ? root.dataset.lang : 'zh';

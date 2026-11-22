@@ -1201,3 +1201,15 @@ test('Vietnamese translates credential, model, workflow and project wizard label
     assert.equal(window.lfTranslate(source), expected, source);
   }
 });
+
+// Dynamic labels with interpolated data must never fall back to English in Vietnamese mode.
+test('lfT supports explicit Vietnamese dynamic labels without changing other locales', () => {
+  const label = 'Codex/测试';
+  for (const [locale, expected] of [['vi', `Cấu hình trong ${label}`], ['en', `Set up in ${label}`], ['zh', `在 ${label} 中配置`]]) {
+    const { window } = fixture(locale);
+    assert.equal(window.lfT(`在 ${label} 中配置`, `Set up in ${label}`, `Cấu hình trong ${label}`), expected);
+  }
+  const { window } = fixture('vi');
+  assert.equal(window.lfT('模型目录', 'Model catalog'), 'Danh mục mô hình');
+  assert.equal(window.lfT('未登记的短语', 'Unregistered phrase'), 'Unregistered phrase');
+});

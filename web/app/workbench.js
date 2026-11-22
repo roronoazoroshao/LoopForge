@@ -1883,21 +1883,21 @@ function platformSharedKeyHTML(){
 function platformAccountCreatedHTML(action,login,password){
   const who=`<b data-i18n-skip>${escapeHTML(login)}</b>`,secret=`<code>${escapeHTML(password)}</code>`;
   const text=action==='reset'
-    ?lfT(`已重置账号 ${who}，新密码 ${secret}。密码只显示这一次，请现在发给对方。`,`Password of ${who} reset to ${secret}. It is shown only once; send it now.`)
-    :lfT(`已创建账号 ${who}，初始密码 ${secret}。密码只显示这一次，请现在发给对方。`,`Created ${who} with the initial password ${secret}. It is shown only once; send it now.`);
+    ?lfT(`已重置账号 ${who}，新密码 ${secret}。密码只显示这一次，请现在发给对方。`,`Password of ${who} reset to ${secret}. It is shown only once; send it now.`,`Đã đặt lại mật khẩu tài khoản ${who} thành ${secret}. Mật khẩu chỉ hiển thị một lần; hãy gửi ngay cho người nhận.`)
+    :lfT(`已创建账号 ${who}，初始密码 ${secret}。密码只显示这一次，请现在发给对方。`,`Created ${who} with the initial password ${secret}. It is shown only once; send it now.`,`Đã tạo tài khoản ${who} với mật khẩu ban đầu ${secret}. Mật khẩu chỉ hiển thị một lần; hãy gửi ngay cho người nhận.`);
   return `<div class="platform-note is-ok"><span>${text}</span><button type="button" class="button ghost small" data-copy-login>复制登录信息</button></div>`;
 }
-const platformPasswordTooShort=()=>lfT(`密码至少 ${PLATFORM_ACCOUNT_PASSWORD_MIN} 位`,`The password needs at least ${PLATFORM_ACCOUNT_PASSWORD_MIN} characters`);
+const platformPasswordTooShort=()=>lfT(`密码至少 ${PLATFORM_ACCOUNT_PASSWORD_MIN} 位`,`The password needs at least ${PLATFORM_ACCOUNT_PASSWORD_MIN} characters`,`Mật khẩu phải có ít nhất ${PLATFORM_ACCOUNT_PASSWORD_MIN} ký tự`);
 async function loadPlatformAccounts(host){
   const card=host.querySelector('#platformAccountsCard');if(!card)return;
   const list=card.querySelector('#platformAccountList'),form=card.querySelector('#platformAccountForm'),created=card.querySelector('[data-account-created]'),search=card.querySelector('[data-account-search]');
   let accounts=[],query='',resetting=null;
   const showCreated=(action,login,password)=>{
     created.innerHTML=platformAccountCreatedHTML(action,login,password);created.hidden=false;
-    created.querySelector('[data-copy-login]').onclick=()=>copyText(lfT(`登录地址：${location.origin}\n用户名：${login}\n密码：${password}`,`Sign in at: ${location.origin}\nLogin: ${login}\nPassword: ${password}`),'已复制登录信息');
+    created.querySelector('[data-copy-login]').onclick=()=>copyText(lfT(`登录地址：${location.origin}\n用户名：${login}\n密码：${password}`,`Sign in at: ${location.origin}\nLogin: ${login}\nPassword: ${password}`,`Địa chỉ đăng nhập: ${location.origin}\nTên đăng nhập: ${login}\nMật khẩu: ${password}`),'已复制登录信息');
   };
   const render=()=>{
-    const n=accounts.length,badge=card.querySelector('#platformAccountCountBadge');if(badge)badge.textContent=lfT(`共 ${n} 个账号`,`${n} account${n===1?'':'s'}`);
+    const n=accounts.length,badge=card.querySelector('#platformAccountCountBadge');if(badge)badge.textContent=lfT(`共 ${n} 个账号`,`${n} account${n===1?'':'s'}`,`${n} tài khoản`);
     setPlatformTabCount(host,'accounts',n);
     const q=query.toLowerCase();
     const rows=accounts.filter(a=>!q||String(a.loginName||'').toLowerCase().includes(q)||String(a.chineseName||'').toLowerCase().includes(q));
@@ -1974,7 +1974,7 @@ async function loadPlatformSharedKey(host){
   const modelCount=card.querySelector('[data-shared-models-count]'),tabState=host.querySelector('[data-platform-tab-state]');
   const renderDefault=()=>{
     const models=chosen(),current=defaultSelect.value;
-    if(modelCount)modelCount.textContent=models.length?lfT(`已选 ${models.length} 个`,`${models.length} selected`):'';
+    if(modelCount)modelCount.textContent=models.length?lfT(`已选 ${models.length} 个`,`${models.length} selected`,`Đã chọn ${models.length} mô hình`):'';
     defaultSelect.innerHTML=models.length?models.map(id=>`<option value="${escapeHTML(id)}">${escapeHTML(sharedModelLabel(id))}</option>`).join(''):'<option value="">请先勾选模型</option>';
     defaultSelect.value=models.includes(current)?current:(models[0]||'');
   };
@@ -2001,14 +2001,14 @@ async function loadPlatformSharedKey(host){
     const parts=[];
     if(on){
       const n=(status.models||[]).length,first=sharedModelLabel(status.models?.[0]),by=status.updatedBy||'';
-      parts.push(lfT(`当前：${envInfo.label}，${n} 个模型，默认 ${first}${by?`，${by} 最后修改`:''}。`,`Current: ${envInfo.label}, ${n} model${n===1?'':'s'}, default ${first}${by?`, last changed by ${by}`:''}.`));
+      parts.push(lfT(`当前：${envInfo.label}，${n} 个模型，默认 ${first}${by?`，${by} 最后修改`:''}。`,`Current: ${envInfo.label}, ${n} model${n===1?'':'s'}, default ${first}${by?`, last changed by ${by}`:''}.`,`Hiện tại: ${window.lfTranslate?.(envInfo.label)??envInfo.label}, ${n} mô hình, mặc định ${first}${by?`, người sửa gần nhất: ${by}`:''}.`));
     }
-    else parts.push(lfT('还没有配置共享 Key，没配 Key 的成员需要先配自己的 Key 才能对话和跑 SOP。','No shared key yet; members without their own key must add one before chatting or running SOPs.'));
+    else parts.push(lfT('还没有配置共享 Key，没配 Key 的成员需要先配自己的 Key 才能对话和跑 SOP。','No shared key yet; members without their own key must add one before chatting or running SOPs.','Chưa cấu hình khóa dùng chung; thành viên chưa có khóa riêng phải thêm khóa trước khi trò chuyện hoặc chạy SOP.'));
     const sponsor=status?.legacySponsor;
     if(sponsor)parts.push(on
-      ?lfT(`配置后不再使用环境变量 AGENTFLOW_ASSISTANT_SPONSOR_LOGIN 指定的账号 ${sponsor} 的 Key。`,`The key of ${sponsor} (AGENTFLOW_ASSISTANT_SPONSOR_LOGIN) is no longer used.`)
-      :lfT(`现在沿用环境变量 AGENTFLOW_ASSISTANT_SPONSOR_LOGIN 指定的账号 ${sponsor} 的 Key，只能用 ${sharedModelLabel(status.legacySponsorModel)}。`,`For now the key of ${sponsor} (AGENTFLOW_ASSISTANT_SPONSOR_LOGIN) is shared, limited to ${sharedModelLabel(status.legacySponsorModel)}.`));
-    meta.textContent=parts.join(lfT('',' '));
+      ?lfT(`配置后不再使用环境变量 AGENTFLOW_ASSISTANT_SPONSOR_LOGIN 指定的账号 ${sponsor} 的 Key。`,`The key of ${sponsor} (AGENTFLOW_ASSISTANT_SPONSOR_LOGIN) is no longer used.`,`Không còn sử dụng khóa của tài khoản ${sponsor} được chỉ định bởi biến môi trường AGENTFLOW_ASSISTANT_SPONSOR_LOGIN.`)
+      :lfT(`现在沿用环境变量 AGENTFLOW_ASSISTANT_SPONSOR_LOGIN 指定的账号 ${sponsor} 的 Key，只能用 ${sharedModelLabel(status.legacySponsorModel)}。`,`For now the key of ${sponsor} (AGENTFLOW_ASSISTANT_SPONSOR_LOGIN) is shared, limited to ${sharedModelLabel(status.legacySponsorModel)}.`,`Hiện đang dùng chung khóa của tài khoản ${sponsor} được chỉ định bởi biến môi trường AGENTFLOW_ASSISTANT_SPONSOR_LOGIN, chỉ có thể sử dụng ${sharedModelLabel(status.legacySponsorModel)}.`));
+    meta.textContent=parts.join(lfT('',' ',' '));
   };
   const syncBootstrap=()=>{
     if(!state.data)return;
