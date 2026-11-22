@@ -131,3 +131,7 @@ Protected user-authored chat bodies, sender names, conversation titles, file att
 ### Narrow localization of API validation errors
 
 Two stable Go issue-validation messages now have exact Vietnamese translations, and two SOP errors with variable identifiers are handled by strictly anchored Vietnamese-only display patterns. The underlying Go strings, API responses, identifiers, status codes and raw diagnostics remain unchanged. Isolated before/after fixtures passed for VI and verified zero output changes for EN and ZH; full test runner/browser validation remains deferred.
+
+### SOP draft created toast
+
+Localized the dynamic draft-creation result at its source, including dependency counts and exact known-key translations. Unrecognized labels remain intact; the VI toast is marked as already localized to prevent fragment rewriting. Isolated tests verified both VI and original ZH output. Full runner/browser verification remains deferred.

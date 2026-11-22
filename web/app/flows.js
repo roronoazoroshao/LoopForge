@@ -1185,6 +1185,14 @@ async function refreshSOPSandboxes(){
     syncSOPSandboxSelection();
   }catch(err){toast(err.message)}finally{button.disabled=false}
 }
+function workflowDraftCreatedNotice(missing){
+  const vi=window.lfLang?.()==='vi';
+  const labels=(missing||[]).map(r=>vi?(window.LF_I18N_VI?.[r.label]||r.label):r.label);
+  if(vi)return missing.length
+    ?`Đã tạo bản nháp SOP; chưa cấu hình ${missing.length} điều kiện thực thi (${labels.join(', ')})`
+    :'Đã tạo bản nháp SOP. Hãy tiếp tục thiết kế các bước.';
+  return missing.length?`SOP 草稿已创建；${missing.length} 项运行依赖未配置（${labels.join('、')}）`:'SOP 草稿已创建，请继续设计节点';
+}
 function newWorkflow(){
   const sandbox=defaultSOPSandbox();
   if(!sandbox)return openSOPWizard();
@@ -1229,7 +1237,7 @@ async function createSOPFromWizard(e){
     state.data.workflows.unshift(saved);state.workflow=clone(saved);state.selectedNode=null;markWorkflowClean();
     $('#sopCreateModal').classList.remove('open');renderAll();switchView('flow');
     const missing=catalogGeneric(template)?genericRequirementRows(saved).filter(r=>!r.ok):[];
-    toast(missing.length?`SOP 草稿已创建；${missing.length} 项运行依赖未配置（${missing.map(r=>r.label).join('、')}）`:'SOP 草稿已创建，请继续设计节点',missing.length?'':'ok')
+    toast(workflowDraftCreatedNotice(missing),missing.length?'':'ok',2600,window.lfLang?.()==='vi')
   }catch(err){
     toast(/sandbox profile.*not found/i.test(err.message)
       ?lfT('所选运行沙箱已不可用，请点击「刷新沙箱」后重新选择。','The selected sandbox is no longer available. Refresh sandboxes and select another one.','Sandbox đã chọn không còn khả dụng. Hãy làm mới danh sách sandbox rồi chọn lại.')
