@@ -95,3 +95,7 @@ Reviewed 51 additional EN/VI UI keys for scheduled execution, runtime operations
 ### Runtime machinery, SOP KPI and revision source audit
 
 Runner concurrency and default machine status, relative heartbeat time, update and removal confirmations, SOP catalogue metrics and project ownership, repository save feedback and revision history titles are explicitly authored in Vietnamese at source. Dynamic names, workflow and runner IDs, raw diagnostics and API payloads retain original meaning; protected prelocalized confirmations prevent second-pass mutation. Focused isolated checks confirmed Vietnamese Runner/metric copy and unchanged Chinese defaults; full tests and browser QA remain deferred.
+
+### Observability ECharts funnel and dynamic categories
+
+Translated five funnel-stage labels and category/source names at the producer before ECharts consumes them; translated dynamic peak, trace-source and tool-call labels while leaving raw trace identifiers and counts unchanged. Isolated source checks confirmed English-independent VI labels and unchanged ZH metric keys. Full ECharts browser tests are deferred.
