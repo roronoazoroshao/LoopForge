@@ -121,7 +121,7 @@ export default function ExecutionMachinePicker({ chat, onManage }) {
         actions={[
           {
             id: "refresh-machines",
-            label: chat.machineError ? chatT("重新加载", "Tải lại") : "刷新机器列表",
+            label: chat.machineError ? chatT("重新加载", "Tải lại") : chatT("刷新机器列表", "Làm mới danh sách máy"),
             icon: "refresh",
             onSelect: chat.refreshMachines,
           },

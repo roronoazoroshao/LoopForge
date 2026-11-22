@@ -95,3 +95,250 @@ test('Vietnamese dynamic messages preserve values and localize units', () => {
     assert.equal(window.lfTranslate(source), expected);
   }
 });
+
+// Regression examples from real Vietnamese UI screenshots, Nov 2026.
+test('Vietnamese translates previously uncatalogued settings and dashboard labels', () => {
+  const { window } = fixture('vi');
+  for (const [source, expected] of [
+  [
+    "用自己的电脑或 CVM 跑任务，未设默认时在云端执行。",
+    "Chạy tác vụ trên máy tính của bạn hoặc CVM; nếu chưa đặt máy mặc định, tác vụ chạy trên đám mây."
+  ],
+  [
+    "安装 CLI",
+    "Cài đặt CLI"
+  ],
+  [
+    "claude / codex 等",
+    "claude / codex và các CLI khác"
+  ],
+  [
+    "绑定码 10 分钟有效",
+    "Mã liên kết có hiệu lực 10 phút"
+  ],
+  [
+    "仅主动连接平台，不开放本机端口",
+    "Chỉ kết nối đi tới nền tảng, không mở cổng trên máy cục bộ"
+  ],
+  [
+    "在平台云端执行",
+    "Chạy trên đám mây của nền tảng"
+  ],
+  [
+    "还没有机器",
+    "Chưa có máy thực thi"
+  ],
+  [
+    "执行上方命令后自动出现",
+    "Máy sẽ tự xuất hiện sau khi chạy lệnh phía trên"
+  ],
+  [
+    "范围",
+    "Phạm vi"
+  ],
+  [
+    "搜索名称、描述或地址",
+    "Tìm tên, mô tả hoặc địa chỉ"
+  ],
+  [
+    "添加到",
+    "Được thêm vào"
+  ],
+  [
+    "为本项目接入工具",
+    "Kết nối công cụ cho dự án này"
+  ],
+  [
+    "创建个人专属配置",
+    "Tạo cấu hình cá nhân"
+  ],
+  [
+    "还没有访问密钥，创建后即可接入 REST API 和 MCP。",
+    "Chưa có khóa truy cập. Tạo khóa để sử dụng REST API và MCP."
+  ],
+  [
+    "项目是需求、仓库、团队和默认 SOP 的统一边界。点击项目进入详情配置。",
+    "Dự án tập hợp yêu cầu, kho mã, nhóm và SOP mặc định. Nhấp vào dự án để mở cấu hình chi tiết."
+  ],
+  [
+    "搜索项目名称、标识、Key 或仓库",
+    "Tìm tên dự án, ID, Key hoặc kho mã"
+  ],
+  [
+    "我参与的",
+    "Tôi tham gia"
+  ],
+  [
+    "待完善",
+    "Cần hoàn thiện"
+  ],
+  [
+    "未绑定代码仓库",
+    "Chưa liên kết kho mã"
+  ],
+  [
+    "机器人",
+    "Bot"
+  ],
+  [
+    "记录",
+    "Bản ghi"
+  ],
+  [
+    "还没有机器人。三步完成配置，随后在 SOP 设置或 AI 定时任务中选择这个 Bot。",
+    "Chưa có bot. Hoàn tất cấu hình qua ba bước, sau đó chọn bot trong cài đặt SOP hoặc tác vụ AI theo lịch."
+  ],
+  [
+    "填写凭据",
+    "Nhập thông tin xác thực"
+  ],
+  [
+    "选择接收会话",
+    "Chọn cuộc trò chuyện nhận thông báo"
+  ],
+  [
+    "发送测试",
+    "Gửi thử"
+  ],
+  [
+    "① 填写凭据",
+    "① Nhập thông tin xác thực"
+  ],
+  [
+    "名称、Bot ID 与 Secret",
+    "Tên, Bot ID và Secret"
+  ],
+  [
+    "② 选择接收会话",
+    "② Chọn cuộc trò chuyện nhận thông báo"
+  ],
+  [
+    "绑定单聊或群聊",
+    "Liên kết trò chuyện cá nhân hoặc nhóm"
+  ],
+  [
+    "③ 发送测试",
+    "③ Gửi thử"
+  ],
+  [
+    "确认消息能送达",
+    "Xác nhận tin nhắn gửi thành công"
+  ],
+  [
+    "开始添加",
+    "Bắt đầu thêm"
+  ],
+  [
+    "暂无进行中的运行",
+    "Không có lượt chạy đang thực hiện"
+  ],
+  [
+    "换个关键词，或到需求列表查看对应需求的执行结果。",
+    "Thử từ khóa khác hoặc xem kết quả thực thi của yêu cầu tương ứng trong danh sách yêu cầu."
+  ],
+  [
+    "AI 工作台里和你对话、帮你动手的助手。设置消息发送方式、角色与 SOP 的主动派发，以及每次对话都要遵守的规则；只对你自己生效。",
+    "Trợ lý trò chuyện và thực hiện công việc trong không gian AI. Cài đặt cách gửi tin nhắn, chủ động điều phối vai trò và SOP, cùng quy tắc áp dụng cho mỗi cuộc trò chuyện; chỉ áp dụng cho bạn."
+  ],
+  [
+    "消息发送",
+    "Gửi tin nhắn"
+  ],
+  [
+    "生成中发送消息",
+    "Gửi tin nhắn khi đang tạo phản hồi"
+  ],
+  [
+    "排队会等当前回复结束；立即发送会打断当前回复，保留已输出内容并继续处理新消息。",
+    "Xếp hàng sẽ đợi phản hồi hiện tại kết thúc; gửi ngay sẽ ngắt phản hồi, giữ nội dung đã tạo và tiếp tục xử lý tin nhắn mới."
+  ],
+  [
+    "排队",
+    "Xếp hàng"
+  ],
+  [
+    "立即发送",
+    "Gửi ngay"
+  ],
+  [
+    "例如：回复先给结论再给细节；改代码前先说明要改哪些文件；不要自动发起 MR。",
+    "Ví dụ: Nêu kết luận trước chi tiết; giải thích các tệp cần sửa trước khi chỉnh mã; không tự động mở MR."
+  ],
+  [
+    "更多",
+    "Thêm"
+  ],
+  [
+    "批量操作",
+    "Thao tác hàng loạt"
+  ],
+  [
+    "统计范围",
+    "Phạm vi thống kê"
+  ],
+  [
+    "口径说明",
+    "Giải thích chỉ số"
+  ],
+  [
+    "Vibe Coding 与协作",
+    "Vibe Coding và cộng tác"
+  ],
+  [
+    "数量按创建时间，Token 按回复时间 ·",
+    "Số lượng theo thời điểm tạo, token theo thời điểm phản hồi ·"
+  ],
+  [
+    "会话数",
+    "Số cuộc trò chuyện"
+  ],
+  [
+    "多人协作会话",
+    "Cuộc trò chuyện nhiều người"
+  ],
+  [
+    "协作会话 Token",
+    "Token cuộc trò chuyện cộng tác"
+  ],
+  [
+    "普通对话 · 含已归档会话",
+    "Trò chuyện thông thường · gồm cuộc trò chuyện đã lưu trữ"
+  ],
+  [
+    "按需求 ID 去重",
+    "Loại trùng theo ID yêu cầu"
+  ],
+  [
+    "已发起的 SOP 执行次数",
+    "Số lượt chạy SOP đã khởi động"
+  ],
+  [
+    "暂无会话",
+    "Chưa có cuộc trò chuyện"
+  ],
+  [
+    "SOP 产出与质量",
+    "Sản phẩm và chất lượng SOP"
+  ],
+  [
+    "投入 · SOP + 对话改代码",
+    "Chi phí · SOP và sửa mã qua trò chuyện"
+  ],
+  [
+    "缓存命中",
+    "Tỷ lệ trúng bộ nhớ đệm"
+  ],
+  [
+    "人民币 · Hy 上报 / 其他公价",
+    "Nhân dân tệ · Hy báo cáo / giá niêm yết khác"
+  ],
+  [
+    "缓存读",
+    "Đọc bộ nhớ đệm"
+  ],
+  [
+    "缓存写",
+    "Ghi bộ nhớ đệm"
+  ]
+]) assert.equal(window.lfTranslate(source), expected, source);
+});
