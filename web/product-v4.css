@@ -3506,3 +3506,17 @@ html[data-theme="dark"] #runnersView .runner-runtime-icon:is(.codex,.claude-code
 @media(max-width:1100px){#projectsView .project-admin-layout>aside>:is(.project-admin-caption,.project-admin-list){position:static}}
 /* The profile card owns the theme switcher on desktop; the node stays because assistant.js inserts its button before it. */
 @media(min-width:1001px){.topbar #themeToggle{display:none!important}}
+
+/* Vietnamese copy: compact badges, responsive grid and readable text. */
+html[data-lang="vi"]{--hui-sans:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Arial,sans-serif}
+html[data-lang="vi"] body{font-family:var(--hui-sans);letter-spacing:normal}
+html[data-lang="vi"] #agentModal .agent-start-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr))}
+html[data-lang="vi"] #agentModal .as-preset{min-width:0;overflow-wrap:anywhere;gap:4px}
+html[data-lang="vi"] #agentModal .as-preset-icon,html[data-lang="vi"] #agentModal .as-preset.active .as-preset-icon{width:auto;min-width:28px;padding-inline:6px;white-space:nowrap;line-height:1;font-size:10px;font-weight:600;letter-spacing:0;flex-shrink:0}
+html[data-lang="vi"] #agentModal .as-preset b{line-height:1.4}
+html[data-lang="vi"] #agentModal .as-preset small{line-height:1.5}
+html[data-lang="vi"] #agentModal .agent-tab-num{flex-shrink:0}
+html[data-lang="vi"] .github-connect-intro{overflow-wrap:anywhere;line-height:1.5}
+html[data-lang="vi"] .github-connect-status{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
+html[data-lang="vi"] .github-connect-status p{flex:0 0 100%;margin:0;overflow-wrap:anywhere}
+html[data-lang="vi"] .github-connect-status .button{white-space:normal;line-height:1.35;max-width:100%}

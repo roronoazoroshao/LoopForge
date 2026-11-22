@@ -382,7 +382,7 @@ function syncProjectAdminRouteState(){
 async function confirmDiscardProjectDraft(){
   if(!projectAdminDirty())return true;
   const name=String(state.projectDraft?.name||'').trim()||'新项目';
-  return afConfirm({title:'放弃未保存的修改？',message:`「${name}」有未保存的修改，离开后这些修改会丢失。`,danger:true,confirmText:'放弃修改',cancelText:'继续编辑'});
+  return afConfirm({title:'放弃未保存的修改？',message:window.lfLang?.()==='vi'?`“${name}” có thay đổi chưa lưu. Nếu rời khỏi trang, các thay đổi này sẽ bị mất.`:`「${name}」有未保存的修改，离开后这些修改会丢失。`,danger:true,confirmText:'放弃修改',cancelText:'继续编辑'});
 }
 function openProjectAdminDetail(id,tab='basic'){
   if(id==='new')return openProjectWizard();
