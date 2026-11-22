@@ -210,7 +210,7 @@ function afNextDialog(){
   const okBtn=$('#confirmOkBtn'),cancelBtn=$('#confirmCancelBtn');
   cancelBtn.hidden=false;
   let opened;
-  $('#confirmMessage').removeAttribute?.('data-i18n-skip');
+  for(const id of ['#confirmTitle','#confirmMessage','#confirmPromptLabel'])$(id)?.removeAttribute?.('data-i18n-skip');
   try{opened=job.setup(modal)||{}}catch(err){job.resolve(null);console.error(err);return afNextDialog()}
   window.HuiPopover?.closeAll?.();
   window.HuiTooltip?.hide?.();
@@ -294,6 +294,8 @@ function afPrompt(options, defaultVal=''){
   const opt=typeof options==='string'?{message:options, defaultValue:defaultVal}:(options||{});
   return afOpenDialog(()=>{
     const title=opt.title||'请输入内容';
+    if(opt.titleLocalized)$('#confirmTitle').setAttribute('data-i18n-skip','');
+    if(opt.messageLocalized)$('#confirmMessage').setAttribute('data-i18n-skip','');
     $('#confirmTitle').textContent=title;
     $('#confirmMessage').textContent=opt.message||'';
     const single=$('#confirmPromptInput'),multi=$('#confirmPromptMultiline');
@@ -302,6 +304,7 @@ function afPrompt(options, defaultVal=''){
     multi.hidden=!opt.multiline;
     const promptLabel=$('#confirmPromptLabel');
     $('#confirmPromptWrap').hidden=false;
+    if(opt.titleLocalized&&!opt.label)promptLabel.setAttribute('data-i18n-skip','');
     promptLabel.textContent=opt.label||title;
     promptLabel.htmlFor=promptInput.id;
     promptInput.value=opt.defaultValue||'';

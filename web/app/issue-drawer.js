@@ -466,7 +466,8 @@ async function closeIssueById(issueId){
   if(!issueCanClose(issue))return toast('需求正在澄清或执行 SOP，请先停止后再关闭','err');
   const ok=await afConfirm({
     title:'手动关闭需求',
-    message:`确定手动关闭需求「${issue.title||issue.id}」？关闭后可在状态里筛「已关闭」。`,
+    messageLocalized:globalThis.window?.lfLang?.()==='vi',
+    message:globalThis.window?.lfLang?.()==='vi'?`Đóng yêu cầu “${issue.title||issue.id}” thủ công? Sau khi đóng, có thể tìm bằng bộ lọc trạng thái Đã đóng.`:`确定手动关闭需求「${issue.title||issue.id}」？关闭后可在状态里筛「已关闭」。`,
     confirmText:'确认关闭'
   });
   if(!ok)return;
@@ -1003,6 +1004,6 @@ async function renderIssueConversations(issue,host){
     const intro=document.createElement('p');intro.className='muted';intro.textContent='仅展示你有权限访问的会话。私人会话仍仅自己可见。';host.append(intro);
     const start=document.createElement('a');start.className='btn btn-primary';start.href=link('');start.target='_blank';start.rel='noopener';start.textContent='围绕此需求新建会话';host.append(start);
     if(!rows.length){const empty=document.createElement('p');empty.className='detail-empty';empty.textContent='还没有可见的关联会话';host.append(empty)}
-    rows.forEach(s=>{const a=document.createElement('a');a.href=link(s.id);a.target='_blank';a.rel='noopener';a.className='issue-conversation-link';a.style.cssText='display:block;padding:12px 0;border-bottom:1px solid var(--border,#eee)';const name=document.createElement('strong');name.textContent=s.title||'新对话';const meta=document.createElement('small');meta.style.cssText='display:block;color:var(--muted)';meta.textContent=(s.shared?'共享运行会话':'私人会话')+' · '+(s.participants||[]).length+' 人发过言';a.append(name,meta);host.append(a)});
+    rows.forEach(s=>{const a=document.createElement('a');a.href=link(s.id);a.target='_blank';a.rel='noopener';a.className='issue-conversation-link';a.style.cssText='display:block;padding:12px 0;border-bottom:1px solid var(--border,#eee)';const name=document.createElement('strong');name.textContent=s.title||'新对话';const meta=document.createElement('small');meta.style.cssText='display:block;color:var(--muted)';meta.textContent=globalThis.window?.lfLang?.()==='vi'?`${s.shared?'Hội thoại chạy chung':'Hội thoại riêng tư'} · ${(s.participants||[]).length} người đã phát biểu`:(s.shared?'共享运行会话':'私人会话')+' · '+(s.participants||[]).length+' 人发过言';a.append(name,meta);host.append(a)});
   }catch(e){if(state.issueDetailData?.issue?.id===key&&state.issueDetailTab==='conversations')host.textContent='加载关联会话失败：'+e.message}
 }
