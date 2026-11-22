@@ -187,3 +187,7 @@ Localized all importer-generated error explanations in the Vietnamese branch wit
 ### Agent catalogue runtime data and dangerous actions
 
 Agent counts, active role metadata, loop/skill/verification counters, project labels, role wizard heading and delete/clone confirmation now select Vietnamese at source. User-entered role/project names and model names are protected against DOM translation. Source RED/GREEN checks verified Vietnamese labels, preserved Chinese behavior and original numeric values; runner and browser remain deferred.
+
+### Asset catalogue dynamic copy
+
+Translated shared/owner status, numeric counts and search-result messages at source. Asset titles/descriptions and originating project names are protected against DOM retranslation. RED/GREEN isolated fixtures checked Chinese legacy output and Vietnamese units. Full runner and visual E2E deferred.
