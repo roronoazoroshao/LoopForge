@@ -522,7 +522,7 @@ function obsTableCard(title,sub,headers,rows,colspan,pageKey){
   const list=Array.isArray(rows)?rows:(rows?[rows]:[]);
   const paged=pageKey?paginateList(pageKey,list):{items:list,total:list.length,size:list.length||1,page:1,pages:1,start:0,end:list.length};
   const body=paged.items.join('')||`<tr><td colspan="${colspan||headers.length}" class="detail-empty">暂无数据</td></tr>`;
-  return `<div class="obs-card" style="margin-bottom:14px"><div class="obs-card-title">${title}${sub?`<span class="sub">${sub}</span>`:''}</div><table class="obs-table"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>${pageKey?pagerHTML(pageKey,paged):''}</div>`;
+  return `<div class="obs-card" style="margin-bottom:14px"><div class="obs-card-title">${title}${sub?`<span class="sub">${sub}</span>`:''}</div><table class="obs-table"><thead><tr>${headers.map(h=>`<th>${obsReportText(h)}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>${pageKey?pagerHTML(pageKey,paged):''}</div>`;
 }
 // costLabel 区分"成本为 0"与"成本未识别"，未识别时展示占位而不是 ¥0。
 function costLabel(value,known){
@@ -1522,13 +1522,36 @@ function obsReportScope(){
   const source=(state.obsSourceFilter?obsSourceLabel(state.obsSourceFilter):obsUi('全部需求来源','Tất cả nguồn yêu cầu'))+' · '+({internal:obsUi('平台内执行','Thực thi trong nền tảng'),external:obsUi('外部工作流','Quy trình bên ngoài')}[state.obsOriginFilter]||obsUi('全部执行','Tất cả lượt chạy'));
   return {project:project?.name||project?.id||obsUi('全部项目','Tất cả dự án'), dim, who, source, at:new Date().toLocaleString(obsUi('zh-CN','vi-VN'))};
 }
+const OBS_REPORT_COPY={
+  '用量分析报告':'Báo cáo phân tích mức sử dụng',
+  'SOP 一览':'Tổng quan SOP','各模型用量':'Mức sử dụng theo mô hình',
+  '成员汇总':'Tổng hợp thành viên','每人每日用量':'Mức sử dụng hằng ngày theo người',
+  '需求类型分布':'Phân bố loại yêu cầu','SOP 版本对比':'So sánh phiên bản SOP',
+  '各项目用量':'Mức sử dụng theo dự án','交付明细':'Chi tiết bàn giao',
+  '周期':'Kỳ','运行':'Lượt chạy','成功率':'Tỷ lệ thành công',
+  '返工率':'Tỷ lệ làm lại','取消率':'Tỷ lệ hủy','成本':'Chi phí',
+  '均执行':'Thực thi trung bình','模型':'Mô hình','调用':'Lượt gọi',
+  '输入 / 输出':'Đầu vào / Đầu ra','Token 占比':'Tỷ trọng token',
+  '成员':'Thành viên','成功':'Thành công','失败':'Thất bại',
+  '日期':'Ngày','来源':'Nguồn','关联执行':'Lượt thực thi liên quan',
+  'SOP 成功':'SOP thành công','已交付需求':'Yêu cầu đã bàn giao',
+  '版本':'Phiên bản','需求':'Yêu cầu','执行耗时':'Thời gian thực thi',
+  '项目':'Dự án','单号':'Mã yêu cầu','标题':'Tiêu đề',
+  '流程':'Quy trình','责任人':'Người phụ trách','交付':'Bàn giao',
+  '会话数':'Số cuộc trò chuyện','创建需求':'Yêu cầu đã tạo',
+  '需求 SOP':'SOP theo yêu cầu','多人协作会话':'Hội thoại cộng tác',
+  '一次通过':'Thành công lần đầu','缓存命中':'Tỷ lệ trúng cache',
+  'P95 执行':'Thực thi P95','对话改代码':'Sửa mã qua hội thoại',
+  '已交付':'Đã bàn giao','未交付':'Chưa bàn giao','PR 已合入':'PR đã hợp nhất'
+};
+function obsReportText(zh){return obsUi(zh,OBS_REPORT_COPY[zh]||zh)}
 function obsReportTable(title,headers,rows){
-  if(!rows)return `<section class="block"><h2>${title}</h2><p class="empty">${obsUi('暂无数据','Chưa có dữ liệu')}</p></section>`;
+  if(!rows)return `<section class="block"><h2>${obsReportText(title)}</h2><p class="empty">${obsUi('暂无数据','Chưa có dữ liệu')}</p></section>`;
   return `<section class="block"><h2>${title}</h2><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></section>`;
 }
 async function exportObsReport(){
   ensureObsUserFilter();
-  toast('正在生成报告…');
+  toast(obsUi('正在生成报告…','Đang tạo báo cáo…'));
   try{
     if(!state.obsAnalyticsFull){
       state.analytics=await api('/api/analytics'+analyticsQuery({overview:false}),{silent:true});
@@ -1540,11 +1563,11 @@ async function exportObsReport(){
     const scope=obsReportScope();
     const stamp=new Date().toISOString().slice(0,10);
     a.href=URL.createObjectURL(blob);
-    a.download=`LoopForge用量报告-${scope.project}-${scope.who}-${stamp}.html`;
+    a.download=`LoopForge-${obsReportText('用量分析报告')}-${scope.project}-${scope.who}-${stamp}.html`;
     document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href),1500);
-    toast('已导出 HTML 报告','ok');
-  }catch(e){toast(e.message||'导出失败','err')}
+    toast(obsUi('已导出 HTML 报告','Đã xuất báo cáo HTML'),'ok');
+  }catch(e){toast(e.message||obsUi('导出失败','Xuất báo cáo thất bại'),'err')}
 }
 function buildObsReportHTML(){
   const scope=obsReportScope(),summary=state.analytics?.summary||{},d=state.analytics?.delivery||{};
@@ -1559,27 +1582,27 @@ function buildObsReportHTML(){
   const versionRows=(state.analytics?.workflowVersions||[]).map(v=>`<tr><td>${escapeHTML(v.name||v.workflowId)}</td><td>v${v.version}</td><td>${v.runs}</td><td>${percent(v.successRate)}</td><td>${formatTokens(v.tokens)}</td><td>${obsPlain(costLabel(v.costCny,!v.costUnknownRuns))}</td></tr>`).join('');
   const trendRows=obsTrendWindow(state.analytics?.trend||[]).slice().reverse().map(t=>`<tr><td>${escapeHTML(obsTrendLabel(t))}</td><td>${t.runs}</td><td>${t.issues||0}</td><td>${t.succeeded}</td><td>${t.failed||0}</td><td>${formatTokens(t.tokens)}</td><td>${obsPlain(costLabel(t.costCny,!t.costUnknownRuns))}</td><td>${t.executionDurationMs?duration(t.executionDurationMs):'—'}</td></tr>`).join('');
   const projectRows=(state.obsCrossProject?.projectUsage||state.analytics?.projectUsage||[]).map(r=>`<tr><td>${escapeHTML(obsProjectName(r.projectId))}</td><td>${r.runs||0}</td><td>${r.uniqueIssues||0}</td><td>${formatTokens(r.tokens)}</td><td>${obsPlain(costLabel(r.costCny,r.costKnown))}</td></tr>`).join('');
-  const deliveryRows=(state.analytics?.deliveries||[]).slice(0,80).map(it=>`<tr><td>${obsSourceLabel(it.source)} ${escapeHTML(String(it.externalIid?('#'+it.externalIid):(it.externalId||it.issueId)))}</td><td>${escapeHTML(it.title||it.issueId)}</td><td>${escapeHTML(it.workflowName||it.workflowId)}</td><td>${escapeHTML(obsDeliveryStatusText(it))}</td><td>${escapeHTML(obsUserName(it.userId))}</td><td>${formatTokens(it.tokens)}</td><td>${obsPlain(costLabel(it.costCny,it.costKnown))}</td><td>${obsDeliveryMRHTML(it)}</td><td>${it.delivered?'已交付':'未交付'}</td></tr>`).join('');
+  const deliveryRows=(state.analytics?.deliveries||[]).slice(0,80).map(it=>`<tr><td>${obsSourceLabel(it.source)} ${escapeHTML(String(it.externalIid?('#'+it.externalIid):(it.externalId||it.issueId)))}</td><td>${escapeHTML(it.title||it.issueId)}</td><td>${escapeHTML(it.workflowName||it.workflowId)}</td><td>${escapeHTML(obsDeliveryStatusText(it))}</td><td>${escapeHTML(obsUserName(it.userId))}</td><td>${formatTokens(it.tokens)}</td><td>${obsPlain(costLabel(it.costCny,it.costKnown))}</td><td>${obsDeliveryMRHTML(it)}</td><td>${obsReportText(it.delivered?'已交付':'未交付')}</td></tr>`).join('');
   const kpis=[
     ...(activity?[
-      ['会话数',activity.sessions||0,'普通对话 · 按创建时间'],
-      ['创建需求',activity.requirements||0,'按需求 ID 去重 · 含同步需求'],
-      ['需求 SOP',activity.sopRuns||0,'顶层需求 SOP 执行次数'],
-      ['多人协作会话',activity.collaborativeSessions||0,activity.sessions?`占会话 ${(Number(activity.collaborativeSessions||0)*100/activity.sessions).toFixed(1)}% · 至少两位用户发言`:'暂无会话'],
+      ['会话数',activity.sessions||0,obsUi('普通对话 · 按创建时间','Hội thoại thông thường · Theo thời điểm tạo')],
+      ['创建需求',activity.requirements||0,obsUi('按需求 ID 去重 · 含同步需求','Không đếm trùng theo ID yêu cầu · Bao gồm yêu cầu đồng bộ')],
+      ['需求 SOP',activity.sopRuns||0,obsUi('顶层需求 SOP 执行次数','Số lượt chạy SOP cấp cao nhất của yêu cầu')],
+      ['多人协作会话',activity.collaborativeSessions||0,activity.sessions?obsUi(`占会话 ${(Number(activity.collaborativeSessions||0)*100/activity.sessions).toFixed(1)}% · 至少两位用户发言`,`Chiếm ${(Number(activity.collaborativeSessions||0)*100/activity.sessions).toFixed(1)}% số cuộc trò chuyện · Có ít nhất hai người gửi tin nhắn`):obsUi('暂无会话','Chưa có hội thoại')],
       ...[false,true].map(collaborative=>{const card=obsActivityUsageCard(activity,collaborative);return [card.label,card.value,card.foot]}),
     ]:[]),
-    ['运行',summary.totalRuns||0,`${summary.activeRuns||0} 进行中`],
-    ['成功率',summary.totalRuns?percent(summary.successRate):'—',`${summary.succeededRuns||0} 成功 / ${summary.failedRuns||0} 失败`],
-    ['一次通过',summary.totalRuns?percent(summary.firstPassRate):'—',`${summary.reworkedRuns||0} 次返工`],
-    ['Token',formatTokens(summary.totalTokens),`入 ${formatTokens(summary.inputTokens)} / 出 ${formatTokens(summary.outputTokens)}`],
-    ['成本',obsPlain(costLabel(summary.totalCostCny,summary.costUnknownRuns===0)),summary.costUnknownRuns?`${summary.costUnknownRuns} 次未识别`:'已识别'],
-    ['缓存命中',(Number(summary.inputTokens||0)+Number(summary.cacheReadTokens||0))?Number(summary.cacheHitRate||0).toFixed(0)+'%':'—',`缓存读 ${formatTokens(summary.cacheReadTokens||0)}`],
-    ['P95 执行',summary.executionP95DurationMs?duration(summary.executionP95DurationMs):'—',summary.executionAverageDurationMs?`平均 ${duration(summary.executionAverageDurationMs)}`:'—'],
-    ['对话改代码',`${summary.conversationIssues||0} 个需求`,`${summary.conversationWorkspaces||0} 个工作区 · ${formatTokens(summary.conversationTokens||0)} · ${obsPlain(costLabel(summary.conversationCostCny||0,true))}`],
-    ['已交付',d.delivered||0,`${d.issues||0} 个有执行的单`],
-    ['PR 已合入',d.mrMerged||0,`${d.mrIntegrated||0} 已合入基线`],
-  ].map(([l,v,f])=>`<article><span>${l}</span><b>${v}</b><small>${f}</small></article>`).join('');
-  return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHTML(scope.project)} 用量报告</title>
+    ['运行',summary.totalRuns||0,obsUi(`${summary.activeRuns||0} 进行中`,`${summary.activeRuns||0} đang chạy`)],
+    ['成功率',summary.totalRuns?percent(summary.successRate):'—',obsUi(`${summary.succeededRuns||0} 成功 / ${summary.failedRuns||0} 失败`,`${summary.succeededRuns||0} thành công / ${summary.failedRuns||0} thất bại`)],
+    ['一次通过',summary.totalRuns?percent(summary.firstPassRate):'—',obsUi(`${summary.reworkedRuns||0} 次返工`,`${summary.reworkedRuns||0} lượt làm lại`)],
+    ['Token',formatTokens(summary.totalTokens),obsUi(`入 ${formatTokens(summary.inputTokens)} / 出 ${formatTokens(summary.outputTokens)}`,`Đầu vào ${formatTokens(summary.inputTokens)} / đầu ra ${formatTokens(summary.outputTokens)}`)],
+    ['成本',obsPlain(costLabel(summary.totalCostCny,summary.costUnknownRuns===0)),summary.costUnknownRuns?obsUi(`${summary.costUnknownRuns} 次未识别`,`${summary.costUnknownRuns} lượt chưa xác định`):obsUi('已识别','Đã xác định')],
+    ['缓存命中',(Number(summary.inputTokens||0)+Number(summary.cacheReadTokens||0))?Number(summary.cacheHitRate||0).toFixed(0)+'%':'—',obsUi(`缓存读 ${formatTokens(summary.cacheReadTokens||0)}`,`Đọc cache ${formatTokens(summary.cacheReadTokens||0)}`)],
+    ['P95 执行',summary.executionP95DurationMs?duration(summary.executionP95DurationMs):'—',summary.executionAverageDurationMs?obsUi(`平均 ${duration(summary.executionAverageDurationMs)}`,`Trung bình ${duration(summary.executionAverageDurationMs)}`):'—'],
+    ['对话改代码',obsUi(`${summary.conversationIssues||0} 个需求`,`${summary.conversationIssues||0} yêu cầu`),obsUi(`${summary.conversationWorkspaces||0} 个工作区 · ${formatTokens(summary.conversationTokens||0)} · ${obsPlain(costLabel(summary.conversationCostCny||0,true))}`,`${summary.conversationWorkspaces||0} workspace · ${formatTokens(summary.conversationTokens||0)} · ${obsPlain(costLabel(summary.conversationCostCny||0,true))}`)],
+    ['已交付',d.delivered||0,obsUi(`${d.issues||0} 个有执行的单`,`${d.issues||0} yêu cầu có lượt chạy`)],
+    ['PR 已合入',d.mrMerged||0,obsUi(`${d.mrIntegrated||0} 已合入基线`,`${d.mrIntegrated||0} PR đã hợp nhất vào baseline`)],
+  ].map(([l,v,f])=>`<article><span>${obsReportText(l)}</span><b>${v}</b><small>${f}</small></article>`).join('');
+  return `<!doctype html><html lang="${obsUi('zh-CN','vi-VN')}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHTML(scope.project)} · ${obsReportText('用量分析报告')}</title>
 <style>
 :root{--text:#152033;--muted:#5b6b82;--line:#e6ebf3;--bg:#f5f7fb;--card:#fff;--blue:#3b6cff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Noto Sans SC",sans-serif}
@@ -1598,8 +1621,8 @@ th{text-align:left;color:var(--muted);font-size:11px;padding:8px;border-bottom:1
 @media print{body{background:#fff}.wrap{padding:0}.kpis article,.block{break-inside:avoid}}
 @media(max-width:800px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style></head><body><div class="wrap">
-<header><p class="eyebrow">LoopForge</p><h1>用量分析报告</h1><p>效果看成功率和一次通过，投入看 Token、成本和执行耗时。交付看 SOP 是否跑完、PR 是否合入。</p>
-<div class="meta"><span>项目 ${escapeHTML(scope.project)}</span><span>维度 ${escapeHTML(scope.dim)}</span><span>${obsScope()==='project'?'范围':'责任人'} ${escapeHTML(scope.who)}</span><span>来源 ${escapeHTML(scope.source)}</span><span>生成于 ${escapeHTML(scope.at)}</span></div></header>
+<header><p class="eyebrow">LoopForge</p><h1>${obsReportText('用量分析报告')}</h1><p>${obsUi('效果看成功率和一次通过，投入看 Token、成本和执行耗时。交付看 SOP 是否跑完、PR 是否合入。','Chất lượng dựa trên tỷ lệ thành công và hoàn tất ngay lần đầu; mức sử dụng dựa trên token, chi phí và thời gian thực thi; bàn giao dựa trên kết quả SOP và PR đã hợp nhất.')}</p>
+<div class="meta"><span>${obsUi('项目','Dự án')} ${escapeHTML(scope.project)}</span><span>${obsUi('维度','Phạm vi thống kê')} ${escapeHTML(scope.dim)}</span><span>${obsScope()==='project'?obsUi('范围','Phạm vi'):obsUi('责任人','Người phụ trách')} ${escapeHTML(scope.who)}</span><span>${obsUi('来源','Nguồn')} ${escapeHTML(scope.source)}</span><span>${obsUi('生成于','Tạo lúc')} ${escapeHTML(scope.at)}</span></div></header>
 <section class="kpis">${kpis}</section>
 ${obsReportTable('SOP 一览',['SOP','运行','成功率','返工率','Tokens','成本','均执行'],wfRows)}
 ${obsReportTable('各模型用量',['模型','调用','Tokens','输入 / 输出','Token 占比','成本'],modelRows)}
@@ -1607,10 +1630,10 @@ ${obsScope()==='project'?obsReportTable('成员汇总',['成员','运行','成�
 ${obsReportTable('每人每日用量',['日期','成员','运行','Tokens','输入 / 输出','成本'],userRows)}
 ${obsReportTable('需求类型分布',['来源','关联执行','SOP 成功','已交付需求','Tokens','成本'],srcRows)}
 ${obsReportTable('SOP 版本对比',['SOP','版本','运行','成功率','Tokens','成本'],versionRows)}
-${obsReportTable(obsGrainCaption()+'趋势',['周期','运行','需求','成功','失败','Tokens','成本','执行耗时'],trendRows)}
+${obsReportTable(obsUi(obsGrainCaption()+'趋势','Xu hướng theo '+obsGrainCaption()),['周期','运行','需求','成功','失败','Tokens','成本','执行耗时'],trendRows)}
 ${projectRows?obsReportTable('各项目用量',['项目','运行','需求','Tokens','成本'],projectRows):''}
 ${obsReportTable('交付明细',['单号','标题','SOP','流程','责任人','Tokens','成本','PR','交付'],deliveryRows)}
-<footer>由 LoopForge 用量分析导出。日志与 Trace 请在运行记录中查看。</footer>
+<footer>${obsUi('由 LoopForge 用量分析导出。日志与 Trace 请在运行记录中查看。','Xuất từ phân tích mức sử dụng của LoopForge. Xem nhật ký và trace trong lịch sử chạy.')}</footer>
 </div></body></html>`;
 }
 

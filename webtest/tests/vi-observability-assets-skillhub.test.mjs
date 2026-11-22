@@ -173,3 +173,40 @@ test('SkillHub pagination uses VI text and accessible previous/next labels',()=>
   assert.match(context.result,/aria-label="Trang trước"/);
   assert.match(context.result,/aria-label="Trang tiếp"/);
 });
+
+function renderExportedReport(lang,summary={},delivery={},projectName='当前项目'){
+  const state={obsScope:'project',obsTrendGrain:'all',data:{workflows:[]},
+    analytics:{summary,delivery,deliveries:[],workflows:[],models:[],userUsage:[],
+      issueSources:[],workflowVersions:[],trend:[],projectUsage:[]}};
+  const context={state,result:'',
+    currentProject:()=>({id:'p1',name:projectName}),obsScope:()=>state.obsScope,
+    obsUi:(zh,vi)=>localize(lang,zh,vi),obsSourceLabel:()=>'',obsUserName:()=>'',
+    obsUserTotals:()=>[],obsProjectName:()=>'',obsTrendWindow:x=>x,
+    obsTrendLabel:()=>'',obsDeliveryStatusText:()=>'',obsDeliveryMRHTML:()=>'',obsActivityUsageCard:()=>({label:'',value:0,foot:''}),
+    obsPlain:x=>x,costLabel:()=>'$0',escapeHTML,percent:x=>String(x??0)+'%',
+    formatTokens:x=>String(x??0),duration:x=>String(x)+'ms',
+    obsGrainCaption:()=>lang==='vi'?'tháng':'月'};
+  const reportSource=take(obs,'function obsReportScope(){','async function exportObsReport(){')+
+    take(obs,'function buildObsReportHTML(){','function obsCanManageSources(){');
+  runInNewContext(reportSource+'\nresult=buildObsReportHTML();',context);
+  return context.result;
+}
+
+test('exported HTML is a self-contained Vietnamese report and retains project data',()=>{
+  for(const [summary,delivery] of [
+    [{},{}],
+    [{totalRuns:5,activeRuns:2,succeededRuns:3,failedRuns:2,conversationIssues:2,
+      conversationWorkspaces:1,conversationTokens:1500,conversationCostCny:2,cacheReadTokens:20},
+      {delivered:3,issues:4,mrIntegrated:2,mrMerged:3}]
+  ]){
+    const vi=renderExportedReport('vi',summary,delivery);
+    assert.match(vi,/<html lang="vi-VN">/);
+    assert.match(vi,/Báo cáo phân tích mức sử dụng/);
+    assert.match(vi,new RegExp(`${delivery.issues||0} yêu cầu có lượt chạy`));
+    assert.match(vi,/当前项目/,'project name is data, not a translation key');
+    assert.doesNotMatch(vi.replaceAll('当前项目',''),/[\u3400-\u9fff]/u);
+    const zh=renderExportedReport('zh',summary,delivery);
+    assert.match(zh,/<html lang="zh-CN">/);
+    assert.match(zh,/用量分析报告/);
+  }
+});
