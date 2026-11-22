@@ -318,16 +318,16 @@ export default function ArtifactPanel({
       group,
     );
   const visibleItems = items.filter((artifact) =>
-    matchesArtifact(artifact, "文件"),
+    matchesArtifact(artifact, chatT("文件", "Tệp")),
   );
   const visibleDefinitions = definitions.filter((artifact) =>
-    matchesArtifact(artifact, "SOP 与角色"),
+    matchesArtifact(artifact, chatT("SOP 与角色", "SOP và vai trò")),
   );
   const visibleOperations = operations.filter((artifact) =>
-    matchesArtifact(artifact, "待确认操作"),
+    matchesArtifact(artifact, chatT("待确认操作", "Thao tác chờ xác nhận")),
   );
   const visibleMergeRequests = mergeRequests.filter((artifact) =>
-    matches(artifact.name, artifact.source, artifact.url, "合并请求"),
+    matches(artifact.name, artifact.source, artifact.url, chatT("合并请求", "Yêu cầu hợp nhất")),
   );
   const visibleRuns = runs.filter((run) =>
     matches(

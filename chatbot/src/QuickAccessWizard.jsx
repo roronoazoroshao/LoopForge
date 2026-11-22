@@ -1507,7 +1507,7 @@ export default function QuickAccessWizard({
                       {chatT("快速接入已完成", "Đã hoàn tất kết nối nhanh")}
                     </h3>
                     <p className="qa-lede qa-success-item" style={{ "--i": 1 }}>
-                      {chatT(`已关联默认角色与「${builtinDisplay(completedSummary?.workflow?.name || "通用后端交付 SOP")}」，现在可以直接在工作台对话或派发需求。`, `Đã liên kết vai trò mặc định và “${completedSummary?.workflow?.name || "SOP bàn giao backend chung"}”; có thể trực tiếp trò chuyện hoặc điều phối yêu cầu trong bàn làm việc.`)}
+                      {chatT(`已关联默认角色与「${builtinDisplay(completedSummary?.workflow?.name || "通用后端交付 SOP")}」，现在可以直接在工作台对话或派发需求。`, `Đã liên kết vai trò mặc định và “${builtinDisplay(completedSummary?.workflow?.name || "通用后端交付 SOP")}”; có thể trực tiếp trò chuyện hoặc điều phối yêu cầu trong bàn làm việc.`)}
                     </p>
                   </div>
 
@@ -1521,7 +1521,7 @@ export default function QuickAccessWizard({
                         {roles.slice(0, 6).map((role) => (
                           <li key={role.id}>
                             <span className="qa-avatar">
-                              {(role.name || "角").slice(0, 1)}
+                              {(builtinDisplay(role.name) || chatT("角", "V")).slice(0, 1)}
                             </span>
                             <span>{builtinDisplay(role.name)}</span>
                             <small>{chatT("默认角色", "Vai trò mặc định")}</small>
@@ -1911,8 +1911,7 @@ export default function QuickAccessWizard({
                                   role="note"
                                 >
                                   <p>
-                                    「{currentProject?.name}」是已有项目，只有它的
-                                    Owner 或平台管理员可以绑定仓库。你可以：
+                                    {chatT(`「${currentProject?.name}」是已有项目，只有它的 Owner 或平台管理员可以绑定仓库。你可以：`, `“${currentProject?.name}” là dự án hiện có. Chỉ chủ sở hữu dự án hoặc quản trị viên nền tảng mới có thể liên kết kho mã. Bạn có thể:`)}
                                   </p>
                                   <div className="qa-repo-permission-actions">
                                     <button
@@ -2105,7 +2104,7 @@ export default function QuickAccessWizard({
                                 className="qa-role-chip"
                                 style={{ "--i": index }}
                               >
-                                <i>{(role.name || "角").slice(0, 1)}</i>
+                                <i>{(builtinDisplay(role.name) || chatT("角", "V")).slice(0, 1)}</i>
                                 <b>{builtinDisplay(role.name)}</b>
                                 {role.description ? (
                                   <small>{builtinDisplay(role.description)}</small>
@@ -2152,8 +2151,7 @@ export default function QuickAccessWizard({
                             <dd>
                               <span className="qa-dot is-ok" />
                               <span>
-                                {builtinDisplay(activeWorkflow?.name || "通用后端交付 SOP")}（
-                                {roles.length} {chatT("个默认角色）", "vai trò mặc định)")}
+                                {chatT(`${builtinDisplay(activeWorkflow?.name || "通用后端交付 SOP")}（${roles.length} 个默认角色）`, `${builtinDisplay(activeWorkflow?.name || "通用后端交付 SOP")} (${roles.length} vai trò mặc định)`)}
                               </span>
                             </dd>
                           </div>

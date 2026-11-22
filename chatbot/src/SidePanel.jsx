@@ -563,8 +563,7 @@ export default function SidePanel({
                 <File size={28} />
                 <h3>{chatT("产物会显示在这里", "Sản phẩm đầu ra sẽ xuất hiện tại đây")}</h3>
                 <p>
-                  对话中的图片、文件、图表、代码和 SOP
-                  草稿会自动汇集，点击即可查看。
+                  {chatT("对话中的图片、文件、图表、代码和 SOP 草稿会自动汇集，点击即可查看。", "Hình ảnh, tệp, biểu đồ, mã và bản nháp SOP trong cuộc trò chuyện được tự động tập hợp tại đây. Nhấp để xem.")}
                 </p>
               </div>
             ) : (
@@ -654,7 +653,7 @@ export default function SidePanel({
                       null,
                       2,
                     ),
-                    source: "项目 SOP",
+                    source: chatT("项目 SOP", "SOP của dự án"),
                   })
                 }
               >
@@ -751,7 +750,7 @@ export default function SidePanel({
                         ...a,
                         mimeType: a.mediaType,
                         kind: a.mediaType === "image/svg+xml" ? "svg" : "code",
-                        source: "SOP 运行产物",
+                        source: chatT("SOP 运行产物", "Sản phẩm đầu ra của lượt chạy SOP"),
                         url: `/api/runs/${encodeURIComponent(openRun.id)}/artifacts/${encodeURIComponent(a.id)}`,
                       })
                     }

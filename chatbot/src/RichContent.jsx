@@ -477,7 +477,7 @@ export function Attachment({ attachment, sessionId, onOpen }) {
             ...attachment,
             url,
             kind: "attachment",
-            source: "会话附件",
+            source: chatT("会话附件", "Tệp đính kèm cuộc trò chuyện"),
           });
         }}
       >

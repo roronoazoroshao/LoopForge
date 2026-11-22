@@ -44,7 +44,7 @@ function runArtifact(run, artifact) {
     kind,
     url: `/api/runs/${encodeURIComponent(run.id)}/artifacts/${encodeURIComponent(artifact.id)}`,
     mimeType: artifact.mediaType,
-    source: "节点产物",
+    source: chatT("节点产物", "Sản phẩm đầu ra của bước"),
   };
 }
 

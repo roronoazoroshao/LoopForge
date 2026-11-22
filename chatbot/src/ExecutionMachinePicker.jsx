@@ -72,7 +72,7 @@ export default function ExecutionMachinePicker({ chat, onManage }) {
           id: row.id,
           label: row.name || row.id,
           icon: "monitor",
-          description: row.status === "online" ? chatT("在线", "Trực tuyến") : "离线，执行前需启动",
+          description: row.status === "online" ? chatT("在线", "Trực tuyến") : chatT("离线，执行前需启动", "Ngoại tuyến, cần khởi động trước khi thực thi"),
         })),
       ]
     : [];
