@@ -71,6 +71,19 @@ const STEPS = [
   },
 ];
 
+// Vietnamese prompts are generated only when provisioning a new fallback SOP.
+// IDs, output artifact paths and template variables stay protocol-stable.
+const FALLBACK_ROLE_PROMPTS_VI = {
+  "loopforge-requirement": "Dựa trên yêu cầu đầu vào và hiện trạng kho mã, xác nhận mục tiêu, phạm vi, hạng mục loại trừ và tiêu chí nghiệm thu. Tạo tài liệu yêu cầu có cấu trúc cùng kế hoạch thực hiện.\n\nĐầu vào tác vụ: {{input}}",
+  "loopforge-design": "Phân tích mô-đun bị ảnh hưởng và chuỗi lời gọi; thiết kế giao diện, mô hình dữ liệu và phương án thay đổi tối thiểu. Nêu rõ rủi ro và phạm vi kiểm chứng.\n\nĐầu vào tác vụ: {{input}}",
+  "loopforge-implement": "Triển khai mã theo phương án và kế hoạch, chạy kiểm thử đơn vị của các mô-đun bị ảnh hưởng và ghi báo cáo thay đổi.\n\nĐầu vào tác vụ: {{input}}",
+  "loopforge-review": "Rà soát độc lập tính đúng đắn của thay đổi mã, nguy cơ hồi quy, ranh giới bảo mật và bằng chứng kiểm thử. Đưa ra kết luận rà soát.\n\nĐầu vào tác vụ: {{input}}",
+  "loopforge-test": "Thực hiện kiểm thử tự động hoặc kiểm thử hồi quy theo tiêu chí nghiệm thu. Đối chiếu từng tiêu chí và xuất báo cáo kiểm thử.\n\nĐầu vào tác vụ: {{input}}",
+  "loopforge-mr": "Đẩy nhánh làm việc lên kho mã, tạo hoặc cập nhật Pull Request và tổng hợp nội dung thay đổi.\n\nĐầu vào tác vụ: {{input}}",
+  "loopforge-summary": "Tổng hợp thay đổi đã bàn giao, kết quả xác minh và liên kết MR, đồng thời đúc kết kinh nghiệm dự án có thể tái sử dụng.\n\nĐầu vào tác vụ: {{input}}",
+};
+const fallbackRolePrompt = role => chatT(role.prompt, FALLBACK_ROLE_PROMPTS_VI[role.id] || role.prompt);
+
 const FALLBACK_ROLES = [
   {
     id: "loopforge-requirement",
@@ -613,7 +626,7 @@ async function provisionFallbackProjectSOP(projectId, workflowId, owner) {
     "/api/sandboxes",
     {
       id: sandboxId,
-      name: "本地开发沙箱",
+      name: chatT("本地开发沙箱", "Sandbox phát triển cục bộ"),
       projectId,
       driver: "local",
       shared: false,
@@ -629,12 +642,12 @@ async function provisionFallbackProjectSOP(projectId, workflowId, owner) {
       "/api/agents",
       {
         id: agentId,
-        name: role.name,
+        name: builtinDisplay(role.name),
         projectId,
         version: 1,
         executorId: "codebuddy",
-        description: role.description,
-        prompt: role.prompt,
+        description: builtinDisplay(role.description),
+        prompt: fallbackRolePrompt(role),
         artifactOutputs: [
           {
             name: role.artifactId,
@@ -650,7 +663,7 @@ async function provisionFallbackProjectSOP(projectId, workflowId, owner) {
 
   const nodes = FALLBACK_NODES.map((node, index) => ({
     id: node.id,
-    name: node.name,
+    name: builtinDisplay(node.name),
     type: "agent",
     agentId: agentIdMap[node.agentId] || node.agentId,
     metricStage: node.metricStage || "development",
@@ -678,7 +691,7 @@ async function provisionFallbackProjectSOP(projectId, workflowId, owner) {
     "/api/workflows",
     {
       id: workflowId,
-      name: "后端交付 SOP",
+      name: builtinDisplay("后端交付 SOP"),
       projectId,
       owner,
       status: "draft",
@@ -687,8 +700,10 @@ async function provisionFallbackProjectSOP(projectId, workflowId, owner) {
       sopLane: "backend",
       sandboxProfileId: sandboxId,
       tags: [chatT("快速接入", "Kết nối nhanh"), `generic-source:${DEFAULT_SOP_ID}`],
-      description:
+      description: chatT(
         "从需求定型、方案设计、代码实现、独立评审、测试验证到发起 MR 的标准交付流程。",
+        "Quy trình bàn giao tiêu chuẩn từ định hình yêu cầu, thiết kế giải pháp, triển khai mã, rà soát độc lập và kiểm thử xác minh đến mở MR.",
+      ),
       nodes,
       edges,
     },
