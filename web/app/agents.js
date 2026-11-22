@@ -361,9 +361,34 @@ function resetAgentIdentityErrors(){
   if(field)field.hidden=true;
   ['#agentNameError','#agentIdError'].forEach(sel=>{const el=$(sel);if(el)el.hidden=true});
 }
+const agentPresetsVi={
+  "developer": {
+    "title": "Kỹ sư phần mềm",
+    "desc": "Triển khai thay đổi mã, kiểm chứng và bàn giao theo mô tả tác vụ",
+    "prompt": "Bạn là kỹ sư phát triển phần mềm production. Đọc quy tắc, đầu vào tác vụ, sản phẩm đầu ra đã chốt từ các bước trước và mã nguồn liên quan. Thực hiện thay đổi tối thiểu nhưng đầy đủ; chạy build, kiểm tra tĩnh và kiểm thử; nộp bằng chứng thực tế theo hợp đồng sản phẩm đầu ra của bước. Không dùng lời tự báo cáo thay cho sản phẩm trên đĩa và mã thoát của lệnh."
+  },
+  "reviewer": {
+    "title": "Chuyên viên rà soát mã độc lập",
+    "desc": "Kiểm tra độc lập tính đúng đắn, bảo mật, tương thích và nguy cơ hồi quy",
+    "prompt": "Bạn là chuyên viên rà soát độc lập, không phải người triển khai. Rà soát dựa trên diff mã, sản phẩm đầu ra của các bước trước và bằng chứng xác minh thực tế; xác định rõ vấn đề cản trở, rủi ro và kết luận. Khi phát hiện vấn đề, nêu tệp cụ thể, nguyên nhân và đề xuất sửa có thể thực hiện."
+  },
+  "tester": {
+    "title": "Kỹ sư kiểm thử độc lập",
+    "desc": "Kiểm thử luồng chuẩn, trường hợp biên, lỗi và hồi quy",
+    "prompt": "Bạn là kỹ sư kiểm thử độc lập. Dựa trên yêu cầu và tiêu chí nghiệm thu, thiết kế ca kiểm thử cho luồng chuẩn, trường hợp biên, lỗi và hồi quy. Chạy kiểm thử thực tế, ghi lại lệnh, kết quả, độ phủ và bằng chứng dọn dẹp dữ liệu."
+  },
+  "coordinator": {
+    "title": "Điều phối viên bàn giao",
+    "desc": "Kiểm tra PR, các bước kiểm tra, pipeline và bằng chứng nghiệm thu, kết thúc",
+    "prompt": "Bạn là điều phối viên bàn giao. Chỉ dựa trên trạng thái bên ngoài có thể xác minh và sản phẩm đầu ra đã chốt để thúc đẩy bàn giao. Đảm bảo đầy đủ bằng chứng về PR, các bước kiểm tra, pipeline, nghiệm thu và kết thúc. Nếu thiếu bất kỳ dữ kiện quan trọng nào, dừng và báo cáo."
+  }
+};
+function agentPresetForLocale(p){
+  return p&&window.lfLang?.()==='vi'?{...p,...agentPresetsVi[p.id]}:p;
+}
 function applyAgentPreset(id){
   const f=$('#agentForm');if(!f)return;
-  const prev=agentPresets.find(x=>x.id===state.agentCreatePreset),p=agentPresets.find(x=>x.id===id);
+  const prev=agentPresetForLocale(agentPresets.find(x=>x.id===state.agentCreatePreset)),p=agentPresetForLocale(agentPresets.find(x=>x.id===id));
   if(id!=='blank'&&!p)return;
   const fill=(key,next,old)=>{const el=f.elements[key];if(el&&(p||!el.value||el.value===old))el.value=next};
   fill('name',p?.title||'',prev?.title);fill('description',p?.desc||'',prev?.desc);const draft=state.agentDraft;if(draft&&(p||!draft.prompt||draft.prompt===prev?.prompt)){draft.prompt=p?.prompt||'';renderAgentTaskBook(draft)}
@@ -371,7 +396,7 @@ function applyAgentPreset(id){
   $$('[data-agent-preset]').forEach(b=>{const on=b.dataset.agentPreset===id;b.classList.toggle('active',on);b.setAttribute('aria-pressed',on?'true':'false')});
   if(f.elements.name.value.trim())$('#agentNameError')&&($('#agentNameError').hidden=true);
   syncAgentSlug();renderAgentSummary();
-  if(p)toast(`已套用「${p.name}」模板，可直接保存或继续调整`);
+  if(p){const name=window.lfTranslate?.(p.name)||p.name;toast(window.lfLang?.()==='vi'?`Đã áp dụng mẫu “${name}”. Bạn có thể lưu hoặc chỉnh sửa tiếp.`:`已套用「${p.name}」模板，可直接保存或继续调整`)}
 }
 function showAgentPane(name){
   $('#agentForm')?.querySelectorAll('.wizard-pane').forEach(p=>p.classList.toggle('active',p.dataset.agentPane===name));
@@ -417,8 +442,8 @@ function renderAgentCreateReview(){
   const preset=agentPresets.find(x=>x.id===state.agentCreatePreset);
   const cli=f.elements.executorId?.selectedOptions?.[0]?.textContent||f.elements.executorId?.value||'';
   const effort=(f.elements.effort?.value||'').trim();
-  const rows=[['名称',f.elements.name.value.trim()],['标识',f.elements.id.value.trim()],['起点',preset?.name||'空白'],['CLI · 模型',`${cli} · ${agentEffectiveModel(f)||'未选模型'}${effort?` · ${effort}`:''}`],['职责',f.elements.description.value.trim()||'未填写职责']];
-  host.innerHTML=rows.map(([k,v])=>`<div><dt>${k}</dt><dd>${escapeHTML(v)}</dd></div>`).join('');
+  const rows=[['名称',f.elements.name.value.trim()],['标识',f.elements.id.value.trim()],['起点',preset?.name||'空白'],['CLI · 模型',`${cli} · ${agentEffectiveModel(f)||'未选模型'}${effort?` · ${effort}`:''}`],['职责',f.elements.description.value.trim()||(window.lfLang?.()==='vi'?'Chưa nhập trách nhiệm':'未填写职责')]];
+  host.innerHTML=rows.map(([k,v])=>`<div><dt>${k}</dt><dd${['名称','标识','职责'].includes(k)?' data-i18n-skip':''}>${escapeHTML(v)}</dd></div>`).join('');
 }
 function syncAgentModalChrome(){
   const create=state.agentModalMode==='create',step=state.agentCreateStep||1;
@@ -429,7 +454,7 @@ function syncAgentModalChrome(){
   if(cloneBtn)cloneBtn.hidden=catalogGeneric(state.workflow)||!foreign;
   if(next){next.hidden=!create;next.textContent=step===3?'创建':'下一步'}
   if(prev){prev.hidden=!create||step===1;prev.disabled=false}
-  const hint=$('#agentStepHint');if(hint)hint.textContent=create?`第 ${step} 步，共 3 步`:'';
+  const hint=$('#agentStepHint');if(hint)hint.textContent=create?(window.lfLang?.()==='vi'?`Bước ${step}/3`:`第 ${step} 步，共 3 步`):'';
   renderAgentSummary();
 }
 function agentWizardNext(){

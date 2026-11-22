@@ -218,7 +218,7 @@
         option.disabled = !item.models.length;
         return option;
       }));
-      if (!engine) executor.prepend(new Option('暂无可用执行器', ''));
+      if (!engine) executor.prepend(new Option((window.lfLang?.()==='vi'?'Chưa có trình thực thi':'暂无可用执行器'), ''));
       executor.value = engine?.id || '';
       executor.disabled = readOnly || !engines.some(item => item.models.length);
 
@@ -241,7 +241,7 @@
       models.onchange = () => onChange?.(models.value);
     }).catch(() => {
       if (!host.isConnected) return;
-      executor.options[0].text = '暂无可用执行器';
+      executor.options[0].text = (window.lfLang?.()==='vi'?'Chưa có trình thực thi':'暂无可用执行器');
       models.options[0].text = '暂无可选模型';
     });
     return host.modelPickerReady;

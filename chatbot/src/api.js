@@ -1,4 +1,5 @@
 import { mergeActivity } from "./activity.js";
+import { chatT } from "./locale.js";
 import { actionName } from "./platform.js";
 export async function api(path, options = {}) {
   const headers = { accept: "application/json", ...options.headers };
@@ -268,29 +269,29 @@ export function projectPickerOptions(projects, user, session) {
   const available = [];
   const unjoined = [];
   const effect = {
-    bind: "绑定当前会话到此项目",
-    new: "在此项目新开对话",
+    bind: chatT("绑定当前会话到此项目", "Gắn cuộc trò chuyện này với dự án"),
+    new: chatT("在此项目新开对话", "Trò chuyện mới trong dự án"),
   };
   for (const p of projects || []) {
     if (canChatInProject(p, user)) {
       available.push({
         id: p.id,
-        label: p.name,
+        label: p.id === "welcome" && p.name === "LoopForge 体验项目" ? chatT(p.name, "Dự án demo LoopForge") : p.name,
         icon: "folder",
         description: session ? effect[projectChange(session, p.id)] : undefined,
       });
     } else {
       unjoined.push({
         id: p.id,
-        label: p.name,
+        label: p.id === "welcome" && p.name === "LoopForge 体验项目" ? chatT(p.name, "Dự án demo LoopForge") : p.name,
         icon: "folder",
-        section: UNJOINED_PROJECTS_SECTION,
+        section: chatT(UNJOINED_PROJECTS_SECTION, "Dự án chưa tham gia"),
         unavailable: true,
       });
     }
   }
   return [
-    { id: "", label: "个人对话", description: "不绑定项目", icon: "user" },
+    { id: "", label: chatT("个人对话", "Trò chuyện cá nhân"), description: chatT("不绑定项目", "Không gắn dự án"), icon: "user" },
     ...available,
     ...unjoined,
   ];

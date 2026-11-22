@@ -720,8 +720,8 @@ function renderAgentPresets(){
   host.dataset.ready='1';
   const current=state.agentCreatePreset||'blank';
   const card=(id,icon,name,desc)=>`<button type="button" class="as-preset ${id===current?'active':''}" data-agent-preset="${id}" aria-pressed="${id===current?'true':'false'}"><span class="as-preset-icon">${icon}</span><b>${name}</b><small>${desc}</small></button>`;
-  const presetIcon=p=>({'developer':'码','reviewer':'审','tester':'测','coordinator':'交'})[p.id]||'角';
-  host.innerHTML=`<div class="as-presets agent-start-grid">${card('blank','空','空白','只填名称和模型，其余创建后再补')}${agentPresets.map(p=>card(p.id,presetIcon(p),p.name,p.desc)).join('')}</div>`;
+  const presetIcon=p=>window.lfLang?.()==='vi'?({'developer':'DEV','reviewer':'REV','tester':'QA','coordinator':'PR'})[p.id]||'—':({'developer':'码','reviewer':'审','tester':'测','coordinator':'交'})[p.id]||'角';
+  host.innerHTML=`<div class="as-presets agent-start-grid">${card('blank',window.lfLang?.()==='vi'?'+':'空','空白','只填名称和模型，其余创建后再补')}${agentPresets.map(p=>card(p.id,presetIcon(p),p.name,p.desc)).join('')}</div>`;
   host.querySelectorAll('[data-agent-preset]').forEach(button=>button.onclick=()=>applyAgentPreset(button.dataset.agentPreset));
 }
 function insertAgentPlaceholder(host, token){

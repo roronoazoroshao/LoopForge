@@ -4034,3 +4034,6 @@ a.draft-title {
   padding-left: 10px;
   border-left: 1px solid var(--line);
 }
+
+/* Vietnamese UI: native sans-serif has complete Vietnamese glyph coverage on supported platforms. */
+:root[lang="vi-VN"]{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Arial,sans-serif;letter-spacing:normal}
