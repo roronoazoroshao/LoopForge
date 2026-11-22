@@ -179,10 +179,10 @@
     slots.header.innerHTML = `
       <div class="sh-left">
         ${S.sidebar ? '' : `<button class="icon-btn" data-act="sidebar" type="button" title="展开侧栏">${icon('panel')}</button>`}
-        <div class="sh-title"><h1 data-act="rename" title="重命名">${esc(s.title)}</h1><span>${esc(s.draft ? '新会话 · ' + s.project : s.project)}</span></div>
+        <div class="sh-title"><h1 data-act="rename" title="重命名"><span data-i18n-skip>${esc(s.title)}</span></h1><span>${s.draft ? '新会话 · ' : ''}<span data-i18n-skip>${esc(s.project)}</span></span></div>
         ${s.draft ? '' : `<button class="icon-btn sm${s.pinned ? ' on' : ''}" data-act="pin" type="button" title="${s.pinned ? '取消置顶' : '置顶'}">${icon('pin')}</button>`}
       </div>
-      ${req ? `<button class="req-chip tone-${tone(req.status)}" data-issue="${esc(req.id)}" type="button"><b>#${esc(req.number)}</b><span>${esc(req.title)}</span><em>${esc(statusLabel(req.status))}</em></button>` : ''}
+      ${req ? `<button class="req-chip tone-${tone(req.status)}" data-issue="${esc(req.id)}" type="button"><b>#${esc(req.number)}</b><span data-i18n-skip>${esc(req.title)}</span><em>${esc(statusLabel(req.status))}</em></button>` : ''}
       <div class="sh-right">
         ${!req && s.messages.length ? `<button class="ghost-btn" data-act="requirement" type="button">建需求</button>` : ''}
         ${s.draft ? '' : `<button class="ghost-btn" data-act="sop" type="button">跑 SOP</button>`}
@@ -201,7 +201,7 @@
     const s = space();
     const near = slots.timeline.scrollHeight - slots.timeline.scrollTop - slots.timeline.clientHeight < 80;
     if (S.booting) { slots.timeline.innerHTML = '<div class="empty-main">正在读取会话…</div>'; return; }
-    if (S.error) { slots.timeline.innerHTML = `<div class="empty-main"><h2>无法连接 LoopForge 后端</h2><p class="muted">${esc(S.error)}</p></div>`; return; }
+    if (S.error) { slots.timeline.innerHTML = `<div class="empty-main"><h2>无法连接 LoopForge 后端</h2><p class="muted" data-i18n-skip>${esc(S.error)}</p></div>`; return; }
     if (!s) { slots.timeline.innerHTML = '<div class="empty-main"><h2>还没有可访问的项目</h2></div>'; return; }
     if (!s.messages.length) {
       const prompts = wbCopy(['帮我做一个能在侧边栏打开的页面 demo', '做一页产品介绍 PPT', '跑一个 SOP，并在旁边看进度', '先帮我把这件事理清楚'], ['Tạo trang demo có thể mở trong thanh bên', 'Tạo bộ slide giới thiệu sản phẩm', 'Chạy SOP và theo dõi tiến độ bên cạnh', 'Giúp tôi làm rõ việc này trước']);
@@ -216,15 +216,15 @@
   function rawURL(id) { return '/api/spaces/' + encodeURIComponent(space().id) + '/artifacts/' + encodeURIComponent(id) + '/raw'; }
   function isImage(format) { return format === 'png' || format === 'jpeg' || format === 'gif' || format === 'webp'; }
   function scrubPaths(text) {
-    return String(text || '').replace(/(^|[\s`（(])((?:\/(?:tmp|data|home|var|root|Users|workspace|opt)|~)(?:\/[^\s`'"）)]+)+)/g, '$1（云端路径打不开，产物在旁边打开）');
+    return String(text || '').replace(/(^|[\s`（(])((?:\/(?:tmp|data|home|var|root|Users|workspace|opt)|~)(?:\/[^\s`'"）)]+)+)/g, (_match,prefix)=>prefix+wbCopy('（云端路径打不开，产物在旁边打开）',' (Không thể mở đường dẫn đám mây; sản phẩm được hiển thị bên cạnh)'));
   }
   function attachmentHTML(m) {
     const s = space();
     return (m.attachments || []).map(a => {
       if (s && String(a.mimeType || '').startsWith('image/') && a.mimeType !== 'image/svg+xml') {
-        return `<img class="cx-shot" alt="${esc(a.name)}" src="/api/spaces/${encodeURIComponent(s.id)}/attachments/${encodeURIComponent(a.id)}">`;
+        return `<img class="cx-shot" data-i18n-skip alt="${esc(a.name)}" src="/api/spaces/${encodeURIComponent(s.id)}/attachments/${encodeURIComponent(a.id)}">`;
       }
-      return `<span class="chip">${esc(a.name)}</span>`;
+      return `<span class="chip" data-i18n-skip>${esc(a.name)}</span>`;
     }).join('');
   }
   function eventData(ev) {
@@ -254,7 +254,7 @@
   function activityHTML() {
     const lines = S.activity.map(ev => `<div class="${ev.done ? 'done' : 'on'}">${esc(ev.text || '')}</div>`).join('');
     const answer = S.answer ? (typeof renderMarkdown === 'function' ? renderMarkdown(scrubPaths(S.answer)) : esc(S.answer)) : '';
-    return `<div class="cx-activity">${lines || '<div class="on">正在回复…</div>'}</div>${answer ? `<div class="msg-body">${answer}</div>` : ''}`;
+    return `<div class="cx-activity">${lines || '<div class="on">正在回复…</div>'}</div>${answer ? `<div class="msg-body" data-i18n-skip>${answer}</div>` : ''}`;
   }
   function liveNode(id) {
     if (!id) return null;
@@ -262,26 +262,27 @@
   }
 
   function renderMessage(m) {
-    if (m.kind === 'milestone') return `<div class="cx-quiet">${esc(m.body || '')} · ${esc(timeLabel(m.at))}</div>`;
-    if (m.kind === 'decision' || m.kind === 'note') return `<div class="cx-quiet">${esc(person(m.author).name)}：${esc(m.body)} · ${esc(timeLabel(m.at))}</div>`;
+    if (m.kind === 'milestone') return `<div class="cx-quiet"><span data-i18n-skip>${esc(m.body || '')}</span> · ${esc(timeLabel(m.at))}</div>`;
+    if (m.kind === 'decision' || m.kind === 'note') return `<div class="cx-quiet"><span data-i18n-skip>${esc(person(m.author).name)}</span>：<span data-i18n-skip>${esc(m.body)}</span> · ${esc(timeLabel(m.at))}</div>`;
     if (m.kind === 'dispatch' || m.kind === 'sop') return `<div class="msg-card"><button class="cx-card" type="button" data-lane="${esc(m.runId || '')}"><b>${esc(m.workflowName || 'SOP')}</b><small>查看进度</small></button></div>`;
-    if (m.kind === 'approval') return `<div class="msg-card"><div class="cx-card${m.resolved ? '' : ' pending'}"><b>${esc(m.nodeName || '待确认')}</b><p>${esc(m.body || '')}</p>${m.resolved ? '<small>已处理</small>' : `<div class="card-actions"><button class="btn btn-primary sm" type="button" data-decide="approve" data-run="${esc(m.runId)}" data-node="${esc(m.nodeId)}">批准</button><button class="btn sm" type="button" data-decide="reject" data-run="${esc(m.runId)}" data-node="${esc(m.nodeId)}">打回</button></div>`}</div></div>`;
+    if (m.kind === 'approval') return `<div class="msg-card"><div class="cx-card${m.resolved ? '' : ' pending'}"><b>${esc(m.nodeName || '待确认')}</b><p data-i18n-skip>${esc(m.body || '')}</p>${m.resolved ? '<small>已处理</small>' : `<div class="card-actions"><button class="btn btn-primary sm" type="button" data-decide="approve" data-run="${esc(m.runId)}" data-node="${esc(m.nodeId)}">批准</button><button class="btn sm" type="button" data-decide="reject" data-run="${esc(m.runId)}" data-node="${esc(m.nodeId)}">打回</button></div>`}</div></div>`;
     if (m.kind === 'artifact' && m.artifactId) {
       const a = artOf(m.artifactId) || { id: m.artifactId, title: m.body || '产物', kind: 'file' };
       if (isImage(a.format)) return `<figure class="cx-figure"><img class="cx-shot" alt="${esc(a.title)}" src="${rawURL(a.id)}"><figcaption><button type="button" data-artifact="${esc(a.id)}">${esc(a.title)}</button></figcaption></figure>`;
       return `<div class="msg-card"><button class="cx-card" type="button" data-artifact="${esc(m.artifactId)}"><b>${esc(a.title || m.body || '产物')}</b><small>${esc(KIND[a.kind] || '产物')} · 在侧边栏打开</small></button></div>`;
     }
-    if (m.kind === 'progress') return `<div class="cx-quiet${m.nodeStatus === 'failed' ? ' bad' : ''}">${esc(m.body)} · ${esc(timeLabel(m.at))}</div>`;
+    if (m.kind === 'progress') return `<div class="cx-quiet${m.nodeStatus === 'failed' ? ' bad' : ''}"><span data-i18n-skip>${esc(m.body)}</span> · ${esc(timeLabel(m.at))}</div>`;
     if (m.author !== 'ai') {
       const mine = m.author === S.me;
-      return `<div class="${mine ? 'cx-user' : 'cx-other'}"><div class="cx-meta">${esc(mine ? '你' : person(m.author).name)} · ${esc(timeLabel(m.at))}</div><div>${esc(m.body).replace(/\n/g, '<br>')}</div>${attachmentHTML(m)}</div>`;
+      const sender=mine?(window.lfLang?.()==='vi'?'Bạn':window.lfLang?.()==='en'?'You':'你'):person(m.author).name;
+      return `<div class="${mine ? 'cx-user' : 'cx-other'}"><div class="cx-meta"><span data-i18n-skip>${esc(sender)}</span> · ${esc(timeLabel(m.at))}</div><div data-i18n-skip>${esc(m.body).replace(/\n/g, '<br>')}</div>${attachmentHTML(m)}</div>`;
     }
     const parsed = aiBody(m);
     const body = m.aiStatus === 'failed'
       ? `<div class="msg-body">${esc(m.aiError || '回复失败')}</div>`
       : m.aiStatus === 'running'
         ? `<div data-live="${esc(m.aiSessionId || '')}">${activityHTML()}</div>`
-        : `<div class="msg-body">${typeof renderMarkdown === 'function' ? renderMarkdown(scrubPaths(parsed.message || '')) : esc(parsed.message).replace(/\n/g, '<br>')}</div>`;
+        : `<div class="msg-body" data-i18n-skip>${typeof renderMarkdown === 'function' ? renderMarkdown(scrubPaths(parsed.message || '')) : esc(parsed.message).replace(/\n/g, '<br>')}</div>`;
     const drafts = (parsed.drafts || []).map((d, i) => draftCard(d, i, m.id)).join('');
     const copy = m.aiStatus === 'running' ? '' : `<button type="button" class="cx-copy" data-copy="${esc(m.id)}">复制</button>`;
     return `<div class="cx-agent"><div class="cx-meta"><span>LoopForge</span>${copy}<time>${esc(timeLabel(m.at))}</time></div>${body}${attachmentHTML(m)}${drafts}</div>`;
@@ -291,7 +292,7 @@
     const kind = window.AgentFlowAssistant?.draftLabel?.(d.tool) || d.tool;
     const title = window.AgentFlowAssistant?.draftTitle?.(d) || d.body?.name || d.body?.title || d.tool;
     if (d.saved || d.auto) return `<section class="ai-draft ai-draft-auto"><strong>${d.saved ? '已执行' : '待执行'} · ${esc(kind)} · ${esc(title)}</strong></section>`;
-    return `<section class="ai-draft"><strong>${esc(kind)} · ${esc(title)}</strong><p>${esc(d.body?.description || d.body?.prompt || '')}</p><button class="button primary small" type="button" data-draft="${index}" data-mid="${esc(messageId)}">确认执行</button></section>`;
+    return `<section class="ai-draft"><strong>${esc(kind)} · <span data-i18n-skip>${esc(title)}</span></strong><p data-i18n-skip>${esc(d.body?.description || d.body?.prompt || '')}</p><button class="button primary small" type="button" data-draft="${index}" data-mid="${esc(messageId)}">确认执行</button></section>`;
   }
 
   function paintPanel() {

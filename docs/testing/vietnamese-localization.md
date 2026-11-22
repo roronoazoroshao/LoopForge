@@ -123,3 +123,7 @@ Fixed SSH-host removal copy: Vietnamese dialogs now describe removal in Vietname
 ### Project draft and repository deletion confirmations
 
 Localized abandoning a project draft and deleting a linked repository at the dialog source. User-provided names are preserved by `messageLocalized`, and the repository warning retains its consequences: running SOPs continue, deletion cannot be undone, and deleting the default repository leaves no default. An isolated RED/GREEN fixture checked both VI and unchanged ZH confirmation copy; full DOM/browser checks remain deferred.
+
+### Workbench raw-conversation data boundary
+
+Protected user-authored chat bodies, sender names, conversation titles, file attachment names and model-generated replies from DOM fragment replacement. UI copy stays translatable outside those data spans; the path-scrubbing placeholder is authored in Vietnamese in VI mode, with original ZH behavior retained. A source-executed RED/GREEN fixture checked original Chinese messages and file names remain unchanged and path scrubbing still strips raw filesystem paths. Full React/Web/browser tests and vendor VS Code locale remain deferred.
