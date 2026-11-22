@@ -37,7 +37,7 @@ function approvalWaitReason(run,nodeId){
   const wf=run?.workflowSnapshot||{},nodes=wf.nodes||[],edges=wf.edges||[];
   const index=nodes.findIndex(n=>n.id===nodeId);
   if(index<0)return '';
-  const node=nodes[index],name=id=>`「${nodes.find(n=>n.id===id)?.name||id}」`;
+  const node=nodes[index],name=id=>approvalVI()?`“${nodes.find(n=>n.id===id)?.name||id}”`:`「${nodes.find(n=>n.id===id)?.name||id}」`;
   let up=edges.filter(e=>e.target===nodeId&&e.source).map(e=>name(e.source));
   let down=edges.filter(e=>e.source===nodeId&&e.target).map(e=>name(e.target));
   if(!edges.length){up=index>0?[name(nodes[index-1].id)]:[];down=index+1<nodes.length?[name(nodes[index+1].id)]:[]}
@@ -406,11 +406,13 @@ function approvalSelectBoxHTML(r){
   const key=approvalKey(r.id,waitingNodeId(r)),checked=approvalSelection().has(key)?' checked':'';
   return `<label class="ap-batch-check" title="选中后可批量处理"><input type="checkbox" data-ap-select="${escapeHTML(r.id)}" data-ap-node="${escapeHTML(waitingNodeId(r))}"${checked} aria-label="选中这条待确认"></label>`;
 }
+function approvalBatchSelectedLabel(n){return approvalCopy(`已选 ${n} 条`,`Đã chọn ${n} mục`)}
+function approvalBatchAllLabel(n){return approvalCopy(`全选可审批的 ${n} 条`,`Chọn tất cả ${n} lượt đang chờ phê duyệt`)}
 function approvalBatchBarHTML(items){
   const selectable=(items||[]).filter(approvalSelectable);
   if(selectable.length<2)return '';
   const chosen=approvalSelectedRuns(items),all=chosen.length===selectable.length,disabled=chosen.length?'':' disabled';
-  return `<label class="ap-batch-check ap-batch-all"><input type="checkbox" data-ap-select-all${all?' checked':''}>全选可审批的 ${selectable.length} 条</label><span class="ap-batch-count" data-ap-batch-count>已选 ${chosen.length} 条</span><span class="ap-batch-tip">逐条执行原有审批，结果会汇总</span><span class="ap-batch-actions"><button type="button" class="button ghost small" data-ap-batch-reject${disabled}>批量退回上游</button><button type="button" class="button primary small" data-ap-batch-approve${disabled}>批量通过</button></span>`;
+  return `<label class="ap-batch-check ap-batch-all"><input type="checkbox" data-ap-select-all${all?' checked':''}>${approvalBatchAllLabel(selectable.length)}</label><span class="ap-batch-count" data-ap-batch-count>${approvalBatchSelectedLabel(chosen.length)}</span><span class="ap-batch-tip">逐条执行原有审批，结果会汇总</span><span class="ap-batch-actions"><button type="button" class="button ghost small" data-ap-batch-reject${disabled}>批量退回上游</button><button type="button" class="button primary small" data-ap-batch-approve${disabled}>批量通过</button></span>`;
 }
 function refreshApprovalBatchUI(){
   const items=state.approvalItems||[],chosen=approvalSelectedRuns(items),selectable=items.filter(approvalSelectable);
@@ -421,7 +423,7 @@ function refreshApprovalBatchUI(){
   const all=document.querySelector('#approvalBatch [data-ap-select-all]');
   if(all)all.checked=selectable.length>0&&chosen.length===selectable.length;
   const count=document.querySelector('#approvalBatch [data-ap-batch-count]');
-  if(count)count.textContent=`已选 ${chosen.length} 条`;
+  if(count)count.textContent=approvalBatchSelectedLabel(chosen.length);
   document.querySelectorAll('#approvalBatch [data-ap-batch-approve],#approvalBatch [data-ap-batch-reject]').forEach(b=>{b.disabled=!chosen.length});
 }
 async function batchApproveApprovals(){
@@ -537,9 +539,9 @@ async function renderApprovals(background=false){
     return summary;
   }))).filter(r=>r.status==='waiting');
   $('#approvalLiveState').classList.toggle('active',items.length>0);
-  const updated=$('#approvalLiveState [data-updated]');if(updated)updated.textContent=`更新于 ${new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}`;
+  const updated=$('#approvalLiveState [data-updated]');if(updated)updated.textContent=approvalCopy(`更新于 ${new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}`,`Cập nhật lúc ${new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}`);
   updateApprovalBadge();
-  $('#approvalStats').innerHTML=`<span class="issue-stat"><b>${items.length}</b> 条待确认</span>`;
+  $('#approvalStats').innerHTML=`<span class="issue-stat"><b>${items.length}</b>${approvalCopy(' 条待确认',' lượt chờ phê duyệt')}</span>`;
   state.approvalItems=items;pruneApprovalSelection(items);
   const batch=$('#approvalBatch');
   if(batch){batch.innerHTML=approvalBatchBarHTML(items);batch.hidden=!batch.innerHTML;bindApprovalBatch()}

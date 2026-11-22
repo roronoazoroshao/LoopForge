@@ -45,7 +45,7 @@ function mountSOPNotificationEditor(host,bindings,options,onChange){
  const preview=()=>{
   clearTimeout(timer);const version=++previewVersion;
   if(!details?.open||!bindings[0])return;
-  const output=host.querySelector('[data-sop-notification-preview]');output.textContent='正在更新示例…';
+  const output=host.querySelector('[data-sop-notification-preview]');output.textContent=notificationCopy('正在更新示例…','Đang cập nhật bản xem trước…');
   timer=setTimeout(async()=>{
    if(!host.isConnected||host._notificationEditorRevision!==revision)return;
    try{const result=await api('/api/notification-preview',{method:'POST',silent:true,body:JSON.stringify({projectId:options.projectId,binding:notificationPayload([bindings[0]])[0],sourceType:'run'})});
