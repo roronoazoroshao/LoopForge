@@ -4392,7 +4392,7 @@ window.LF_I18N_VI = {
   "让任务进展抵达企业微信": "Nhận tiến độ tác vụ trong WeCom",
   "选择或新建机器人，绑定单聊或群聊。随后在 SOP 设置或 AI 定时任务中选择这个 Bot。": "Chọn hoặc tạo bot và liên kết trò chuyện trực tiếp hoặc nhóm. Sau đó chọn bot trong cài đặt SOP hoặc lịch AI.",
   "暂无发送记录。Agent 节点触发通知后，会在这里展示发送状态。": "Chưa có lượt gửi. Khi bước tác tử gửi thông báo, trạng thái hiện ở đây.",
-  "例如：个人主页增加徽章，需要兼容现有成就体系。\n（Enter 换行；「开始分析」问清再建单并启动 SOP，「直接创建」跳过分析）": "Ví dụ: Thêm huy hiệu vào trang hồ sơ, tương thích thành tích hiện có.\\n(Enter để xuống dòng; “Phân tích” làm rõ trước rồi tạo mục và chạy SOP; “Tạo trực tiếp” bỏ qua phân tích)",
+  "例如：个人主页增加徽章，需要兼容现有成就体系。\n（Enter 换行；「开始分析」问清再建单并启动 SOP，「直接创建」跳过分析）": "Ví dụ: Thêm huy hiệu vào trang hồ sơ, tương thích thành tích hiện có.\n(Enter để xuống dòng; “Phân tích” làm rõ trước rồi tạo mục và chạy SOP; “Tạo trực tiếp” bỏ qua phân tích)",
   "自动完成率 = 无人工干预的成功 Run ÷ 成功 Run": "Tỷ lệ tự động hóa = lượt chạy thành công không can thiệp của con người ÷ lượt chạy thành công",
   "无人工干预的成功 Run ÷ 成功 Run": "lượt chạy thành công không can thiệp của con người ÷ lượt chạy thành công",
   "按日观察单需求 Token 消耗": "Chi phí token hằng ngày mỗi yêu cầu",
