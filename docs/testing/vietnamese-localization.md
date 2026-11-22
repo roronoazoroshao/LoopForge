@@ -71,3 +71,7 @@ Localized sandbox selection/failure messages using explicit Vietnamese arguments
 ### Canvas/SVG-only translation gap
 
 ECharts labels and tooltip content are constructed outside standard Web UI nodes; DOM-only dictionary coverage was insufficient. Source-level Vietnamese labels now cover weekdays, phase legend, tooltip labels and period names. SkillHub fixes compact number units and generated quota warnings, preserving file paths and numerical limits. Isolated generated chart options and numeric warning checks passed. Full browser rendering and automated test suite remain deferred.
+
+### Conversation Workbench, rooms, bots, composer and dashboard source audit
+
+Localized Workbench relative-time labels, dynamic room SOP dispatch prompts, rework modal, bot test delivery and project names, TAPD creation feedback, issue owner fallback and option counts, and dashboard health metrics. Protected names and external IDs from second-pass DOM mutation in prelocalized messages. Isolated function checks passed; full runner/browser checks remain deferred.

@@ -1,3 +1,5 @@
+function roomsVI(){return window.lfLang?.()==='vi'}
+function roomsCopy(zh,vi){return roomsVI()?vi:zh}
 let roomsPollTimer = 0;
 
 function roomProjectId() {
@@ -123,14 +125,15 @@ function syncRoomComposer() {
   const picked = roomTargetPicked();
   const dispatch = $('#roomDispatch');
   if (dispatch) {
-    dispatch.textContent = !picked ? '建单并派发' : rs.sops.length > 1 ? `建单并派发 ${rs.sops.length} 条 SOP` : '建单并派发';
+    dispatch.textContent = !picked ? roomsCopy('建单并派发','Tạo yêu cầu và điều phối') : rs.sops.length > 1 ? roomsCopy(`建单并派发 ${rs.sops.length} 条 SOP`,`Tạo yêu cầu và điều phối ${rs.sops.length} SOP`) : roomsCopy('建单并派发','Tạo yêu cầu và điều phối');
     dispatch.title = picked ? '第一行作为 Issue 标题，其余作为描述' : '先选一条 SOP';
   }
   const hint = $('#roomTargetHint');
   if (hint) {
+    if(roomsVI())hint.setAttribute('data-i18n-skip','');else hint.removeAttribute('data-i18n-skip');
     hint.textContent = !picked
-      ? '选择一条或多条 SOP。第一行是标题，回车建单。'
-      : (rs.sops.length > 1 ? `回车将并行派给 ${rs.sops.length} 条 SOP。` : `回车将建单并派给 SOP「${names.get(rs.sops[0])}」。`);
+      ? roomsCopy('选择一条或多条 SOP。第一行是标题，回车建单。','Chọn một hoặc nhiều SOP. Dòng đầu là tiêu đề; nhấn Enter để tạo yêu cầu.')
+      : (rs.sops.length > 1 ? roomsCopy(`回车将并行派给 ${rs.sops.length} 条 SOP。`,`Nhấn Enter để điều phối song song ${rs.sops.length} SOP.`) : roomsCopy(`回车将建单并派给 SOP「${names.get(rs.sops[0])}」。`,`Nhấn Enter để tạo yêu cầu và điều phối cho SOP “${names.get(rs.sops[0])}”.`));
   }
   $('#roomSend')?.classList.toggle('ready', !!input?.value.trim());
   document.querySelectorAll('[data-room-pick]').forEach(button => {
@@ -607,7 +610,7 @@ async function decideRoomStep(action, runId, nodeId, name) {
   if (!id) return;
   let reason = '';
   if (action === 'reject') {
-    reason = await afPrompt({title: '打回「' + name + '」', message: '说明要改什么，会带给被打回的步骤。', label: '打回原因', placeholder: '例如：边界情况没覆盖', confirmText: '打回'});
+    reason = await afPrompt({title: roomsCopy('打回「' + name + '」','Trả lại “' + name + '”'), titleLocalized:roomsVI(), message: roomsCopy('说明要改什么，会带给被打回的步骤。','Nêu phần cần sửa; nội dung sẽ được gửi cho bước bị trả lại.'), label:roomsCopy('打回原因','Lý do trả lại'), placeholder:roomsCopy('例如：边界情况没覆盖','Ví dụ: chưa bao quát trường hợp biên'), confirmText:roomsCopy('打回','Trả lại')});
     if (reason == null) return;
   }
   try {

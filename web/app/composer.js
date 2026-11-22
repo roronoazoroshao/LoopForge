@@ -382,7 +382,7 @@ async function pushIssueToTAPDFromDetail(issueId){
     if(!projectTAPDReady((state.data.projects||[]).find(p=>p.id===current.projectId)))return toast('当前项目未配置 TAPD，无法同步');
     const updated=await pushExistingIssueToTAPD(current);
     renderIssues();
-    toast(`已在 TAPD 创建需求 ${updated.externalRef?.externalId||''}`,'ok');
+    toast(window.lfLang?.()==='vi'?`Đã tạo yêu cầu TAPD ${updated.externalRef?.externalId||''}`:`已在 TAPD 创建需求 ${updated.externalRef?.externalId||''}`,'ok',2600,window.lfLang?.()==='vi');
     if(state.drawerOpen)openIssueDetail(updated.id);
   }catch(e){toast(e.message,'err')}
 }
@@ -429,7 +429,7 @@ async function createIssueFromChat(target,mode){
     resetRequirementComposer();
     renderIssues();
     if(syncError)toast('已在平台建单，TAPD 同步失败：'+syncError,'err');
-    else if(target==='tapd')toast(`已创建需求并同步 TAPD ${issue.externalRef?.externalId||''}`,'ok');
+    else if(target==='tapd')toast(window.lfLang?.()==='vi'?`Đã tạo yêu cầu và đồng bộ TAPD ${issue.externalRef?.externalId||''}`:`已创建需求并同步 TAPD ${issue.externalRef?.externalId||''}`,'ok',2600,window.lfLang?.()==='vi');
     else toast(toChat?'已创建需求，在对话里继续澄清':(useSOP?'已在平台创建需求，可在详情里触发 SOP':'已创建需求（不使用 SOP）'),'ok');
     if(toChat)openIssueInChat(issue);
     else openIssueDetail(issue.id);

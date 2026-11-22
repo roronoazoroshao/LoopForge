@@ -68,7 +68,7 @@ function renderIssueAssigneeFilter(projectIssues=[]){
       const uid=String(i.assigneeUserId);
       if(!userMap.has(uid)){
         const u=userById(i.assigneeUserId);
-        userMap.set(uid, u?userDisplay(u):`用户 ${uid}`);
+        userMap.set(uid, u?userDisplay(u):window.lfLang?.()==='vi'?`Người dùng ${uid}`:`用户 ${uid}`);
       }
     }else if(i.assigneeId&&i.assigneeType==='agent'){
       const aid=String(i.assigneeId);
@@ -83,11 +83,11 @@ function renderIssueAssigneeFilter(projectIssues=[]){
       const key=String(uid);
       if(userMap.has(key))return;
       const u=userById(uid);
-      userMap.set(key, u?userDisplay(u):`用户 ${key}`);
+      userMap.set(key, u?userDisplay(u):window.lfLang?.()==='vi'?`Người dùng ${key}`:`用户 ${key}`);
     });
   });
   const owns=(i,id)=>String(i.assigneeUserId)===id||String(i.assigneeId)===id||(i.sopBindings||[]).some(b=>String(b.assigneeUserId)===id);
-  const meta=n=>n?` data-meta="${n} 条"`:'';
+  const meta=n=>n?` data-meta="${window.lfLang?.()==='vi'?`${n} mục`:`${n} 条`}"`:'';
   const unassigned=projectIssues.filter(i=>!i.assigneeUserId&&!i.assigneeId&&!(i.sopBindings||[]).some(b=>b.assigneeUserId)).length;
   let html=`<option value="">全部责任人</option><option value="unassigned"${meta(unassigned)}${current==='unassigned'?' selected':''}>未指定责任人</option>`;
   for(const [id, label] of userMap.entries()){

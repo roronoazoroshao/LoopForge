@@ -3,6 +3,7 @@
 // session, live progress and draft cards.
 (() => {
   const MODE_KEY = 'agentflow.assistantApprovalMode';
+  const wbCopy = (zh,vi) => window.lfLang?.()==='vi'?vi:zh;
   const MODES = [
     { id: 'confirm', name: '先问我', desc: '执行前先让你确认' },
     { id: 'assisted', name: '帮我批准', desc: '低风险的写入直接做，重要操作仍会问你' },
@@ -18,7 +19,7 @@
   const statusLabel = s => STATUS[s] || s || '';
   const closed = s => s === 'done' || s === 'closed' || s === 'cancelled';
   const tone = s => s === 'in_progress' ? 'live' : (s === 'in_review' || s === 'blocked' ? 'wait' : (s === 'done' ? 'done' : (s === 'closed' || s === 'cancelled' ? 'stop' : 'idle')));
-  const timeLabel = at => { const d = new Date(at); if (Number.isNaN(d.getTime())) return ''; const diff = Date.now() - d.getTime(); if (diff < 60000) return '刚刚'; if (diff < 3600000) return Math.floor(diff / 60000) + ' 分钟前'; if (diff < 86400000) return Math.floor(diff / 3600000) + ' 小时前'; return (d.getMonth() + 1) + '/' + d.getDate(); };
+  const timeLabel = at => { const d = new Date(at); if (Number.isNaN(d.getTime())) return ''; const diff = Date.now() - d.getTime(); if (diff < 60000) return wbCopy('刚刚','Vừa xong'); if (diff < 3600000) return Math.floor(diff / 60000) + wbCopy(' 分钟前',' phút trước'); if (diff < 86400000) return Math.floor(diff / 3600000) + wbCopy(' 小时前',' giờ trước'); return (d.getMonth() + 1) + '/' + d.getDate(); };
   const sessionKey = id => 'lf.space.ai.' + id;
   const draftKey = id => 'lf.draft.' + id;
 
@@ -35,7 +36,7 @@
   const send = (method, path, body) => req(path, { method, body: body === undefined ? undefined : JSON.stringify(body) });
 
   const S = {
-    spaces: [], people: {}, me: 'u:0', meName: '我', projects: [], activeId: '',
+    spaces: [], people: {}, me: 'u:0', meName: wbCopy('我','Tôi'), projects: [], activeId: '',
     sidebar: true, panel: false, panelView: { type: 'overview' }, slide: 0,
     booting: true, error: '', toast: '', dialog: null, catalog: null,
     model: localStorage.getItem('lf.workbench.model') || '',
@@ -81,7 +82,7 @@
     try {
       const me = await req('/api/auth/current');
       const u = me.user || {};
-      S.me = pid(u.id); S.meName = u.chineseName || u.loginName || '我';
+      S.me = pid(u.id); S.meName = u.chineseName || u.loginName || wbCopy('我','Tôi');
       S.people[S.me] = { id: S.me, name: S.meName };
       S.projects = await req('/api/projects');
       const lists = await Promise.all(S.projects.slice(0, 20).map(async p => {
