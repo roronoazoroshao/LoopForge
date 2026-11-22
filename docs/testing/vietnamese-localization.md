@@ -179,3 +179,7 @@ Mention category and hint copy now uses explicit VI metadata while retaining sta
 ### Static HTML coverage audit
 
 Reviewed static Chinese text nodes and attributes in the five standalone Web HTML pages through the actual i18n translator. Added exact Vietnamese/English coverage for canvas zoom/minimap tooltips, sandbox/discard hints, a shared-task parameter guide and the TAPD work-item placeholder. The language switch label `中文 / English / Tiếng Việt` intentionally remains multilingual. The audit only covers authored HTML literals, not dynamic rendering or browser behavior.
+
+### MCP JSON import validation
+
+Localized all importer-generated error explanations in the Vietnamese branch without rewriting field names, technical IDs, transport codes, user-supplied values, or credentials. Imported MCP names/descriptions and source-project names in cards are protected against the DOM translator. Selection prompts and import-result messages are composed before rendering. RED/GREEN isolated checks covered invalid maps, URL requirements, unchanged ZH errors and preserved headers; full repo test runner remains deferred.
