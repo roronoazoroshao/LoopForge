@@ -1,3 +1,4 @@
+import { chatT } from "./locale";
 import React, {
   createContext,
   useContext,
@@ -58,7 +59,7 @@ export function download(name, content, type = "text/plain") {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-export function CopyButton({ value, label = "复制", className = "" }) {
+export function CopyButton({ value, label = chatT("复制", "Sao chép"), className = "" }) {
   const [copied, setCopied] = useState(false);
   async function copy() {
     try {
@@ -82,8 +83,8 @@ export function CopyButton({ value, label = "复制", className = "" }) {
     <button
       className={`icon-button ${className}`}
       type="button"
-      aria-label={copied ? "已复制" : label}
-      title={copied ? "已复制" : label}
+      aria-label={copied ? chatT("已复制", "Đã sao chép") : label}
+      title={copied ? chatT("已复制", "Đã sao chép") : label}
       onClick={copy}
     >
       {copied ? <Check size={15} /> : <Copy size={15} />}
@@ -122,7 +123,7 @@ export function Diagram({ source }) {
         if (current)
           setResult({
             svg: "",
-            error: "图表语法需要调整，原始定义保留在下方。",
+            error: chatT("图表语法需要调整，原始定义保留在下方。", "Cần điều chỉnh cú pháp sơ đồ; định nghĩa gốc được giữ bên dưới."),
           });
       }
     })();
@@ -134,7 +135,7 @@ export function Diagram({ source }) {
     <div className="diagram" dangerouslySetInnerHTML={{ __html: result.svg }} />
   ) : (
     <div className="diagram-loading">
-      {result.error || "正在绘制图表…"}
+      {result.error || chatT("正在绘制图表…", "Đang vẽ sơ đồ…")}
       {result.error ? <pre>{source}</pre> : null}
     </div>
   );
@@ -149,7 +150,7 @@ export function Slides({ source }) {
     <div className="slides">
       <div
         className={`slide ${currentPage === 0 ? "slide-cover" : ""}`}
-        aria-label={`幻灯片 ${currentPage + 1}`}
+        aria-label={chatT(`幻灯片 ${currentPage + 1}`, `Trang chiếu ${currentPage + 1}`)}
       >
         <div className="slide-eyebrow">{presentationTitle(source)}</div>
         <Markdown remarkPlugins={[remarkGfm]}>{slides[currentPage]}</Markdown>
@@ -162,7 +163,7 @@ export function Slides({ source }) {
           disabled={!currentPage}
           onClick={() => setPage(currentPage - 1)}
         >
-          上一页
+          {chatT("上一页", "Trang trước")}
         </button>
         <span>
           {currentPage + 1} / {slides.length}
@@ -171,7 +172,7 @@ export function Slides({ source }) {
           disabled={currentPage === slides.length - 1}
           onClick={() => setPage(currentPage + 1)}
         >
-          下一页
+          {chatT("下一页", "Trang sau")}
         </button>
         <button
           className="slide-export"
@@ -182,14 +183,14 @@ export function Slides({ source }) {
             try {
               await exportPresentation(source);
             } catch {
-              setError("PPT 导出失败，请重试；内容已保留。");
+              setError(chatT("PPT 导出失败，请重试；内容已保留。", "Xuất PPT thất bại, hãy thử lại; nội dung đã được giữ."));
             } finally {
               setExporting(false);
             }
           }}
         >
           <Download size={14} />
-          {exporting ? "正在导出…" : "下载 PowerPoint"}
+          {exporting ? chatT("正在导出…", "Đang xuất…") : chatT("下载 PowerPoint", "Tải PowerPoint")}
         </button>
       </div>
       {error ? (
@@ -208,14 +209,14 @@ export function CodeBlock({ language, source }) {
   return (
     <div className="code-block">
       <div className="code-toolbar">
-        <span>{language || "文本"}</span>
+        <span>{language || chatT("文本", "Văn bản")}</span>
         <div>
           {visual ? (
             <button onClick={() => setPreview(!preview)}>
-              {preview ? "查看源码" : "预览"}
+              {preview ? chatT("查看源码", "Xem mã nguồn") : chatT("预览", "Xem trước")}
             </button>
           ) : null}
-          <CopyButton value={source} label="复制代码" />
+          <CopyButton value={source} label={chatT("复制代码", "Sao chép mã")} />
         </div>
       </div>
       {preview && language === "svg" ? (
@@ -227,7 +228,7 @@ export function CodeBlock({ language, source }) {
         <Diagram source={source} />
       ) : preview && language === "html" ? (
         <iframe
-          title="HTML 产物预览"
+          title={chatT("HTML 产物预览", "Xem trước đầu ra HTML")}
           className="html-preview"
           sandbox="allow-scripts"
           key={source}
@@ -262,7 +263,7 @@ function AgentBrowserLink({ target, open, children }) {
       <button
         type="button"
         className="agent-browser-link"
-        title={`在 Agent 浏览器中打开 ${target}`}
+        title={chatT(`在 Agent 浏览器中打开 ${target}`, `Mở ${target} trong trình duyệt tác tử`)}
         onClick={() => open(target)}
       >
         {children}
@@ -337,10 +338,10 @@ const markdownComponents = {
   },
   img: ({ src, alt }) =>
     src?.startsWith("/api/assistant/attachments/") ? (
-      <ZoomableImage src={src} alt={alt || "图片"} />
+      <ZoomableImage src={src} alt={alt || chatT("图片", "Hình ảnh")} />
     ) : (
       <span className="unavailable-image">
-        {alt || "图片"} · 请在产物中查看
+        {alt || chatT("图片", "Hình ảnh")} · {chatT("请在产物中查看", "Vui lòng xem trong sản phẩm đầu ra")}
       </span>
     ),
   table: ({ children }) => (
@@ -382,14 +383,14 @@ export function ImageLightbox({ src, alt, onClose }) {
       className="image-lightbox"
       role="dialog"
       aria-modal="true"
-      aria-label={`查看大图 ${alt || ""}`}
+      aria-label={chatT(`查看大图 ${alt || ""}`, `Xem ảnh lớn ${alt || ""}`)}
       onClick={onClose}
     >
       <img src={src} alt={alt} onClick={(e) => e.stopPropagation()} />
       <button
         type="button"
         className="icon-button image-lightbox-close"
-        aria-label="关闭大图"
+        aria-label={chatT("关闭大图", "Đóng ảnh lớn")}
         onClick={onClose}
       >
         <X size={18} />
@@ -407,7 +408,7 @@ export function ZoomableImage({ src, alt, className }) {
         className={className}
         src={src}
         alt={alt}
-        title="双击查看大图"
+        title={chatT("双击查看大图", "Nhấp đúp để xem ảnh lớn")}
         onDoubleClick={() => setZoom(true)}
       />
       {zoom ? (
@@ -463,7 +464,7 @@ export function Attachment({ attachment, sessionId, onOpen }) {
         // The card shows no caption, so the hover title names the file.
         title={
           image
-            ? `${attachment.name}\n${failed ? "单击在产物栏打开" : "单击查看大图"}`
+            ? `${attachment.name}\n${failed ? chatT("单击在产物栏打开", "Nhấp để mở trong thanh đầu ra") : chatT("单击查看大图", "Nhấp để xem ảnh lớn")}`
             : undefined
         }
         onClick={(e) => {
@@ -497,18 +498,18 @@ export function Attachment({ attachment, sessionId, onOpen }) {
             {shown === "loading" ? (
               <span className="message-image-placeholder">
                 <Spinner size={22} motion="busy" />
-                <span className="message-image-hidden-label">图片加载中</span>
+                <span className="message-image-hidden-label">{chatT("图片加载中", "Đang tải hình ảnh")}</span>
               </span>
             ) : null}
             {failed ? (
               <span className="message-image-placeholder">
                 <ImageOff size={22} />
-                <span>图片加载失败</span>
+                <span>{chatT("图片加载失败", "Tải hình ảnh thất bại")}</span>
                 <span
                   className="message-image-retry"
                   role="button"
                   tabIndex={0}
-                  aria-label="重试加载图片"
+                  aria-label={chatT("重试加载图片", "Thử tải lại hình ảnh")}
                   onClick={retry}
                   onDoubleClick={(e) => e.stopPropagation()}
                   onKeyDown={(e) => {
@@ -516,7 +517,7 @@ export function Attachment({ attachment, sessionId, onOpen }) {
                   }}
                 >
                   <Refresh size={14} />
-                  <span>重试</span>
+                  <span>{chatT("重试", "Thử lại")}</span>
                 </span>
               </span>
             ) : null}
@@ -571,7 +572,7 @@ export function ArtifactPreview({ artifact }) {
         );
         setText(new TextDecoder().decode(bytes));
       } catch {
-        setError("文件读取失败");
+        setError(chatT("文件读取失败", "Đọc tệp thất bại"));
       }
       return () => {
         current = false;
@@ -580,7 +581,7 @@ export function ArtifactPreview({ artifact }) {
     if (artifact?.url && readable)
       fetch(artifact.url)
         .then((r) => {
-          if (!r.ok) throw Error("文件读取失败");
+          if (!r.ok) throw Error(chatT("文件读取失败", "Đọc tệp thất bại"));
           return r.text();
         })
         .then((value) => {
@@ -616,11 +617,11 @@ export function ArtifactPreview({ artifact }) {
             ) : null}
           </div>
         </div>
-        <div className="artifact-preview-toolbar" aria-label="产物工具栏">
+        <div className="artifact-preview-toolbar" aria-label={chatT("产物工具栏", "Thanh công cụ đầu ra")}>
           {canPreview ? (
             <SlidingTabs
               className="artifact-preview-view-options"
-              aria-label="产物显示方式"
+              aria-label={chatT("产物显示方式", "Chế độ hiển thị đầu ra")}
             >
               <button
                 type="button"
@@ -629,7 +630,7 @@ export function ArtifactPreview({ artifact }) {
                 aria-selected={mode === "preview"}
                 onClick={() => setMode("preview")}
               >
-                预览
+                {chatT("预览", "Xem trước")}
               </button>
               <button
                 type="button"
@@ -638,27 +639,27 @@ export function ArtifactPreview({ artifact }) {
                 aria-selected={mode === "source"}
                 onClick={() => setMode("source")}
               >
-                源码
+                {chatT("源码", "Mã nguồn")}
               </button>
             </SlidingTabs>
           ) : null}
           <div
             className="artifact-preview-actions"
             role="group"
-            aria-label="产物操作"
+            aria-label={chatT("产物操作", "Thao tác đầu ra")}
           >
             {hasSource ? (
               <CopyButton
                 className="artifact-preview-icon-action"
                 value={source}
-                label="复制正文"
+                label={chatT("复制正文", "Sao chép nội dung")}
               />
             ) : null}
             {artifact.url ? (
               <a
                 className="icon-button artifact-preview-icon-action"
-                aria-label="下载文件"
-                title="下载文件"
+                aria-label={chatT("下载文件", "Tải tệp xuống")}
+                title={chatT("下载文件", "Tải tệp xuống")}
                 href={artifact.url}
                 download={artifact.name}
               >
@@ -668,8 +669,8 @@ export function ArtifactPreview({ artifact }) {
               <button
                 type="button"
                 className="icon-button artifact-preview-icon-action"
-                aria-label="下载文件"
-                title="下载文件"
+                aria-label={chatT("下载文件", "Tải tệp xuống")}
+                title={chatT("下载文件", "Tải tệp xuống")}
                 onClick={() =>
                   ["slides", "ppt"].includes(artifact.kind)
                     ? exportPresentation(source)
@@ -708,7 +709,7 @@ export function ArtifactPreview({ artifact }) {
           <Diagram source={source} />
         ) : kind === "html" ? (
           <iframe
-            title="HTML 产物预览"
+            title={chatT("HTML 产物预览", "Xem trước đầu ra HTML")}
             className="html-preview"
             sandbox="allow-scripts"
             key={source}
@@ -723,11 +724,11 @@ export function ArtifactPreview({ artifact }) {
         ) : ["slides", "ppt"].includes(artifact.kind) ? (
           <Slides source={source} />
         ) : artifact.url && !readable ? (
-          <p className="muted">此类型文件可通过右上角下载查看。</p>
+          <p className="muted">{chatT("此类型文件可通过右上角下载查看。", "Có thể tải loại tệp này ở góc trên bên phải để xem.")}</p>
         ) : isMarkdown ? (
           <RichContent message={source} />
         ) : (
-          <pre className="artifact-source">{source || "正在加载…"}</pre>
+          <pre className="artifact-source">{source || chatT("正在加载…", "Đang tải…")}</pre>
         )}
       </div>
     </article>

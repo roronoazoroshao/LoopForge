@@ -1,3 +1,4 @@
+import { chatT } from "./locale";
 import React, { useEffect, useState } from "react";
 import HarnessIcon from "./HarnessIcon";
 import SlidingTabs from "./SlidingTabs";
@@ -162,19 +163,19 @@ export function DraftCard({
               : ""}
             {declined
               ? draft.decision === "muted"
-                ? "未采纳，本会话不再建议"
+                ? chatT("未采纳，本会话不再建议", "Không chấp nhận, không đề xuất lại trong cuộc trò chuyện này")
                 : draft.decision === "expired"
-                  ? "已超时"
-                  : "未采纳"
+                  ? chatT("已超时", "Đã hết thời gian")
+                  : chatT("未采纳", "Không chấp nhận")
               : draft.saved
-              ? "已执行"
+              ? chatT("已执行", "Đã thực thi")
               : draft.resolved
-                ? "已完成"
+                ? chatT("已完成", "Đã hoàn tất")
                 : draft.inherited
-                  ? "继承的历史记录"
+                  ? chatT("继承的历史记录", "Bản ghi lịch sử kế thừa")
                   : draft.proposal
-                    ? "AI 助手的建议"
-                    : "待确认"}
+                    ? chatT("AI 助手的建议", "Đề xuất của trợ lý AI")
+                    : chatT("待确认", "Chờ xác nhận")}
           </small>
         </span>
         {target ? <ExternalLink size={16} /> : <ChevronRight size={16} />}
@@ -183,20 +184,20 @@ export function DraftCard({
         {draft.proposal?.reason ? (
           <p className="proposal-reason">
             {draft.proposal.timing !== "start"
-              ? "可选的后续工作"
-              : "建议整件事走 SOP"}
+              ? chatT("可选的后续工作", "Công việc tiếp theo tùy chọn")
+              : chatT("建议整件事走 SOP", "Đề xuất thực hiện toàn bộ công việc qua SOP")}
             ：{draft.proposal.reason}
           </p>
         ) : null}
         {remaining !== null ? (
           <p className="proposal-countdown" role="timer">
             {remaining > 0
-              ? `${formatCountdown(remaining)} 后未确认，AI 助手将直接执行`
-              : "已超时，AI 助手即将直接执行"}
+              ? chatT(`${formatCountdown(remaining)} 后未确认，AI 助手将直接执行`, `Sau ${formatCountdown(remaining)} nếu chưa xác nhận, trợ lý AI sẽ trực tiếp thực thi`)
+              : chatT("已超时，AI 助手即将直接执行", "Đã hết thời gian, trợ lý AI sắp trực tiếp thực thi")}
           </p>
         ) : null}
         {draft.review ? (
-          <p className="muted">帮我批准 · {draft.review.model || "AI 审查"}：{draft.review.rationale}</p>
+          <p className="muted">{chatT("帮我批准 ·", "Phê duyệt thay tôi ·")} {draft.review.model || chatT("AI 审查", "AI rà soát")}：{draft.review.rationale}</p>
         ) : null}
         <p>{summary.effect}</p>
         {summary.fields.length ? (
@@ -211,7 +212,7 @@ export function DraftCard({
         ) : null}
         {isImport ? (
           <fieldset className="operation-repositories">
-            <legend>关联代码仓库（必选）</legend>
+            <legend>{chatT("关联代码仓库（必选）", "Liên kết kho mã (bắt buộc)")}</legend>
             {repositories.map((repository) => (
               <label key={repository.id}>
                 <input
@@ -237,9 +238,9 @@ export function DraftCard({
             {!repositories.length ? (
               <p className="muted">
                 {loadingRepositories
-                  ? "正在读取代码仓库…"
+                  ? chatT("正在读取代码仓库…", "Đang đọc kho mã…")
                   : repositoryError ||
-                    "尚无可选仓库，请检查目标项目的仓库配置。"}
+                    chatT("尚无可选仓库，请检查目标项目的仓库配置。", "Chưa có kho mã để chọn, kiểm tra cấu hình kho mã của dự án đích.")}
               </p>
             ) : null}
           </fieldset>
@@ -250,7 +251,7 @@ export function DraftCard({
           </p>
         ) : null}
         <details className="operation-parameters">
-          <summary>查看完整操作参数</summary>
+          <summary>{chatT("查看完整操作参数", "Xem tham số thao tác đầy đủ")}</summary>
           <pre className="artifact-source">
             {JSON.stringify(
               {
@@ -278,7 +279,7 @@ export function DraftCard({
       {error ? <p className="error">{error}</p> : null}
       {draft.decision === "expired" && !draft.inherited ? (
         <button type="button" className="quiet-button" disabled>
-          已超时，AI 助手直接执行
+          {chatT("已超时，AI 助手直接执行", "Đã hết thời gian, trợ lý AI trực tiếp thực thi")}
         </button>
       ) : null}
       {!draft.inherited && !target && onApply && !declined ? (
@@ -309,18 +310,18 @@ export function DraftCard({
           }}
         >
           {draft.resolved ? (
-            "已完成"
+            chatT("已完成", "Đã hoàn tất")
           ) : draft.saved ? (
             <>
               <Check size={14} />
-              已执行
+              {chatT("已执行", "Đã thực thi")}
             </>
           ) : busy ? (
-            "执行中…"
+            chatT("执行中…", "Đang thực thi…")
           ) : draft.proposal ? (
-            draft.tool === "issues_save" ? "建需求并走 SOP" : "走 SOP"
+            draft.tool === "issues_save" ? chatT("建需求并走 SOP", "Tạo yêu cầu và chạy SOP") : chatT("走 SOP", "Chạy SOP")
           ) : (
-            `确认${summary.title}`
+            chatT(`确认${summary.title}`, `Xác nhận ${summary.title}`)
           )}
         </button>
       ) : null}
@@ -332,7 +333,7 @@ export function DraftCard({
             disabled={busy}
             onClick={() => decide("declined")}
           >
-            {draft.proposal.timing === "start" ? "让 AI 助手自己做" : "不需要"}
+            {draft.proposal.timing === "start" ? chatT("让 AI 助手自己做", "Để trợ lý AI tự làm") : chatT("不需要", "Không cần")}
           </button>
           <button
             type="button"
@@ -340,7 +341,7 @@ export function DraftCard({
             disabled={busy}
             onClick={() => decide("muted")}
           >
-            本会话不再建议
+            {chatT("本会话不再建议", "Không đề xuất lại trong cuộc trò chuyện này")}
           </button>
         </div>
       ) : null}
@@ -362,8 +363,8 @@ export function DraftCard({
           }}
         >
           {context.issueId === savedIssue.id
-            ? "已关联到当前会话"
-            : "关联到当前会话"}
+            ? chatT("已关联到当前会话", "Đã liên kết với cuộc trò chuyện hiện tại")
+            : chatT("关联到当前会话", "Liên kết với cuộc trò chuyện hiện tại")}
         </button>
       ) : null}
     </div>
@@ -430,11 +431,11 @@ export default function SidePanel({
   async function action(kind) {
     setError("");
     if (!projectId) {
-      setError("请先点右上角的项目名称选择或绑定项目。");
+      setError(chatT("请先点右上角的项目名称选择或绑定项目。", "Trước tiên nhấp tên dự án ở góc trên bên phải để chọn hoặc liên kết dự án."));
       return;
     }
     if (!workflowId || !name.trim()) {
-      setError("请填写名称并选择流程模板。");
+      setError(chatT("请填写名称并选择流程模板。", "Vui lòng điền tên và chọn mẫu quy trình."));
       return;
     }
     setBusy(true);
@@ -458,7 +459,7 @@ export default function SidePanel({
           throw Error(
             response.error?.message ||
               response.result?.content?.[0]?.text ||
-              "创建失败",
+              chatT("创建失败", "Tạo thất bại"),
           );
         setWorkflowId(id);
       } else {
@@ -482,14 +483,14 @@ export default function SidePanel({
     }
   }
   const status = {
-    succeeded: "已完成",
-    running: "进行中",
-    waiting: "等待审批",
-    pending: "排队中",
-    queued: "排队中",
-    failed: "失败",
-    canceled: "已取消",
-    cancelled: "已取消",
+    succeeded: chatT("已完成", "Đã hoàn tất"),
+    running: chatT("进行中", "Đang thực hiện"),
+    waiting: chatT("等待审批", "Chờ phê duyệt"),
+    pending: chatT("排队中", "Đang xếp hàng"),
+    queued: chatT("排队中", "Đang xếp hàng"),
+    failed: chatT("失败", "Thất bại"),
+    canceled: chatT("已取消", "Đã hủy"),
+    cancelled: chatT("已取消", "Đã hủy"),
   };
   async function selectRun(run) {
     try {
@@ -500,9 +501,9 @@ export default function SidePanel({
     }
   }
   return (
-    <aside className="side-panel" aria-label="产物与 SOP">
+    <aside className="side-panel" aria-label={chatT("产物与 SOP", "Sản phẩm đầu ra và SOP")}>
       <header className="panel-tabs">
-        <SlidingTabs aria-label="右侧面板">
+        <SlidingTabs aria-label={chatT("右侧面板", "Bảng bên phải")}>
           <button
             role="tab"
             aria-selected={tab === "files"}
@@ -512,7 +513,7 @@ export default function SidePanel({
             }}
           >
             <Folder size={14} />
-            产物
+            {chatT("产物", "Sản phẩm đầu ra")}
             {artifacts.length ? (
               <span className="count">{artifacts.length}</span>
             ) : null}
@@ -529,7 +530,7 @@ export default function SidePanel({
             SOP
           </button>
         </SlidingTabs>
-        <IconButton label="关闭侧边栏" onClick={onClose}>
+        <IconButton label={chatT("关闭侧边栏", "Đóng thanh bên")} onClick={onClose}>
           <X size={17} />
         </IconButton>
       </header>
@@ -537,7 +538,7 @@ export default function SidePanel({
         {selected ? (
           <>
             <button className="back-link" onClick={() => setSelected(null)}>
-              ← 所有产物
+              {chatT("← 所有产物", "← Mọi sản phẩm đầu ra")}
             </button>
             <ArtifactPreview artifact={selected} />
             {selected.draft ? (
@@ -551,16 +552,16 @@ export default function SidePanel({
         ) : tab === "files" ? (
           <>
             <div className="panel-heading">
-              <h2>会话产物</h2>
+              <h2>{chatT("会话产物", "Sản phẩm đầu ra cuộc trò chuyện")}</h2>
               <small>
                 {chat.projects.find((p) => p.id === projectId)?.name ||
-                  "个人对话"}
+                  chatT("个人对话", "Cuộc trò chuyện cá nhân")}
               </small>
             </div>
             {!artifacts.length ? (
               <div className="panel-empty">
                 <File size={28} />
-                <h3>产物会显示在这里</h3>
+                <h3>{chatT("产物会显示在这里", "Sản phẩm đầu ra sẽ xuất hiện tại đây")}</h3>
                 <p>
                   对话中的图片、文件、图表、代码和 SOP
                   草稿会自动汇集，点击即可查看。
@@ -600,40 +601,40 @@ export default function SidePanel({
           <>
             <div className="panel-heading">
               <h2>SOP</h2>
-              <IconButton label="刷新 SOP 与运行" onClick={() => void load()}>
+              <IconButton label={chatT("刷新 SOP 与运行", "Làm mới SOP và lượt chạy")} onClick={() => void load()}>
                 <RefreshCw size={16} />
               </IconButton>
             </div>
             <label className="field">
-              项目
+              {chatT("项目", "Dự án")}
               <div className="project-static">
                 <Folder size={14} />
                 {chat.projects.find((p) => p.id === projectId)?.name ||
-                  "尚未绑定项目"}
+                  chatT("尚未绑定项目", "Chưa liên kết dự án")}
               </div>
             </label>
             <label className="field">
-              名称
+              {chatT("名称", "Tên")}
               <input
-                placeholder="新流程或这次要做的事"
+                placeholder={chatT("新流程或这次要做的事", "Quy trình mới hoặc việc cần làm lần này")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
             </label>
             <label className="field">
-              说明
+              {chatT("说明", "Mô tả")}
               <textarea
                 rows={3}
-                placeholder="派发时会成为需求说明"
+                placeholder={chatT("派发时会成为需求说明", "Sẽ trở thành mô tả yêu cầu khi điều phối")}
                 value={detail}
                 onChange={(e) => setDetail(e.target.value)}
               />
             </label>
             <label className="field">
-              流程模板
+              {chatT("流程模板", "Mẫu quy trình")}
               <HarnessSelect
                 value={workflowId}
-                ariaLabel="流程模板"
+                ariaLabel={chatT("流程模板", "Mẫu quy trình")}
                 onChange={(e) => setWorkflowId(e.target.value)}
                 options={workflows.map((w) => ({ value: w.id, label: w.name }))}
               />
@@ -646,7 +647,7 @@ export default function SidePanel({
                     id: "workflow-" + workflowId,
                     name:
                       workflows.find((w) => w.id === workflowId)?.name ||
-                      "SOP 定义",
+                      chatT("SOP 定义", "Định nghĩa SOP"),
                     kind: "sop",
                     content: JSON.stringify(
                       workflows.find((w) => w.id === workflowId),
@@ -658,7 +659,7 @@ export default function SidePanel({
                 }
               >
                 <ChevronRight size={14} />
-                查看 SOP 定义
+                {chatT("查看 SOP 定义", "Xem định nghĩa SOP")}
               </button>
             ) : null}
             <div className="button-row">
@@ -667,7 +668,7 @@ export default function SidePanel({
                 className="quiet-button"
                 onClick={() => action("clone")}
               >
-                创建 SOP
+                {chatT("创建 SOP", "Tạo SOP")}
               </button>
               <button
                 disabled={busy}
@@ -675,7 +676,7 @@ export default function SidePanel({
                 onClick={() => action("dispatch")}
               >
                 <Play size={13} />
-                {busy ? "处理中…" : "派发 SOP"}
+                {busy ? chatT("处理中…", "Đang xử lý…") : chatT("派发 SOP", "Điều phối SOP")}
               </button>
             </div>
             {error ? (
@@ -684,7 +685,7 @@ export default function SidePanel({
               </p>
             ) : null}
             <section className="panel-section">
-              <h3>聊天生成的操作草稿</h3>
+              <h3>{chatT("聊天生成的操作草稿", "Bản nháp thao tác tạo qua trò chuyện")}</h3>
               {artifacts
                 .filter((a) => a.kind === "sop")
                 .map((a) => (
@@ -701,12 +702,12 @@ export default function SidePanel({
                 ))}
               {!artifacts.some((a) => a.kind === "sop") ? (
                 <p className="muted">
-                  在聊天中描述要创建或派发的 SOP，草稿将在这里等待确认。
+                  {chatT("在聊天中描述要创建或派发的 SOP，草稿将在这里等待确认。", "Mô tả SOP cần tạo hoặc điều phối trong trò chuyện; bản nháp sẽ chờ xác nhận tại đây.")}
                 </p>
               ) : null}
             </section>
             <section className="panel-section">
-              <h3>项目运行</h3>
+              <h3>{chatT("项目运行", "Lượt chạy dự án")}</h3>
               {runs.map((run) => (
                 <button
                   className="run-row"
@@ -724,7 +725,7 @@ export default function SidePanel({
                 </button>
               ))}
               {!runs.length ? (
-                <p className="muted">这个项目暂时没有运行。</p>
+                <p className="muted">{chatT("这个项目暂时没有运行。", "Dự án này hiện chưa có lượt chạy.")}</p>
               ) : null}
             </section>
             {openRun ? (
@@ -738,7 +739,7 @@ export default function SidePanel({
                         ?.name || id}
                       <small>{status[node.status] || node.status}</small>
                     </summary>
-                    <pre>{node.output || "暂无输出"}</pre>
+                    <pre>{node.output || chatT("暂无输出", "Chưa có đầu ra")}</pre>
                   </details>
                 ))}
                 {openRun.artifacts?.map((a) => (

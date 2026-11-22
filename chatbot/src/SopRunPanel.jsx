@@ -1,3 +1,4 @@
+import { chatT } from "./locale";
 import React, { useEffect, useRef, useState } from "react";
 import HarnessIcon from "./HarnessIcon";
 import SlidingTabs from "./SlidingTabs";
@@ -64,8 +65,8 @@ function NodeArtifact({ run, artifact, onPreview }) {
         className="node-artifact-open"
         onClick={() => onPreview(file)}
         onDoubleClick={image ? () => setZoom(true) : undefined}
-        title={image ? "单击预览，双击查看大图" : undefined}
-        aria-label={`预览 ${file.name}`}
+        title={image ? chatT("单击预览，双击查看大图", "Nhấp để xem trước, nhấp đúp để xem ảnh lớn") : undefined}
+        aria-label={chatT(`预览 ${file.name}`, `Xem trước ${file.name}`)}
       >
         {image ? <img src={file.url} alt={file.name} loading="lazy" /> : null}
         <span className="node-artifact-file">
@@ -73,7 +74,7 @@ function NodeArtifact({ run, artifact, onPreview }) {
           <span>
             <strong>{file.name}</strong>
             <small>
-              {image ? "图片" : "文件"}
+              {image ? chatT("图片", "Hình ảnh") : chatT("文件", "Tệp")}
               {file.size
                 ? ` · ${file.size < 1024 ? `${file.size} B` : `${Math.ceil(file.size / 1024)} KB`}`
                 : ""}
@@ -86,7 +87,7 @@ function NodeArtifact({ run, artifact, onPreview }) {
         className="icon-button node-artifact-download"
         href={file.url}
         download={file.name}
-        aria-label={`下载 ${file.name}`}
+        aria-label={chatT(`下载 ${file.name}`, `Tải ${file.name} xuống`)}
       >
         <Download size={15} />
       </a>
@@ -95,17 +96,17 @@ function NodeArtifact({ run, artifact, onPreview }) {
 }
 
 export const runStatus = {
-  succeeded: "已完成",
-  running: "运行中",
-  waiting: "等待审批",
-  waiting_approval: "等待审批",
-  pending: "待执行",
-  queued: "排队中",
-  failed: "失败",
-  canceled: "已取消",
-  cancelled: "已取消",
-  skipped: "已跳过",
-  paused: "已暂停",
+  succeeded: chatT("已完成", "Đã hoàn tất"),
+  running: chatT("运行中", "Đang chạy"),
+  waiting: chatT("等待审批", "Chờ phê duyệt"),
+  waiting_approval: chatT("等待审批", "Chờ phê duyệt"),
+  pending: chatT("待执行", "Chờ thực thi"),
+  queued: chatT("排队中", "Đang xếp hàng"),
+  failed: chatT("失败", "Thất bại"),
+  canceled: chatT("已取消", "Đã hủy"),
+  cancelled: chatT("已取消", "Đã hủy"),
+  skipped: chatT("已跳过", "Đã bỏ qua"),
+  paused: chatT("已暂停", "Đã tạm dừng"),
 };
 const statusIcon = (status) =>
   status === "succeeded"
@@ -208,7 +209,7 @@ function NodeConversation({ run, node, definition, onPreview }) {
       {opening || handoffs.length ? (
         <article
           className="node-message node-message-user"
-          aria-label="收到的消息"
+          aria-label={chatT("收到的消息", "Tin nhắn đã nhận")}
         >
           {opening ? <RichContent message={opening} /> : null}
           {handoffs.map((source) => (
@@ -237,7 +238,7 @@ function NodeConversation({ run, node, definition, onPreview }) {
         ) : item.type === "reply" ? (
           <article
             className="node-message node-message-assistant node-result"
-            aria-label="节点回复"
+            aria-label={chatT("节点回复", "Phản hồi bước")}
             key={item.key}
           >
             <RichContent message={item.message} />
@@ -258,26 +259,26 @@ function NodeConversation({ run, node, definition, onPreview }) {
           disabled={loading}
           onClick={() => void loadRef.current?.()}
         >
-          {loading ? "正在读取完整会话…" : "加载更多执行记录"}
+          {loading ? chatT("正在读取完整会话…", "Đang đọc toàn bộ cuộc trò chuyện…") : chatT("加载更多执行记录", "Tải thêm bản ghi thực thi")}
         </button>
       ) : null}
       {definition?.type === "approval" && node.status !== "pending" ? (
         <article
           className="node-message node-message-assistant node-approval-reason"
-          aria-label="人工门禁说明"
+          aria-label={chatT("人工门禁说明", "Mô tả điểm kiểm soát của con người")}
         >
           <strong>
             {node.status === "waiting_approval"
-              ? "为什么需要人工确认"
-              : "人工门禁"}
+              ? chatT("为什么需要人工确认", "Vì sao cần con người xác nhận")
+              : chatT("人工门禁", "Điểm kiểm soát của con người")}
           </strong>
           <p>{approvalWaitReason(run, node.nodeId || definition.id)}</p>
         </article>
       ) : !items.length && !loading ? (
         <p className="muted">
           {node.status === "pending"
-            ? "节点尚未开始。"
-            : "暂无可读取的执行记录。"}
+            ? chatT("节点尚未开始。", "Bước chưa bắt đầu.")
+            : chatT("暂无可读取的执行记录。", "Chưa có bản ghi thực thi có thể đọc.")}
         </p>
       ) : null}
       {node.error ? (
@@ -322,20 +323,20 @@ export default function SopRunPanel({
   const artifacts = (run.artifacts || []).filter(
     (a) => !nodeId || a.nodeId === nodeId,
   );
-  const title = run.workflowSnapshot?.name || "SOP 运行";
+  const title = run.workflowSnapshot?.name || chatT("SOP 运行", "Lượt chạy SOP");
   const Container = embedded ? "section" : "aside";
   return (
     <Container
       className={`${embedded ? "sop-run-embedded" : "side-panel"} sop-run-panel ${nodeId ? "node-conversation-view" : ""}`}
-      aria-label="SOP 运行过程"
+      aria-label={chatT("SOP 运行过程", "Quá trình chạy SOP")}
     >
       {!embedded ? (
         <header className="sop-panel-header">
           <span>
             <GitBranch size={16} />
-            SOP 运行
+            {chatT("SOP 运行", "Lượt chạy SOP")}
           </span>
-          <IconButton label="关闭运行侧边栏" onClick={onClose}>
+          <IconButton label={chatT("关闭运行侧边栏", "Đóng thanh bên lượt chạy")} onClick={onClose}>
             <X size={16} />
           </IconButton>
         </header>
@@ -343,7 +344,7 @@ export default function SopRunPanel({
       <div className="sop-panel-scroll">
         {runs.length > 1 ? (
           <HarnessSelect
-            ariaLabel="选择会话关联运行"
+            ariaLabel={chatT("选择会话关联运行", "Chọn lượt chạy liên kết với cuộc trò chuyện")}
             value={run.id}
             onChange={(e) => setRunId(e.target.value)}
             options={runs.map((r) => ({ value: r.id, label: r.workflowSnapshot?.name || r.id }))}
@@ -356,7 +357,7 @@ export default function SopRunPanel({
               {runStatus[run.status] || run.status}
             </span>
             <small>
-              {completed} / {nodes.length} 个节点已完成
+              {chatT(`${completed} / ${nodes.length} 个节点已完成`, `Đã hoàn tất ${completed} / ${nodes.length} bước`)}
             </small>
             <div className="sop-progress">
               <i
@@ -371,7 +372,7 @@ export default function SopRunPanel({
           <>
             <button className="back-link" onClick={() => setArtifact(null)}>
               <ChevronLeft size={14} />
-              {tab === "conversation" ? "返回会话" : "返回节点产物"}
+              {tab === "conversation" ? chatT("返回会话", "Quay lại cuộc trò chuyện") : chatT("返回节点产物", "Quay lại đầu ra bước")}
             </button>
             <ArtifactPreview artifact={artifact} />
           </>
@@ -380,17 +381,17 @@ export default function SopRunPanel({
             {!embedded ? (
               <button className="back-link" onClick={() => setNodeId(null)}>
                 <ChevronLeft size={14} />
-                全部流程节点
+                {chatT("全部流程节点", "Mọi bước quy trình")}
               </button>
             ) : null}
-            <SlidingTabs className="node-tabs" aria-label="节点详情">
+            <SlidingTabs className="node-tabs" aria-label={chatT("节点详情", "Chi tiết bước")}>
               <button
                 role="tab"
                 aria-selected={tab === "conversation"}
                 onClick={() => setTab("conversation")}
               >
                 <MessageSquare size={14} />
-                会话过程
+                {chatT("会话过程", "Quá trình trò chuyện")}
               </button>
               <button
                 role="tab"
@@ -398,7 +399,7 @@ export default function SopRunPanel({
                 onClick={() => setTab("artifacts")}
               >
                 <FileText size={14} />
-                产物 {artifacts.length || ""}
+                {chatT("产物", "Sản phẩm đầu ra")} {artifacts.length || ""}
               </button>
             </SlidingTabs>
             {tab === "conversation" ? (
@@ -421,14 +422,14 @@ export default function SopRunPanel({
                     <span>
                       <strong>{a.path || a.name}</strong>
                       <small>
-                        第 {a.attempt} 次执行 · {a.size} 字节
+                        {chatT(`第 ${a.attempt} 次执行 · ${a.size} 字节`, `Lần thực thi ${a.attempt} · ${a.size} byte`)}
                       </small>
                     </span>
                     <ChevronRight size={14} />
                   </button>
                 ))}
                 {!artifacts.length ? (
-                  <p className="muted">这个节点尚未生成产物。</p>
+                  <p className="muted">{chatT("这个节点尚未生成产物。", "Bước này chưa tạo sản phẩm đầu ra.")}</p>
                 ) : null}
               </div>
             )}
