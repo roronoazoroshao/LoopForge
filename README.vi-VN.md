@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/hero-en-dark.svg">
-    <img src="docs/assets/readme/hero-en.svg" alt="LoopForge — Từ ý tưởng đến mã đã hợp nhất. Trò chuyện với tác tử lập trình trong không gian làm việc cô lập, chạy SOP có thể lặp lại và phê duyệt kết quả bàn giao." width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/hero-vi-dark.svg">
+    <img src="docs/assets/readme/hero-vi.svg" alt="LoopForge — Từ ý tưởng đến mã đã hợp nhất. Trò chuyện với tác tử lập trình trong không gian làm việc cô lập, chạy SOP có thể lặp lại và phê duyệt kết quả bàn giao." width="100%">
   </picture>
 </p>
 
@@ -143,8 +143,8 @@ Tài khoản mới tham gia **dự án demo LoopForge**, trong đó có một SO
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/sop-flow-en-dark.svg">
-    <img src="docs/assets/readme/sop-flow-en.svg" alt="Luồng SOP: Yêu cầu, sau đó Làm rõ, Thiết kế, Triển khai, Rà soát (tác tử), Kiểm thử (tập lệnh) và Nghiệm thu (điểm phê duyệt của con người), rồi Bàn giao; bước nghiệm thu có thể trả công việc về bước Triển khai" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/sop-flow-vi-dark.svg">
+    <img src="docs/assets/readme/sop-flow-vi.svg" alt="Luồng SOP: Yêu cầu, sau đó Làm rõ, Thiết kế, Triển khai, Rà soát (tác tử), Kiểm thử (tập lệnh) và Nghiệm thu (điểm phê duyệt của con người), rồi Bàn giao; bước nghiệm thu có thể trả công việc về bước Triển khai" width="100%">
   </picture>
 </p>
 
@@ -185,7 +185,7 @@ Mỗi nút khai báo sản phẩm đầu ra và các phần phụ thuộc; bộ 
 | **Tác vụ AI theo lịch** | Tác vụ tác tử định kỳ có toàn quyền truy cập không gian làm việc, SOP và MCP; kho dùng chung các mẫu tác vụ có phiên bản và tham số; tự động điều phối SOP cho yêu cầu mới. |
 | **Phân tích và chi phí** | Chỉ số hiệu quả kỹ thuật, báo cáo theo lĩnh vực nghiệp vụ có xuất HTML/SVG tĩnh, thống kê token và chi phí của SOP và cuộc trò chuyện theo giá niêm yết công khai. |
 | **Môi trường thực thi** | Worker của nền tảng, sandbox Docker hoặc máy thực thi cục bộ đã kết nối, sử dụng các công cụ và kho mã của bạn. |
-| **Sẵn sàng cho nhóm** | Tài khoản mật khẩu, dự án và thành viên, giao diện sáng/tối/theo hệ thống, API HTTP và MCP được mô tả bằng OpenAPI. Các trang quản trị có tiếng Anh và tiếng Trung; không gian trò chuyện hiện dùng tiếng Trung. |
+| **Sẵn sàng cho nhóm** | Tài khoản mật khẩu, dự án và thành viên, giao diện sáng/tối/theo hệ thống, API HTTP và MCP được mô tả bằng OpenAPI. Các trang quản trị có tiếng Anh, tiếng Trung và bản xem trước tiếng Việt chưa đầy đủ; chatbot mới dịch một phần nhỏ giao diện. |
 
 <p align="center">
   <img src="docs/assets/readme/sops-en.svg" alt="Trang mẫu liệt kê bốn SOP tích hợp: bàn giao backend, bàn giao frontend, đề xuất sản phẩm và sửa lỗi" width="100%">
@@ -195,9 +195,9 @@ Mỗi nút khai báo sản phẩm đầu ra và các phần phụ thuộc; bộ 
 
 ## LoopForge Local
 
-> **Phiên bản cũ (Legacy).** Các phiên bản LoopForge Local (`loopforge-cli`) đã phát hành trước đây vẫn có sẵn. [Hướng dẫn Local](docs/local/usage.md) trình bày cách cài một phiên bản cố định và giữ lại quy trình cùng sản phẩm đầu ra hiện có.
+> **Phiên bản cũ (Legacy).** Các phiên bản LoopForge Local (`loopforge-cli`) đã phát hành trước đây vẫn có sẵn. [Hướng dẫn Local](docs/local/usage.vi-VN.md) trình bày cách cài một phiên bản cố định và giữ lại quy trình cùng sản phẩm đầu ra hiện có.
 
-Để dùng các dự án và SOP của nền tảng từ trợ lý lập trình, [kết nối CodeBuddy với instance LoopForge qua MCP](docs/local/usage.md#connect-to-loopforge-with-mcp). Local vẫn chạy các quy trình tích hợp bên trong trợ lý lập trình mà không cần máy chủ LoopForge.
+Để dùng các dự án và SOP của nền tảng từ trợ lý lập trình, [kết nối CodeBuddy với instance LoopForge qua MCP](docs/local/usage.vi-VN.md#kết-nối-loopforge-qua-mcp). Local vẫn chạy các quy trình tích hợp bên trong trợ lý lập trình mà không cần máy chủ LoopForge.
 
 | | Nền tảng | Local (phiên bản cũ) |
 | --- | --- | --- |
@@ -234,8 +234,8 @@ Các tài liệu được liên kết bên dưới vẫn sử dụng ngôn ngữ
 | --- | --- |
 | Triển khai, quản lý tài khoản, kết nối máy thực thi | [Triển khai](docs/deployment.md) |
 | Tìm hiểu không gian làm việc của cuộc trò chuyện, tác vụ AI theo lịch và giá token | [Không gian làm việc của cuộc trò chuyện](docs/conversation-workspaces.md) · [Tác vụ AI theo lịch](docs/ai-scheduled-task-capabilities.md) · [Giá token](docs/token-pricing.md) |
-| Bảo trì bản cài Local hiện có | [LoopForge Local](docs/local/usage.md) · [Các phiên bản](docs/local/editions.md) |
-| Mở rộng nền tảng hoặc dùng API HTTP / MCP | [Kiến trúc](docs/architecture.md) · [Tham chiếu API](docs/api/README.md) · [API lịch dùng chung](docs/api/shared-schedules.md) |
+| Bảo trì bản cài Local hiện có | [LoopForge Local](docs/local/usage.vi-VN.md) · [Các phiên bản](docs/local/editions.vi-VN.md) |
+| Mở rộng nền tảng hoặc dùng API HTTP / MCP | [Kiến trúc](docs/architecture.vi-VN.md) · [Tham chiếu API](docs/api/README.vi-VN.md) · [API lịch dùng chung](docs/api/shared-schedules.vi-VN.md) |
 | Đóng góp cho giao diện | [Quy ước thiết kế frontend](design.md) (tiếng Trung) |
 | Kiểm tra độ phủ chức năng và mức sẵn sàng phát hành | [Hồ sơ kiểm chứng](docs/validation.md) · [Ma trận nghiệm thu](docs/testing/acceptance-matrix.md) · [Rà soát phát hành](docs/release-readiness.md) |
 | Tìm hiểu nguồn gốc mã và công tác bảo trì | [Phạm vi công khai](docs/open-source-scope.md) · [Đồng bộ mã nguồn upstream](docs/upstream-sync.md) |
