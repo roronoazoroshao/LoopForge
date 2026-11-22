@@ -107,3 +107,7 @@ Source-level VI branches now create complete delivery, token comparison, cache h
 ### Broad UI literal inventory: high-priority leftovers
 
 Added 66 reviewed source phrases from SSH host trust, accessible dropdowns, file upload, issue delivery, analytics explanatory text, and account registration. These came from a literal-level audit of first-party modules rather than assuming catalogue completeness. Internal SVG motion metadata and engine/system prompts are tracked separately as non-UI or behavior-sensitive text. Dictionary checks ensure every newly added EN key has a Vietnamese value and matching interpolation tokens; full runtime coverage not yet certified.
+
+### Remaining first-party static Web copy
+
+Reviewed and added 72 VI and EN entries spanning notification editor helper copy, SOP designer/scheduling, SkillHub version states, run execution details, IDE status and orchestrator error messages. Preserved project and protocol identifiers; static strings inside already explicit localized branches and agent prompt content are not counted as missing user-interface translations. Interpolation and dictionary parity were checked in isolation, but production rendering and semantic review are still pending.
