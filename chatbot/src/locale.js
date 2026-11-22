@@ -13,6 +13,7 @@ const artifactSourceVI = new Map([
   ["已发布", "Đã phát hành"],
   ["已保存", "Đã lưu"],
   ["已执行", "Đã thực thi"],
+  ["已完成", "Đã hoàn thành"],
   ["待确认", "Chờ xác nhận"],
   ["交付物", "Sản phẩm bàn giao"],
 ]);

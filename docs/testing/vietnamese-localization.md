@@ -155,3 +155,7 @@ QuickAccess Wizard model and CLI lists use a locale-aware separator (`、` in ZH
 ### React chatbot Git change statuses and tool-error fallback
 
 The Changes panel now derives Vietnamese labels for Git porcelain codes A/M/D/R/C/U, while the source status code, file path and diff metadata remain untouched. Its missing-start tool-completion fallback now emits localized UI text in VI mode, without changing the tool event ID, failure flag or stream semantics. Focused source-level RED/GREEN fixtures verified VI and original ZH branches. Full runner/build/browser checks remain deferred.
+
+### Chat metadata and personal-group labels
+
+Localized the previously hardcoded personal-chat group title through `chatT` and the `已完成` artifact source marker through the display-only locale mapping. Persisted message-source marker and user-authored project names are unchanged. Isolated RED/GREEN source evaluations check both VI and ZH; full runner/browser QA remains deferred.
