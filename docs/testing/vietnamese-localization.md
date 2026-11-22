@@ -183,3 +183,7 @@ Reviewed static Chinese text nodes and attributes in the five standalone Web HTM
 ### MCP JSON import validation
 
 Localized all importer-generated error explanations in the Vietnamese branch without rewriting field names, technical IDs, transport codes, user-supplied values, or credentials. Imported MCP names/descriptions and source-project names in cards are protected against the DOM translator. Selection prompts and import-result messages are composed before rendering. RED/GREEN isolated checks covered invalid maps, URL requirements, unchanged ZH errors and preserved headers; full repo test runner remains deferred.
+
+### Agent catalogue runtime data and dangerous actions
+
+Agent counts, active role metadata, loop/skill/verification counters, project labels, role wizard heading and delete/clone confirmation now select Vietnamese at source. User-entered role/project names and model names are protected against DOM translation. Source RED/GREEN checks verified Vietnamese labels, preserved Chinese behavior and original numeric values; runner and browser remain deferred.
