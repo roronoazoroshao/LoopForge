@@ -178,11 +178,20 @@ func parseCapabilityZIP(raw []byte) (capabilityManifest,map[string][]repo.SkillF
   files[skillID]=append(files[skillID],repo.SkillFileInput{Path:relative,Content:body,Mode:modes[name]})
   lower:=strings.ToLower(relative)
   if modes[name]&0o111!=0 || strings.HasPrefix(lower,"scripts/") ||
-   strings.HasSuffix(lower,".sh")||strings.HasSuffix(lower,".ps1") {
+   strings.HasSuffix(lower,".sh")||strings.HasSuffix(lower,".bash")||
+   strings.HasSuffix(lower,".ps1")||strings.HasSuffix(lower,".py")||
+   strings.HasSuffix(lower,".js")||strings.HasSuffix(lower,".ts")||
+   strings.HasSuffix(lower,".rb")||strings.HasSuffix(lower,".pl")||
+   strings.HasSuffix(lower,".bat")||strings.HasSuffix(lower,".cmd")||
+   strings.HasSuffix(lower,".exe")||strings.HasSuffix(lower,".dll")||
+   strings.HasSuffix(lower,".so") {
    warnings=append(warnings,fmt.Sprintf("%s: executable or script file %s; review before attaching to a Role",skillID,relative))
   }
  }
  for _,skill:=range pack.Skills {
+  if strings.TrimSpace(skill.License)=="" {
+   warnings=append(warnings,fmt.Sprintf("%s: license metadata missing; check redistribution rights",skill.ID))
+  }
   count:=len(files[skill.ID])
   if count==0||count>domain.SkillMaxFileCount{return empty,nil,nil,fmt.Errorf("invalid file count for skill %s",skill.ID)}
   var sum int64
