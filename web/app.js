@@ -701,9 +701,19 @@ const SOP_SEED_WORKFLOW_COPY={
   'issue-fix-production':['通用缺陷修复 SOP','Generic bug-fix SOP','SOP sửa lỗi chung'],
   'generic-product-delivery':['通用产品方案 SOP','Generic product proposal SOP','SOP đề xuất sản phẩm chung'],
 };
+// When a project adopts a public template, the server retains its original
+// Chinese copy name and adds generic-source:<id>. Translate that generated name
+// only while it still matches the untouched default; an explicit rename wins.
+const SOP_SEED_CLONE_COPY={
+  'generic-backend-delivery':['后端交付 SOP','Backend delivery SOP','SOP bàn giao backend'],
+  'generic-frontend-delivery':['前端交付 SOP','Frontend delivery SOP','SOP bàn giao frontend'],
+  'issue-fix-production':['缺陷修复 SOP','Bug-fix SOP','SOP sửa lỗi'],
+  'generic-product-delivery':['产品方案 SOP','Product proposal SOP','SOP đề xuất sản phẩm'],
+};
 function sopSeedWorkflowDisplayName(wf){
-  const copy=SOP_SEED_WORKFLOW_COPY[wf?.id];
-  return copy&&wf.generic&&wf.name===copy[0]?window.lfT(...copy):wf?.name||'';
+  const source=sopSeedTemplateId(wf);
+  const copy=wf?.generic?SOP_SEED_WORKFLOW_COPY[source]:SOP_SEED_CLONE_COPY[source];
+  return copy&&wf.name===copy[0]?window.lfT(...copy):wf?.name||'';
 }
 const SOP_SEED_STAGE_COPY={
   clarify:['需求定型','Requirement scoping','Chốt yêu cầu'],

@@ -175,6 +175,18 @@ test('all shipped template names localize by ID without translating user-created
       assert.equal(app.evaluate('sopSeedWorkflowDisplayName(' + JSON.stringify(source) + ')'), { zh: raw, en, vi }[lang]);
       assert.equal(app.evaluate('sopSeedWorkflowDisplayName(' + JSON.stringify({ ...source, generic: false }) + ')'), raw);
       assert.equal(app.evaluate('sopSeedWorkflowDisplayName(' + JSON.stringify({ ...source, name: '用户改名' }) + ')'), '用户改名');
+      const copiedDefaults = {
+        'generic-backend-delivery': ['后端交付 SOP','Backend delivery SOP','SOP bàn giao backend'],
+        'generic-frontend-delivery': ['前端交付 SOP','Frontend delivery SOP','SOP bàn giao frontend'],
+        'issue-fix-production': ['缺陷修复 SOP','Bug-fix SOP','SOP sửa lỗi'],
+        'generic-product-delivery': ['产品方案 SOP','Product proposal SOP','SOP đề xuất sản phẩm'],
+      };
+      const copy = copiedDefaults[id];
+      const cloned = { id: 'copy-'+id, generic: false, projectId:'project-1',
+        tags: ['generic-source:'+id], name: copy[0] };
+      assert.equal(app.evaluate('sopSeedWorkflowDisplayName(' + JSON.stringify(cloned) + ')'),
+        {zh:copy[0],en:copy[1],vi:copy[2]}[lang]);
+      assert.equal(app.evaluate('sopSeedWorkflowDisplayName(' + JSON.stringify({...cloned,name:'Tên riêng của người dùng'}) + ')'), 'Tên riêng của người dùng');
     }
   }
 });
