@@ -3,10 +3,8 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const MAX_UPLOAD = 65 * 1024 * 1024;
-  const tr = (zh, en, vi) => {
-    const lang = typeof window.lfLang === 'function' ? window.lfLang() : 'zh';
-    return lang === 'vi' ? vi : lang === 'en' ? en : zh;
-  };
+  // Reuse the same i18n entry point as the existing Role Pack.
+  const tr = (zh, en, vi) => window.lfT ? window.lfT(zh, en, vi) : vi;
   const labels = {
     import: ['导入能力包', 'Import Capability Pack', 'Nhập gói năng lực'],
     export: ['导出能力包', 'Export Capability Pack', 'Xuất gói năng lực'],
