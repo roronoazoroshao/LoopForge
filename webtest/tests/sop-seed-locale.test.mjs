@@ -178,3 +178,18 @@ test('all shipped template names localize by ID without translating user-created
     }
   }
 });
+
+test('unchanged descriptions in a project copy stay localized without mutating the workflow', async t => {
+  const original='后端需求从需求定型到独立评审与交付。';
+  const cases=[['zh', original],['en', 'Take backend requirements from scoping through independent review to delivery.'],
+    ['vi', 'Đưa yêu cầu backend từ bước làm rõ đến rà soát độc lập và bàn giao.']];
+  for(const [lang,want] of cases){
+    const app=await loadApp({locale:lang});
+    t.after(app.close);
+    const wf={id:'copy-1',name:'Tên do người dùng đặt',projectId:'project-1',
+      tags:['generic-source:generic-backend-delivery'],description:original};
+    assert.equal(app.evaluate('sopCatalogDescription('+JSON.stringify(wf)+')'),want);
+    assert.equal(wf.description,original);
+    assert.equal(app.evaluate('sopCatalogDescription('+JSON.stringify({...wf,description:'用户编写的描述'})+')'),'用户编写的描述');
+  }
+});

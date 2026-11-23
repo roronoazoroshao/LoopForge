@@ -152,7 +152,7 @@ function sopCardMoreButton(w){return `<button type="button" class="sop-card-more
 function sopRunKpis(m,liveCount){return `<div class="sop-kpis"><span><b>${m.totalRuns||0}</b>${sopUICopy('运行','lượt chạy')}</span><span><b>${m.succeededRuns||0}</b>${sopUICopy('成功','thành công')}</span><span${m.failedRuns>0?' class="is-bad"':''}><b>${m.failedRuns||0}</b>${sopUICopy('失败','thất bại')}</span><span><b>${liveCount}</b>${sopUICopy('进行中','đang chạy')}</span></div>`}
 function sopRunCardBody(w,m,liveCount){
   const health=metricHealth(m,liveCount);
-  return `${sopCardHead(sopHealthBadge(health),m.totalRuns?sopUICopy(`${percent(m.successRate)} 成功率`,`Tỷ lệ thành công ${percent(m.successRate)}`):health.hint,sopStatusBadge(w))}${sopCardTitle(w)}<p data-i18n-skip>${escapeHTML(w.description||window.lfT('暂无流程说明','No SOP description','Chưa có mô tả SOP'))}</p>${sopRunRequirementChips(w)}${sopRunKpis(m,liveCount)}`;
+  return `${sopCardHead(sopHealthBadge(health),m.totalRuns?sopUICopy(`${percent(m.successRate)} 成功率`,`Tỷ lệ thành công ${percent(m.successRate)}`):health.hint,sopStatusBadge(w))}${sopCardTitle(w)}<p data-i18n-skip>${escapeHTML(w.description?sopCatalogDescription(w):window.lfT('暂无流程说明','No SOP description','Chưa có mô tả SOP'))}</p>${sopRunRequirementChips(w)}${sopRunKpis(m,liveCount)}`;
 }
 function projectSOPCard(w,m={},liveCount=0){
   const recent=formatTimestamp(m.lastRunAt);
@@ -192,7 +192,10 @@ const SOP_SEED_DESCRIPTION_COPY={
 function sopCatalogDescription(w){
   const description=w?.description;
   if(!description)return lfT('平台提供的通用流程模板','A general workflow template provided by the platform','Mẫu quy trình chung do nền tảng cung cấp');
-  const seed=SOP_SEED_DESCRIPTION_COPY[w.id];
+  const tag=(w.tags||[]).find(t=>typeof t==='string'&&t.startsWith('generic-source:'));
+  const templateId=catalogGeneric(w)?w.id:tag?.slice('generic-source:'.length);
+  const seed=SOP_SEED_DESCRIPTION_COPY[templateId];
+  // Copied, unchanged platform descriptions are default UI copy. User edits are data.
   return seed&&description===seed[0]?lfT(...seed):description;
 }
 function genericProjectCopy(w){return (state.data?.workflows||[]).find(x=>!catalogGeneric(x)&&x.projectId===state.projectFilter&&(x.tags||[]).includes(`generic-source:${w.id}`))}
