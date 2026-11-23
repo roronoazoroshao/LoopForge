@@ -67,3 +67,15 @@ func TestAssistantModelPickerSelection(t *testing.T) {
 		t.Fatalf("assistant model picker: %v\n%s", err, out)
 	}
 }
+
+// TestCredentialVietnameseCopy verifies dynamic form text in a locale-aware DOM
+// independently of the large application boot sequence.
+func TestCredentialVietnameseCopy(t *testing.T) {
+	node, err := exec.LookPath("node")
+	if err != nil {
+		t.Skip("node not installed")
+	}
+	if out, err := exec.Command(node, "credential_vi_test.js", "app/workbench.js").CombinedOutput(); err != nil {
+		t.Fatalf("Vietnamese credential labels: %v\\n%s", err, out)
+	}
+}
