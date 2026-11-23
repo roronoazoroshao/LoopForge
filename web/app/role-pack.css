@@ -1,0 +1,18 @@
+/* Role Pack is an optional tool; keep styles scoped to its own controls. */
+.role-pack-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.role-pack-card{width:min(740px,calc(100vw - 32px));max-height:min(86vh,780px);display:flex;flex-direction:column;overflow:hidden}
+.role-pack-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:24px 26px 16px;position:relative}
+.role-pack-head h2{margin:0 0 6px}
+.role-pack-head p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
+.role-pack-head .modal-close{position:static;flex-shrink:0}
+.role-pack-content{min-height:0;overflow:auto;padding:0 26px 22px}
+.role-pack-content h3{font-size:13px;margin:18px 0 6px}
+#rolePackStatus{font-size:13px;line-height:1.5;min-height:1.5em;color:var(--text);white-space:pre-wrap}
+.role-pack-list{padding-left:22px;margin:6px 0;line-height:1.55;font-size:13px;max-height:150px;overflow:auto}
+.role-pack-list:empty{display:none}
+.role-pack-errors{color:var(--danger,#d35454)}
+.role-pack-acknowledge{display:flex;align-items:flex-start;gap:10px;line-height:1.45;margin-top:20px;font-size:13px;cursor:pointer}
+.role-pack-acknowledge input{margin-top:3px;flex-shrink:0}
+.role-pack-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 26px 22px;border-top:1px solid var(--line,var(--border))}
+.role-pack-footer button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:660px){.role-pack-actions{justify-content:flex-start}.role-pack-head,.role-pack-content,.role-pack-footer{padding-left:16px;padding-right:16px}}
