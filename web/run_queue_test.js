@@ -10,6 +10,8 @@ function source(name) {
   return next ? tail.slice(0, next.index) : tail;
 }
 function load(context, names) {
+  context.runnerUICopy ??= zh=>zh;
+  context.runnerVI ??= ()=>false;
   vm.createContext(context);
   for (const name of names) vm.runInContext(source(name), context);
   return context;

@@ -91,7 +91,7 @@ const shared = ctx.assetCardHTML(ctx.state.data.rules[1]);
 assert.ok(shared.includes('<span class="asset-status is-on"><i></i>已共享</span>'), shared);
 assert.ok(shared.includes('暂无说明') && shared.includes('未被引用'), shared);
 const foreign = ctx.assetCardHTML(ctx.state.data.rules[2]);
-assert.ok(foreign.includes('<span class="asset-status is-from"><i></i>来自 平台公共</span>'), foreign);
+assert.ok(foreign.includes('<span class="asset-status is-from"><i></i>来自项目 平台公共</span>'), foreign);
 assert.ok(foreign.includes('查看<i data-icon="chevron-right">'), foreign);
 for (const html of [own, shared, foreign]) {
   assert.ok(!/<button/.test(html), 'cards carry no buttons');

@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const src = fs.readFileSync(process.argv[2], 'utf8');
-const ctx = { window: { lfLang: () => 'vi' }, console };
+const ctx = { window: { lfLang: () => 'vi' }, console, escapeHTML: x => String(x) };
 vm.createContext(ctx);
 vm.runInContext(src, ctx);
 const dsh = vm.runInContext("CREDENTIAL_KINDS.find(k => k.agentCli === 'dsh')", ctx);

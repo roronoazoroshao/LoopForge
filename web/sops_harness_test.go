@@ -78,7 +78,7 @@ func TestSOPCatalogMarksFailures(t *testing.T) {
 	}
 	for _, want := range []string{
 		`<div class="overview-metric danger${failed>0?' is-bad':''}"><span>失败运行</span>`,
-		`<span${m.failedRuns>0?' class="is-bad"':''}><b>${m.failedRuns||0}</b>失败</span>`,
+		`<span${m.failedRuns>0?' class="is-bad"':''}><b>${m.failedRuns||0}</b>${sopUICopy('失败','thất bại')}</span>`,
 	} {
 		if !strings.Contains(string(src), want) {
 			t.Fatalf("renderSOPCatalog is missing failure marker %q", want)

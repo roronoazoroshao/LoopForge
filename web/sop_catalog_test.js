@@ -7,7 +7,7 @@ const sopsSrc = fs.readFileSync(process.argv[2], 'utf8');
 const dashboardsSrc = fs.readFileSync(process.argv[3], 'utf8');
 const metricHealthStart = dashboardsSrc.indexOf('function metricHealth(');
 assert.ok(metricHealthStart >= 0, 'metricHealth not found');
-const metricHealthSrc = dashboardsSrc.slice(metricHealthStart, dashboardsSrc.indexOf('\n', metricHealthStart));
+const metricHealthSrc = dashboardsSrc.slice(metricHealthStart);
 
 const frames = [];
 const ctx = {

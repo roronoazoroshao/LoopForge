@@ -173,14 +173,10 @@ func TestAssistantNativeProviderGateway(t *testing.T) {
 					http.Error(w, "body", 400)
 					return
 				}
+				// Custom gateways use ANTHROPIC_AUTH_TOKEN for Claude Code,
+				// which sends Authorization: Bearer, not X-Api-Key.
 				key := r.Header.Get("Authorization")
-				if provider == "claude" {
-					key = r.Header.Get("X-Api-Key")
-				}
 				expected := "Bearer fixture-provider-key"
-				if provider == "claude" {
-					expected = "fixture-provider-key"
-				}
 				if key != expected || body["model"] != "gateway-test-model" {
 					t.Error("wrong credential or model")
 				}

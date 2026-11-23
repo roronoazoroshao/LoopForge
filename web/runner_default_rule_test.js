@@ -8,7 +8,7 @@ function extract(name) {
   return code.slice(start, code.indexOf('\n}', start) + 2);
 }
 
-const context = {state: {minRunnerVersion: '0.8.0'}};
+const context = {state: {minRunnerVersion: '0.8.0'},runnerUICopy:zh=>zh};
 vm.createContext(context);
 vm.runInContext(extract('runnerVersionAtLeast') + extract('runnerDefaultBlocker'), context);
 const blocker = r => context.runnerDefaultBlocker(r);

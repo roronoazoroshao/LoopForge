@@ -43,7 +43,7 @@ func TestFlowDesignerCopiesSOPName(t *testing.T) {
 		t.Fatal(err)
 	}
 	src := string(palette)
-	if !strings.Contains(src, "#sandboxChip,#copyWorkflowName") || !strings.Contains(src, "copyText(name,'SOP 名称已复制')") {
+	if !strings.Contains(src, "#sandboxChip,#copyWorkflowName") || !strings.Contains(src, "copyText(name,paletteCopy('SOP 名称已复制'") {
 		t.Fatal("copying the SOP name must not open the switcher")
 	}
 	if !strings.Contains(src, `class="fd-pop-copy"`) || !strings.Contains(src, "data-copy-sop-name") || !strings.Contains(src, "e.target.closest('[data-copy-sop-name]')") {

@@ -417,11 +417,15 @@
         .filter(role => role.projectId === projectId);
     } catch (error) { return toast(error.message || String(error), 'err'); }
     if (!roles.length) return toast(tr('当前项目没有可导出的角色','No roles to export in this project','Dự án này chưa có vai trò để xuất'), 'warn');
-    if (!window.confirm(tr(
+    if (!(await afConfirm({
+      title:tr('导出角色包','Export role pack','Xuất gói vai trò'),
+      message:tr(
       '导出的 JSON 包含角色提示词、验收命令与 Hook 脚本；分享前请检查敏感信息。继续？',
       'Export includes role prompts, validation commands and hook scripts. Check for secrets before sharing. Continue?',
       'Tệp xuất chứa prompt, lệnh nghiệm thu và script Hook. Hãy kiểm tra bí mật trước khi chia sẻ. Tiếp tục?'
-    ))) return;
+      ),
+      confirmText:tr('继续导出','Continue export','Tiếp tục xuất'),
+    }))) return;
     try {
       download(exportPack(roles), 'loopforge-roles-' + projectId.replace(/[^a-z0-9_-]/gi, '_') + '.json');
     } catch (error) { toast(error.message || String(error), 'err'); }
