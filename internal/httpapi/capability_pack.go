@@ -303,13 +303,23 @@ func (h *catalogHandlers) capabilityExport(c *gin.Context) {
  pack:=capabilityManifest{Format:capabilityFormat,SchemaVersion:capabilityVersion,Rules:[]capabilityRule{},Skills:[]capabilitySkill{}}
  var payload bytes.Buffer
  writer:=zip.NewWriter(&payload)
+ entryCount:=0
+ var unpackedBytes int64
  add:=func(name string,data []byte,mode uint32)error {
   if err:=validCapabilityPath(name);err!=nil{return err}
+  if entryCount+1>capabilityMaxEntries||unpackedBytes+int64(len(data))>capabilityMaxUnpacked{
+   return errors.New("export ZIP entry/decompressed size limit exceeded")
+  }
+  if name=="manifest.json"{
+   if len(data)>capabilityMaxManifest{return errors.New("export manifest exceeds 2 MiB")}
+  } else if int64(len(data))>domain.SkillFileMaxBytes{return errors.New("export file exceeds 1 MiB")}
   h:=&zip.FileHeader{Name:name,Method:zip.Deflate}
   h.SetMode(0o644)
   if mode!=0 {h.SetMode(mode & 0o777)}
   f,err:=writer.CreateHeader(h);if err!=nil{return err}
-  _,err=f.Write(data);return err
+  _,err=f.Write(data)
+  if err==nil{entryCount++;unpackedBytes+=int64(len(data))}
+  return err
  }
  var exportErr error
  if kind=="all"||kind=="rules"{
@@ -362,6 +372,9 @@ func (h *catalogHandlers) capabilityExport(c *gin.Context) {
    for p:=range binary{binaryPaths=append(binaryPaths,p)}
    sort.Strings(binaryPaths)
    for _,p:=range binaryPaths{if p!="SKILL.md"{save(p,binary[p],modes[p])}}
+   if exportErr==nil && len(copied)>domain.SkillMaxFileCount {
+    exportErr=fmt.Errorf("skill %s has %d files, over limit",s.ID,len(copied))
+   }
    if exportErr!=nil{break}
   }
  }
