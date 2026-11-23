@@ -137,3 +137,23 @@ test('deep-link and reload open the public generic SOP without exposing private 
   assert.equal(app.evaluate('openableWorkflow("private-elsewhere")'), null,
     'private workflows from other projects must remain inaccessible');
 });
+
+test('custom Chinese role names, descriptions and model IDs stay untouched in the role catalog', async t => {
+  for (const lang of ['vi', 'en', 'zh']) {
+    const app = await loadApp({ locale: lang });
+    t.after(app.close);
+    const role = { id: 'custom-l10n-role', projectId: 'project-1',
+      name: '用户自定义角色', description: '用户手写的职责', model: '自定义模型' };
+    app.evaluate('state.data.agents.push(' + JSON.stringify(role) + ');'
+      + 'state.agentScope="project";renderAgents();');
+    const row = app.document.querySelector('#agentList [data-agent-id="custom-l10n-role"]');
+    assert.ok(row, 'custom role row exists in ' + lang);
+    assert.equal(row.querySelector('.agent-row-who b').textContent, role.name);
+    assert.equal(row.querySelector('.agent-row-who small').textContent, role.description);
+    assert.equal(row.querySelector('.agent-row-model').textContent, role.model);
+    assert.ok(row.querySelector('.agent-row-who b').hasAttribute('data-i18n-skip'));
+    assert.ok(row.querySelector('.agent-row-who small').hasAttribute('data-i18n-skip'));
+    assert.ok(row.querySelector('.agent-row-model').hasAttribute('data-i18n-skip'));
+    assert.equal(app.evaluate('state.data.agents.find(a=>a.id==="custom-l10n-role").name'), role.name);
+  }
+});

@@ -68,7 +68,10 @@ test('SOP template: VI → EN → ZH → VI keeps the canvas, role dropdown and 
 test('SOP project copy: user-defined Chinese role survives save and reload with unchanged source labels', async ({ page }) => {
   const errors = watchErrors(page);
   const customName = '自定义角色 · Dữ liệu của người dùng';
-  const customId = await createAgent('sop-locale-custom', 'Do not translate names', { name: customName });
+  const customDescription = '由用户填写的角色描述';
+  const customId = await createAgent('sop-locale-custom', 'Do not translate names', {
+    name: customName, description: customDescription,
+  });
   const id = uid('sop-locale-clone');
   const copied = await post('/api/workflows/' + templateId + '/clone', {
     id, name: 'E2E SOP bản sao', projectId: cfg.projectId, sandboxProfileId: cfg.sandbox,
@@ -99,5 +102,8 @@ test('SOP project copy: user-defined Chinese role survives save and reload with 
   await expect(roleHint).not.toContainText(/[\\u3400-\\u9fff]/);
   await expect(page.locator('#properties select[data-p="agentId"]')).toHaveValue(customId);
   await page.screenshot({ path: test.info().outputPath('sop-clone-vi-after-reload.png') });
+  await page.goto('/#/agents');
+  await expect(page.locator('#agentList [data-agent-id="' + customId + '"] .agent-row-who b')).toHaveText(customName);
+  await expect(page.locator('#agentList [data-agent-id="' + customId + '"] .agent-row-who small')).toHaveText(customDescription);
   expect(errors).toEqual([]);
 });
