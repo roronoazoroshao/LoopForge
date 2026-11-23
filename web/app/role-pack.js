@@ -194,10 +194,15 @@
     const errors = [], warnings = [], ready = [];
     const projectId = String(context?.projectId || '').trim();
     if (!projectId) errors.push('Select a destination project first');
-    const existing = new Set((context?.existingAgents || []).map(item => item.id));
+    const existingAgents = context?.existingAgents || [];
+    const existing = new Set(existingAgents.map(item => item.id));
     const lookup = (values, id) => (values || []).find(item => item.id === id);
     for (const role of pack.roles) {
       if (existing.has(role.id)) errors.push(role.id + ': ID already exists; import will not overwrite it');
+      if (existingAgents.some(item => item.name?.trim().toLowerCase() === role.name.trim().toLowerCase() &&
+          item.projectId === projectId && item.id !== role.id)) {
+        warnings.push(role.name + ': another role in this project has the same display name');
+      }
       if (role.executorId && !lookup(context?.executors, role.executorId)) {
         errors.push(role.id + ': executor not available: ' + role.executorId);
       }
@@ -228,6 +233,7 @@
       count + role.hooks.length +
       role.verification.filter(gate => gate.mode === 'command')
         .reduce((total, gate) => total + gate.commands.length, 0), 0);
+    warnings.push('Import uses sequential writes. If a later role fails, previously created roles remain and are listed in the result.');
     if (scriptCount) warnings.push('Shell/Python commands and hooks are stored, but never run during import. Review before running a role.');
     if (ready.some(role => role.platformMcp)) warnings.push('Some roles request access to the platform MCP when executed.');
     return {errors, warnings, ready, scriptCount};
@@ -336,8 +342,9 @@
       preview(plan);
       if (plan.errors.length) return;
       const result = await importRoles(plan, role => api('/api/agents', {method:'PUT', body:JSON.stringify(role)}));
+      state.data.agents = state.data.agents || [];
       for (const agent of result.created) {
-        const index = (state.data.agents || []).findIndex(item => item.id === agent.id);
+        const index = state.data.agents.findIndex(item => item.id === agent.id);
         if (index >= 0) state.data.agents[index] = agent;
         else state.data.agents.push(agent);
       }
@@ -374,10 +381,15 @@
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
-  const exportCurrent = () => {
+  const exportCurrent = async () => {
     const projectId = state.projectFilter || '';
-    const roles = (state.data?.agents || []).filter(role => role.projectId === projectId);
-    if (!projectId || !roles.length) return toast(tr('当前项目没有可导出的角色','No roles to export in this project','Dự án này chưa có vai trò để xuất'), 'warn');
+    if (!projectId) return toast(tr('请先选择项目','Select a project first','Hãy chọn dự án trước'), 'warn');
+    let roles;
+    try {
+      roles = (await api('/api/agents?projectId=' + encodeURIComponent(projectId), {silent:true}))
+        .filter(role => role.projectId === projectId);
+    } catch (error) { return toast(error.message || String(error), 'err'); }
+    if (!roles.length) return toast(tr('当前项目没有可导出的角色','No roles to export in this project','Dự án này chưa có vai trò để xuất'), 'warn');
     if (!window.confirm(tr(
       '导出的 JSON 包含角色提示词、验收命令与 Hook 脚本；分享前请检查敏感信息。继续？',
       'Export includes role prompts, validation commands and hook scripts. Check for secrets before sharing. Continue?',
