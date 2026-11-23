@@ -43,7 +43,7 @@
     return value;
   };
   const list = (value, path, max = 100) => {
-    if (value === undefined) return [];
+    if (value == null) return [];
     if (!Array.isArray(value) || value.length > max) fail(path + ': expected a list of up to ' + max + ' items');
     const output = value.map((id, index) => str(id, path + '[' + index + ']', 160, true).trim());
     if (new Set(output).size !== output.length) fail(path + ': duplicate references');
@@ -75,7 +75,7 @@
   const normalizeGate = (raw, path) => {
     fields(raw, ['id', 'name', 'mode', 'stage', 'required', 'onFailure', 'commands', 'executionScope'], path);
     const mode = choice(raw.mode, path + '.mode', ['command', 'mr', 'manual'], raw.commands?.length ? 'command' : 'manual');
-    const commands = raw.commands === undefined ? [] : listCommands(raw.commands, path + '.commands');
+    const commands = raw.commands == null ? [] : listCommands(raw.commands, path + '.commands');
     if ((mode === 'mr' || mode === 'manual') && commands.length) fail(path + ': this gate mode must not include shell commands');
     if (mode === 'command' && !commands.length) fail(path + '.commands: at least one command is required');
     const gate = {
@@ -120,7 +120,7 @@
     };
   };
   const normalizeLoop = (raw, path) => {
-    raw = raw === undefined ? {} : raw;
+    raw = raw == null ? {} : raw;
     fields(raw, ['enabled', 'maxIterations', 'exitCondition', 'onExhausted', 'feedbackPrompt'], path);
     return {
       enabled: bool(raw.enabled, path + '.enabled'),
@@ -131,7 +131,7 @@
     };
   };
   const objectList = (raw, path, normalize, max) => {
-    if (raw === undefined) return [];
+    if (raw == null) return [];
     if (!Array.isArray(raw) || raw.length > max) fail(path + ': expected up to ' + max + ' items');
     const results = raw.map((item, index) => normalize(item, path + '[' + index + ']'));
     const ids = results.map(item => item.id).filter(Boolean);
