@@ -8,6 +8,7 @@ import (
  "fmt"
  "io"
  "net/http"
+ "net/url"
  "path"
  "regexp"
  "sort"
@@ -111,6 +112,13 @@ func strictCapabilityManifest(raw []byte) (capabilityManifest,error) {
   if !capabilityID.MatchString(s.ID)||strings.TrimSpace(s.Name)==""||len(s.Name)>200||
    len(s.Description)>2000||len(s.Author)>200||len(s.Version)>100||len(s.License)>160||len(s.SourceURL)>2000 {
    return out,fmt.Errorf("invalid skill %q",s.ID)
+  }
+  if s.SourceURL!="" {
+   parsed,err:=url.Parse(s.SourceURL)
+   if err!=nil || parsed.Host=="" || parsed.User!=nil ||
+    (parsed.Scheme!="https"&&parsed.Scheme!="http") {
+    return out,fmt.Errorf("skill %q contains an unsafe sourceUrl",s.ID)
+   }
   }
   key:=strings.ToLower(s.ID)
   if seenSkill[key] {return out,fmt.Errorf("duplicate skill ID %s",s.ID)}
