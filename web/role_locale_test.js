@@ -25,4 +25,37 @@ for(const [original,translated] of Object.entries(expected)){
   assert.ok(typeof en[original]==='string'&&en[original].trim(),'Missing English for: '+original);
 }
 assert.ok(vi['读 {{feedback}}，只修失败项，不要重做已经通过的部分'].includes('{{feedback}}'));
+
+function definition(start,end){
+  const a=src.indexOf(start),b=src.indexOf(end,a+start.length);
+  assert.ok(a>=0&&b>a,`missing function ${start}`);
+  return src.slice(a,b);
+}
+const fakeHost=()=>({
+  innerHTML:'',
+  insertAdjacentHTML(_where,html){this.innerHTML+=html},
+  querySelectorAll(){return []},
+  querySelector(){return null},
+});
+const gateHost=fakeHost(),hookHost=fakeHost();
+const runtime=vm.createContext({
+  window:{lfT:(_zh,_en,vi)=>vi},
+  $:id=>id==='#agentGatePanel'?gateHost:id==='#agentHookPanel'?hookHost:null,
+  escapeHTML:v=>String(v??''),
+  renderAgentSummary(){},
+  dirty(){},
+});
+vm.runInContext(
+  definition('function gateFailureSelect(', 'function applyGateField(') +
+  definition('function renderAgentGateEditors(', 'function effectiveNodeArtifacts(') +
+  definition('function renderAgentHookEditors(', 'function renderAgentSummary('),
+  runtime,
+);
+runtime.renderAgentGateEditors({
+  verification:[{name:'Document check',onFailure:'loop',executionScope:'run',commands:['test -s engineering/engineering-plan.md']}],
+});
+assert.ok(gateHost.innerHTML.includes('Đã cấu hình 1 lệnh nghiệm thu'),gateHost.innerHTML);
+runtime.renderAgentHookEditors({hooks:[{name:'Safety check',id:'check',event:'PreToolUse',language:'shell',script:'echo ok',timeoutSec:10}]});
+assert.ok(hookHost.innerHTML.includes('Đã viết 1 dòng (Shell)'),hookHost.innerHTML);
+
 console.log('role locale i18n mappings ok');
