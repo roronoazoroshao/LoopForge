@@ -55,6 +55,15 @@ function codeBuddyEnvironmentIntent(value){
 function codeBuddyEnvironmentLegacy(value){const raw=String(value||'').trim();return !!raw&&!codeBuddyEnvironment(raw)}
 function codeBuddyKeyURL(value){return (codeBuddyEnvironmentIntent(value)||CODEBUDDY_ENVIRONMENTS[0]).keyUrl}
 function codeBuddyKeyLinkLabel(value){return `前往${(codeBuddyEnvironmentIntent(value)||CODEBUDDY_ENVIRONMENTS[0]).label}获取 API Key`}
+const CLI_CREDENTIAL_NOTES_VI={
+  opencode:'OpenCode cần Base URL của nhà cung cấp mô hình.',
+  cursor:'Cursor CLI kết nối dịch vụ Cursor; có thể lấy mô hình bằng tài khoản.',
+  agy:'Mặc định kết nối API Gemini chính thức; gateway tương thích OpenAI cần Base URL.',
+  kimi:'Để trống Base URL để dùng dịch vụ chính thức của Kimi Code.',
+  pi:'Pi cần Base URL của nhà cung cấp mô hình.',
+  dsh:'Để trống Base URL để kết nối dịch vụ chính thức của DeepSeek.',
+  zcode:'Để trống Base URL để dùng dịch vụ tương thích Anthropic Messages của Zhipu BigModel.'
+};
 const CREDENTIAL_KINDS=[
   {key:'gitToken',group:'platform',name:'GitHub',short:'仓库授权',logo:'github',monochrome:true,
     use:'克隆私有仓库、创建任务分支、推送交付产物',
@@ -109,19 +118,22 @@ const CREDENTIAL_KINDS=[
   agentCliCredentialKind('zcode',{name:'ZCode',logo:'glm',baseUrl:'https://open.bigmodel.cn/api/anthropic',
     note:'未填写 Base URL 时连接智谱 BigModel 的 Anthropic 兼容服务（Messages）。',protocols:[['messages','Messages（Anthropic）'],['chat','Chat Completions'],['responses','Responses']]}),
 ];
+function credentialVI(){return window.lfLang?.()==='vi';}
+function credentialCopy(zh,vi){return credentialVI()?vi:zh}
+
 function agentCliCredentialKind(cli,o){
   const field=`agentCli.${cli}.`,configurable=!!o.protocols;
   return {key:`agentCli.${cli}`,agentCli:cli,group:'model',name:o.name,short:`${o.name} API Key`,logo:o.logo,monochrome:!!o.monochrome,
-    use:`AI 对话的 ${o.name} 模型与以 ${o.name} 运行的 SOP 节点`,
-    description:`AI 对话切换到 ${o.name} 后可选用它的模型，SOP 在执行机器上以 ${o.name} 运行的节点也使用它。${o.note||''}`,
-    guide:o.guide||[['在模型服务商控制台创建 API Key'],['记下服务地址和它提供的接口协议'],['粘贴 Key，按需填写 Base URL 并选择协议；保存后可在模型目录里挑选 AI 对话的模型']],
-    placeholder:`请输入 ${o.name} API Key`,
+    use:credentialCopy(`AI 对话的 ${o.name} 模型与以 ${o.name} 运行的 SOP 节点`,`Mô hình ${o.name} trong trò chuyện AI và các bước SOP chạy bằng ${o.name}`),
+    description:credentialCopy(`AI 对话切换到 ${o.name} 后可选用它的模型，SOP 在执行机器上以 ${o.name} 运行的节点也使用它。${o.note||''}`,`Trong cuộc trò chuyện AI, có thể chọn mô hình ${o.name}. Các bước SOP chạy bằng ${o.name} trên máy thực thi cũng sử dụng những mô hình này. ${CLI_CREDENTIAL_NOTES_VI[cli]||''}`),
+    guide:o.guide|| (credentialVI()?[['Tạo API Key trong bảng điều khiển của nhà cung cấp mô hình'],['Ghi lại Base URL và giao thức API mà dịch vụ cung cấp'],['Dán API Key, nhập Base URL khi cần và chọn giao thức. Sau khi lưu, chọn mô hình trong danh mục để dùng trong trò chuyện AI.']]:[['在模型服务商控制台创建 API Key'],['记下服务地址和它提供的接口协议'],['粘贴 Key，按需填写 Base URL 并选择协议；保存后可在模型目录里挑选 AI 对话的模型']]),
+    placeholder:credentialCopy(`请输入 ${o.name} API Key`,`Nhập API Key ${o.name}`),
     ...(configurable?{
-      extra:{name:field+'baseUrl',label:'Base URL',placeholder:o.baseUrl,url:true,clearWithKey:true,required:o.required,note:o.extraNote||(o.required?'必填':'')},
+      extra:{name:field+'baseUrl',label:'Base URL',placeholder:o.baseUrl,url:true,clearWithKey:true,required:o.required,note:credentialVI()?(o.extraNote?'Bắt buộc khi dùng gateway tương thích OpenAI':(o.required?'Bắt buộc':'')):(o.extraNote||(o.required?'必填':''))},
       protocol:{name:field+'protocol',options:o.protocols},
     }:{}),
     models:{name:field+'models',engine:cli},
-    impact:`AI 对话将不能再切换到 ${o.name}，以 ${o.name} 运行的 SOP 节点将无法执行${configurable?'，Base URL、协议与模型目录一并清空':''}。`};
+    impact:credentialCopy(`AI 对话将不能再切换到 ${o.name}，以 ${o.name} 运行的 SOP 节点将无法执行${configurable?'，Base URL、协议与模型目录一并清空':''}。`,`Không thể chuyển trò chuyện AI sang ${o.name}; các bước SOP dùng ${o.name} sẽ không thể chạy${configurable?'. Base URL, giao thức và danh mục mô hình cũng sẽ bị xóa':''}.`)};
 }
 function credentialValue(user,name){
   const [scope,cli,field]=String(name).split('.');
@@ -227,14 +239,19 @@ function credentialCatalogRowHTML(model={},engine=''){
 }
 function credentialCatalogCopy(mode,kind){
   const name=kind?.name||'该 CLI';
-  if(mode==='runner')return {title:'使用执行机器的账号模型',detail:'获取这台机器的账号模型，或手动添加。',reset:'清空自定义列表',restored:'已清空目录，保存后生效'};
-  return mode==='official'
-    ?{title:`使用 ${name} 自带的模型`,detail:`目录为空时，AI 对话列出 ${name} 支持的模型。获取可用模型可以改成自己的目录，也可以手动添加。`,reset:'清空目录，改回使用自带的模型',restored:'已恢复默认，保存后使用自带的模型'}
+  if(mode==='runner')return credentialVI()
+    ?{title:'Dùng mô hình của tài khoản trên máy thực thi',detail:'Lấy danh mục mô hình của tài khoản trên máy này hoặc thêm thủ công.',reset:'Xóa danh sách tùy chỉnh',restored:'Đã xóa danh mục; có hiệu lực sau khi lưu'}
+    :{title:'使用执行机器的账号模型',detail:'获取这台机器的账号模型，或手动添加。',reset:'清空自定义列表',restored:'已清空目录，保存后生效'};
+  if(mode==='official')return credentialVI()
+    ?{title:`Dùng mô hình tích hợp của ${name}`,detail:`Khi danh mục trống, trò chuyện AI hiển thị các mô hình do ${name} hỗ trợ. Bạn có thể tải danh sách có sẵn hoặc thêm mô hình thủ công.`,reset:'Xóa danh sách để dùng lại mô hình tích hợp',restored:'Đã khôi phục mặc định; lưu để áp dụng mô hình tích hợp'}
+    :{title:`使用 ${name} 自带的模型`,detail:`目录为空时，AI 对话列出 ${name} 支持的模型。获取可用模型可以改成自己的目录，也可以手动添加。`,reset:'清空目录，改回使用自带的模型',restored:'已恢复默认，保存后使用自带的模型'};
+  return credentialVI()
+    ?{title:'Theo danh mục mô hình của dịch vụ',reset:'Xóa danh sách để sử dụng lại mô hình từ dịch vụ',restored:'Đã khôi phục mặc định; lưu để áp dụng danh mục của dịch vụ'}
     :{title:'跟随服务发布的模型',reset:'清空目录，改回跟随服务发布的模型',restored:'已恢复默认，保存后跟随服务发布的模型'};
 }
 function credentialCatalogDetailHTML(mode,kind,protocol){
   const copy=credentialCatalogCopy(mode,kind);
-  return mode!=='remote'?escapeHTML(copy.detail):`目录为空时，AI 对话列出 Base URL 的 <code data-catalog-endpoint>${escapeHTML(credentialModelsEndpoint(kind,protocol))}</code> 返回的模型。`;
+  return mode!=='remote'?escapeHTML(copy.detail):credentialVI()?`Khi danh mục trống, cuộc trò chuyện AI hiển thị các mô hình từ endpoint <code data-catalog-endpoint>${escapeHTML(credentialModelsEndpoint(kind,protocol))}</code> của Base URL.`:`目录为空时，AI 对话列出 Base URL 的 <code data-catalog-endpoint>${escapeHTML(credentialModelsEndpoint(kind,protocol))}</code> 返回的模型。`;
 }
 function credentialCatalogHTML(kind,user,{runnerLogin=false,label='模型目录'}={}){
   const baseUrl=credentialValue(user,kind.baseURL||(kind.extra?.url?kind.extra.name:'')),protocol=credentialProtocol(kind,user);
@@ -254,7 +271,7 @@ function credentialCatalogHTML(kind,user,{runnerLogin=false,label='模型目录'
   </section>`;
 }
 function credentialCatalogSource(baseUrl){return String(baseUrl||'').trim().replace(/\/+$/,'')}
-function credentialCatalogCountText(count){return count?`${count} 个模型`:'未自定义'}
+function credentialCatalogCountText(count){return credentialVI()?(count?`${count} mô hình`:'Chưa tùy chỉnh'):(count?`${count} 个模型`:'未自定义')}
 function credentialCatalogRows(catalog){return [...catalog.querySelectorAll('[data-catalog-row]')]}
 function credentialCatalogRowModel(row){
   const id=row.querySelector('[data-catalog-field="id"]').value,name=row.querySelector('[data-catalog-field="name"]').value;
@@ -329,7 +346,7 @@ function moveCredentialCatalogRow(catalog,row,step){
   if(step<0)target.before(row);else target.after(row);
   row.querySelector('[data-catalog-grip]')?.focus({preventScroll:true});
   credentialCatalogChanged(catalog);
-  announceCredentialCatalog(catalog,`已移到第 ${credentialCatalogRows(catalog).indexOf(row)+1} 位`);
+  announceCredentialCatalog(catalog,credentialCopy(`已移到第 ${credentialCatalogRows(catalog).indexOf(row)+1} 位`,`Đã chuyển đến vị trí ${credentialCatalogRows(catalog).indexOf(row)+1}`));
 }
 function startCredentialCatalogDrag(event,grip){
   if(event.button!==0)return;
@@ -359,18 +376,18 @@ function credentialCatalogProbeHTML(catalog,kind){
     return `<label class="credential-catalog-pick" data-pick="${escapeHTML((model.id+' '+(model.name||'')).toLowerCase())}"><input type="checkbox" value="${escapeHTML(model.id)}"${checked?' checked':''}><code>${escapeHTML(model.id)}</code>${model.name&&model.name!==model.id?`<small>${escapeHTML(model.name)}</small>`:''}${listed?'<em>已在目录</em>':''}</label>`;
   }).join('');
   const protocol=catalog.closest('.credential-editor-form')?.querySelector('select[name="protocol"]')?.value||catalog.dataset.catalogProtocol;
-  const sources={builtin:'CLI 内置模型',official:'来自官方服务',runner:'来自这台机器的账号登录'};
-  const source=sources[probe.source]||`来自 Base URL 的 ${escapeHTML(credentialModelsEndpoint(kind,protocol))}`;
+  const sources=credentialVI()?{builtin:'Mô hình tích hợp của CLI',official:'Từ dịch vụ chính thức',runner:'Từ tài khoản trên máy thực thi'}:{builtin:'CLI 内置模型',official:'来自官方服务',runner:'来自这台机器的账号登录'};
+  const source=sources[probe.source]||credentialCopy(`来自 Base URL 的 ${escapeHTML(credentialModelsEndpoint(kind,protocol))}`,`Từ Base URL: ${escapeHTML(credentialModelsEndpoint(kind,protocol))}`);
   return `<div class="credential-catalog-probe-top"><span class="credential-input is-plain is-search">${credentialGlyph('search',14)}<input data-catalog-search placeholder="搜索模型" aria-label="搜索模型" autocomplete="off" spellcheck="false"></span><span class="credential-catalog-picked" data-catalog-picked></span><button type="button" class="credential-btn link credential-ink" data-catalog-act="toggle-all">全选</button></div>
     <div class="credential-catalog-probe-list" role="group" aria-label="可用模型">${items}</div>
-    <div class="credential-catalog-probe-foot"><small>${source} · 勾选的模型会加入目录，取消勾选会移出</small><div><button type="button" class="credential-btn ghost credential-ink" data-catalog-act="probe-close">取消</button><button type="button" class="credential-btn primary credential-ink" data-catalog-act="probe-apply">更新列表</button></div></div>`;
+    <div class="credential-catalog-probe-foot"><small>${source} · ${credentialCopy('勾选的模型会加入目录，取消勾选会移出','Mô hình được chọn sẽ được thêm vào danh mục; bỏ chọn sẽ loại khỏi danh mục')}</small><div><button type="button" class="credential-btn ghost credential-ink" data-catalog-act="probe-close">取消</button><button type="button" class="credential-btn primary credential-ink" data-catalog-act="probe-apply">更新列表</button></div></div>`;
 }
 function syncCredentialCatalogProbe(catalog){
   const panel=catalog.querySelector('[data-catalog-probe]'),query=String(panel.querySelector('[data-catalog-search]')?.value||'').trim().toLowerCase();
   const picks=[...panel.querySelectorAll('.credential-catalog-pick')];
   picks.forEach(pick=>{pick.hidden=!!query&&!pick.dataset.pick.includes(query)});
   const visible=picks.filter(pick=>!pick.hidden),checked=picks.filter(pick=>pick.querySelector('input').checked).length;
-  const counter=panel.querySelector('[data-catalog-picked]');if(counter)counter.textContent=`已选 ${checked} / ${picks.length}`;
+  const counter=panel.querySelector('[data-catalog-picked]');if(counter)counter.textContent=credentialCopy(`已选 ${checked} / ${picks.length}`,`Đã chọn ${checked} / ${picks.length}`);
   const toggle=panel.querySelector('[data-catalog-act="toggle-all"]');
   if(toggle){toggle.textContent=visible.length&&visible.every(pick=>pick.querySelector('input').checked)?'全不选':'全选';toggle.disabled=!visible.length}
 }
@@ -744,7 +761,7 @@ function credentialOptionHTML({id,name,logo,monochrome,icon},selected){
 }
 function credentialAddMenu(group,user){
   const git=group.id==='platform';
-  const label=git?'新增 Git 配置':'新增执行器';
+  const label=git?credentialCopy('新增 Git 配置','Thêm cấu hình Git'):credentialCopy('新增执行器','Thêm trình thực thi');
   const options=git?GIT_ADD_OPTIONS:CREDENTIAL_KINDS.filter(kind=>kind.group==='model'&&!credentialConfigured(kind,user))
     .map(kind=>({id:kind.key,name:kind.name,logo:kind.logo,monochrome:kind.monochrome}));
   if(!options.length)return '';
@@ -1375,9 +1392,9 @@ function credentialWizardStepTwoHTML(kind){
   const fields=(kind.extra?.options?extraField+secretField:secretField+extraField+protocolField)+baseField;
   if(isDirectExecutorForm(wizard)){
     const error=wizard.error?`<p class="credential-vline is-err" role="alert">${escapeHTML(wizard.error)}</p>`:'';
-    return `<div class="credential-direct-heading">${credentialLogo(kind)}<h3>新增 ${escapeHTML(kind.name)}</h3></div>
+    return `<div class="credential-direct-heading">${credentialLogo(kind)}<h3>${escapeHTML(credentialCopy(`新增 ${kind.name}`,`Thêm ${kind.name}`))}</h3></div>
       <fieldset class="credential-fields"${wizard.saving?' disabled':''}>${fields}</fieldset>
-      <details class="credential-direct-help"><summary>如何获取密钥</summary><ol class="credential-guide">${guide}</ol></details>${error}`;
+      <details class="credential-direct-help"><summary>${credentialCopy("如何获取密钥","Cách lấy API Key")}</summary><ol class="credential-guide">${guide}</ol></details>${error}`;
   }
   return `<div class="credential-question">${credentialLogo(kind,'is-mini')}<span>${github?'使用访问令牌':'配置 '+escapeHTML(kind.short)}</span><small class="credential-description">${escapeHTML(kind.description)}</small></div>${methods}<ol class="credential-guide">${guide}</ol><div class="credential-fields">
     ${fields}
@@ -1432,7 +1449,7 @@ function paintCredentialWizard(direction){
   scrim.querySelector('[data-wizard-step]').textContent=wizard.done?'已完成':`${wizard.step} / 3`;
   scrim.querySelector('[data-wizard-close]').disabled=wizard.saving;
   const dialog=scrim.querySelector('.credential-dialog');
-  dialog.setAttribute('aria-label',isDirectExecutorForm(wizard)?`新增 ${credentialKind(wizard.kind).name}`:'添加凭证');
+  dialog.setAttribute('aria-label',isDirectExecutorForm(wizard)?credentialCopy(`新增 ${credentialKind(wizard.kind).name}`,`Thêm ${credentialKind(wizard.kind).name}`):credentialCopy('添加凭证','Thêm thông tin xác thực'));
   scrim.querySelector('.credential-dialog-foot').innerHTML=credentialWizardFootHTML();
   hydrateCredentialIcons(scrim);
   if(typeof hydrateGitHubConnections==='function')hydrateGitHubConnections(pane);
