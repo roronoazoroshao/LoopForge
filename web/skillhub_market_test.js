@@ -185,6 +185,7 @@ assert.strictEqual(ctx.assetSkillSource(sourced), null, 'source badge is skill-o
  const viCard = ctx.skillhubCardHTML(bilingual, 0);
  assert.ok(viCard.includes('Read PDFs') && !viCard.includes('读取 PDF'),viCard);
  assert.strictEqual(ctx.skillhubCategoryName('office-efficiency'),'Hiệu suất văn phòng');
+ assert.strictEqual(ctx.skillhubSubCategoryName({key:'agent-workflow',name:'工作流编排'}),'Điều phối quy trình');
  const detailView = ctx.skillhubDrawerView({slug:'pdf-tools',namespace:'team',item:bilingual,detail:{skill:{summary:'中文简介',summaryOriginal:'Original summary'}}});
  assert.strictEqual(detailView.summary,'Original summary');
  assert.strictEqual(ctx.skillhubLocalizedDescription('中文のみ',''),'中文のみ','no inventing translation when publisher original is absent');
