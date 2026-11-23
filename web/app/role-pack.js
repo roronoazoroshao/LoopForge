@@ -297,10 +297,37 @@
       executors: state.data?.executors || [],
     };
   };
+  const issueText = raw => {
+    const fixed = {
+      'Select a destination project first': tr('请先选择目标项目', 'Select a destination project first', 'Hãy chọn dự án đích trước'),
+      'Import uses sequential writes. If a later role fails, previously created roles remain and are listed in the result.':
+        tr('逐个创建角色。如果中途失败，已创建的角色会保留并在结果中列明。',
+          'Import writes roles sequentially. Earlier successes remain if a later role fails.',
+          'Các vai trò được tạo lần lượt. Nếu có lỗi, các vai trò tạo trước đó vẫn được giữ và được liệt kê.'),
+      'Shell/Python commands and hooks are stored, but never run during import. Review before running a role.':
+        tr('Shell/Python 命令和 Hook 只会保存，不会在导入时执行。运行前请审查。',
+          'Shell/Python commands and hooks are stored, not executed during import. Review before running.',
+          'Lệnh Shell/Python và Hook chỉ được lưu, không chạy lúc nhập. Hãy kiểm tra trước khi thực thi.'),
+      'Some roles request access to the platform MCP when executed.':
+        tr('部分角色在运行时需要平台 MCP 权限。',
+          'Some roles request platform MCP access when executed.',
+          'Một số vai trò yêu cầu quyền MCP nền tảng khi thực thi.'),
+    };
+    if (fixed[raw]) return fixed[raw];
+    let match = /^(.*?): another role in this project has the same display name$/.exec(raw);
+    if (match) return match[1] + tr('：当前项目已有同名角色', ': another role has the same name', ': dự án đã có vai trò trùng tên');
+    match = /^(.*?): ID already exists; import will not overwrite it$/.exec(raw);
+    if (match) return match[1] + tr('：ID 已存在；不会覆盖', ': ID already exists; no overwrite', ': ID đã tồn tại; không ghi đè');
+    match = /^(.*?): executor not available: (.*)$/.exec(raw);
+    if (match) return match[1] + tr('：CLI 不可用：', ': executor unavailable: ', ': CLI không khả dụng: ') + match[2];
+    match = /^(.*?): inaccessible (rules|skills|mcpServers) reference: (.*)$/.exec(raw);
+    if (match) return match[1] + tr('：无法访问所需资源 ', ': inaccessible reference ', ': không truy cập được tài nguyên ') + match[2] + ': ' + match[3];
+    return raw;
+  };
   const preview = plan => {
     listInto('rolePackPreview', plan.ready.map(role => role.name + ' (' + role.id + ')'));
-    listInto('rolePackProblems', plan.errors);
-    listInto('rolePackWarnings', plan.warnings);
+    listInto('rolePackProblems', plan.errors.map(issueText));
+    listInto('rolePackWarnings', plan.warnings.map(issueText));
     const errors = plan.errors.length;
     status(errors
       ? tr('发现 '+errors+' 个错误，未导入任何内容。',errors+' problem(s). Nothing has been imported.', 'Có '+errors+' lỗi; chưa nhập dữ liệu nào.')
