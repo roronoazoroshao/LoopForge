@@ -62,6 +62,11 @@ assert.ok(!('version' in exported.roles[0]));
 assert.ok(!('updatedAt' in exported.roles[0]));
 assert.equal(parse(exported).roles[0].prompt,role.prompt);
 
+const fromServer=p.exportPack([{id:'simple',name:'Simple',description:'',prompt:'',rules:null,skills:null,mcpServers:null,verification:null,artifactOutputs:null,hooks:null,loop:{enabled:false,maxIterations:3,exitCondition:'all_gates_pass',onExhausted:'fail'}}]);
+assert.deepEqual(JSON.parse(JSON.stringify(fromServer.roles[0].rules)),[]);
+assert.deepEqual(JSON.parse(JSON.stringify(fromServer.roles[0].verification)),[]);
+
+
 assert.ok(p.preflight(pack,{...env,existingAgents:[{id:'engineering-lead',projectId:'other-project'}]}).errors.some(s=>s.includes('engineering-lead')));
 assert.ok(p.preflight(pack,{...env,skills:[]}).errors.some(s=>s.includes('planning')));
 assert.ok(p.preflight(pack,{...env,mcpServers:[]}).errors.some(s=>s.includes('github-readonly')));
