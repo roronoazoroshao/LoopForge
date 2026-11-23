@@ -30,9 +30,11 @@ class InstallerTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
+        subprocess.run(['git', 'init', '-q'], cwd=self.root, check=True)
+        shutil.copyfile(ROOT / '.gitignore', self.root / '.gitignore')
         (self.root / 'scripts').mkdir()
         (self.root / 'migrations/seed').mkdir(parents=True)
-        for name in ('install.sh', 'configure.sh', 'docker-access.sh', 'ghcr-mirror.sh', 'install-address.py', 'install-compose.py', 'install-observability-schema.sh', 'install-schema-extensions.sh'):
+        for name in ('install.sh', 'configure.sh', 'docker-access.sh', 'ghcr-mirror.sh', 'install-address.py', 'install-compose.py', 'install-observability-schema.sh', 'install-schema-extensions.sh', 'build-source-context.sh', 'filter-build-context.py'):
             shutil.copyfile(ROOT / 'scripts' / name, self.root / 'scripts' / name)
         shutil.copyfile(ROOT / 'start.sh', self.root / 'start.sh')
         for name in ('001_run_obs_generated_columns.sql', '031_generic_backend_openssh.sql', '033_generic_sop_mr_node.sql', '038_generic_sop_host_credentials.sql'):
@@ -50,7 +52,8 @@ if [[ "$1" == pull && "${MOCK_PULL_FAIL:-0}" == 1 ]]; then exit 42; fi
 if [[ "$1" == tag && "${MOCK_TAG_FAIL:-0}" == 1 ]]; then exit 1; fi
 if [[ "$*" == 'compose version' && "${MOCK_COMPOSE_MISSING:-0}" == 1 && ! -f "$MOCK_COMPOSE_INSTALLED" ]]; then exit 1; fi
 if [[ "$*" == *'ps --status running'* ]]; then echo platform; fi
-if [[ "${MOCK_EXPIRE_AFTER_BUILD:-0}" == 1 && "$*" == *'build platform'* ]]; then touch "$MOCK_SUDO_EXPIRED_FILE"; fi
+if [[ "${MOCK_EXPIRE_AFTER_BUILD:-0}" == 1 && "$1" == build ]]; then touch "$MOCK_SUDO_EXPIRED_FILE"; fi
+if [[ "$1" == build ]]; then cat >/dev/null; fi
 if [[ "$*" == *'exec -T mysql'* ]]; then
   if [[ "$*" == *'count(*) from users'* ]]; then echo 0; exit 0; fi
   query=$(cat)
@@ -148,7 +151,7 @@ exec "$@"
         self.assert_success(self.install())
         log = (self.root / 'docker.log').read_text()
         self.assertIn('pull --policy missing platform mysql', log)
-        self.assertNotIn('build platform', log)
+        self.assertNotIn('build --progress=plain', log)
         self.assertNotIn('ghcr.nju.edu.cn', log)
         self.assertIn("LOOPFORGE_IMAGE=''", (self.root / '.env').read_text())
 
@@ -539,22 +542,38 @@ esac
         self.assertIn(' tag ', log)
         self.assertNotIn('up -d --no-build', log)
 
+    def test_source_build_does_not_traverse_unreadable_runtime_data(self):
+        self.use_compose_file()
+        private = self.root / '.data/conversations'
+        private.mkdir(parents=True)
+        (private / 'secret.txt').write_text('runtime-secret')
+        private.chmod(0)
+        try:
+            result = self.install(LOOPFORGE_BUILD_FROM_SOURCE='1')
+        finally:
+            private.chmod(0o700)
+        self.assert_success(result)
+        log = (self.root / 'docker.log').read_text()
+        self.assertIn('build --progress=plain', log)
+        self.assertNotIn('compose --profile platform build', log)
+        self.assertIn('compose --profile platform up -d --no-build', log)
+
     def test_source_build_ignores_nju_mirror(self):
         self.use_compose_file()
         self.assert_success(self.install(LOOPFORGE_BUILD_FROM_SOURCE='1', MIRROR='ghcr.nju.edu.cn'))
         log = (self.root / 'docker.log').read_text()
-        self.assertIn('build platform', log)
+        self.assertIn('build --progress=plain', log)
         self.assertNotIn('ghcr.nju.edu.cn', log)
 
     def test_source_build_persists_dev_compose_file(self):
         self.assert_success(self.install(LOOPFORGE_BUILD_FROM_SOURCE='1'))
-        self.assertIn('build platform', (self.root / 'docker.log').read_text())
+        self.assertIn('build --progress=plain', (self.root / 'docker.log').read_text())
         config = (self.root / '.env').read_text()
         self.assertEqual(config.count('COMPOSE_FILE='), 1)
         self.assertIn('COMPOSE_FILE=compose.yaml:compose.dev.yaml', config)
         (self.root / 'docker.log').unlink()
         self.assert_success(self.install())
-        self.assertIn('build platform', (self.root / 'docker.log').read_text())
+        self.assertIn('build --progress=plain', (self.root / 'docker.log').read_text())
 
     def test_start_switches_source_build_back_to_release(self):
         self.assert_success(self.install(LOOPFORGE_BUILD_FROM_SOURCE='1'))
@@ -564,7 +583,7 @@ esac
         self.assertNotIn('COMPOSE_FILE=', (self.root / '.env').read_text())
         log = (self.root / 'docker.log').read_text()
         self.assertIn('pull --policy missing platform mysql', log)
-        self.assertNotIn('build platform', log)
+        self.assertNotIn('build --progress=plain', log)
 
     def test_start_refuses_local_build(self):
         result = subprocess.run([self.shell(), 'start.sh', 'build'], cwd=self.root, env=self.environ, text=True, capture_output=True, stdin=subprocess.DEVNULL, timeout=15)
@@ -575,7 +594,7 @@ esac
         self.assert_success(self.install(LOOPFORGE_IMAGE='registry.example.test/loopforge:tested'))
         log = (self.root / 'docker.log').read_text()
         self.assertIn('pull --policy missing platform mysql', log)
-        self.assertNotIn('build platform', log)
+        self.assertNotIn('build --progress=plain', log)
         self.assertIn('--no-build --wait --wait-timeout 180', log)
 
     def test_missing_python_and_curl_are_installed_with_supported_package_managers(self):
