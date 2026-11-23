@@ -87,6 +87,7 @@ function renderAssetListChrome(){
   if($('#newAssetLabel'))$('#newAssetLabel').textContent=copy.create;
   if($('#newAsset'))$('#newAsset').hidden=scope!=='project';
   if(typeof skillhubSyncChrome==='function')skillhubSyncChrome();
+  if(typeof capabilityPackSyncChrome==='function')capabilityPackSyncChrome();
   $$('[data-asset-scope]').forEach(btn=>btn.classList.toggle('active',btn.dataset.assetScope===scope));
   $$('[data-asset-scope-count]').forEach(el=>el.textContent=String(assetScopeItems(el.dataset.assetScopeCount).length));
   const search=$('#assetSearch');if(search&&search.value!==(state.assetQuery||''))search.value=state.assetQuery||'';
