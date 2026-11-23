@@ -6366,3 +6366,16 @@ Object.assign(window.LF_I18N_VI, {
   "连接成功": "Kết nối thành công",
   "执行机器已领取任务，正在准备工作区和沙箱": "Máy thực thi đã nhận tác vụ, đang chuẩn bị không gian làm việc và sandbox"
 });
+
+// Static role-pack controls retained by the upstream 0.4.1 synchronization.
+Object.assign(window.LF_I18N_VI, {
+  "导入角色包": "Nhập gói vai trò",
+  "导出角色包": "Xuất gói vai trò",
+  "预览后导入当前项目；不会覆盖已有角色或自动安装 Skill。": "Xem trước rồi nhập vào dự án hiện tại; không ghi đè vai trò đã có hoặc tự động cài đặt Skill.",
+  "待导入角色": "Vai trò chờ nhập",
+  "必须处理的问题": "Vấn đề cần xử lý",
+  "注意事项": "Lưu ý",
+  "已检查输入内容及 Shell/Python 脚本。导入本身不会执行脚本。": "Đã kiểm tra nội dung đầu vào và các script Shell/Python. Quá trình nhập sẽ không chạy script.",
+  "确认导入": "Xác nhận nhập",
+  "选择角色包 JSON": "Chọn tệp JSON gói vai trò"
+} );

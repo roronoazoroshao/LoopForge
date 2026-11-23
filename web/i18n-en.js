@@ -2079,3 +2079,16 @@ Object.assign(window.LF_I18N_EN, {
 Object.assign(window.LF_I18N_EN, {
   "执行机器已领取任务，正在准备工作区和沙箱": "The execution machine has claimed the task and is preparing the workspace and sandbox"
 });
+
+// Static role-pack controls retained by the upstream 0.4.1 synchronization.
+Object.assign(window.LF_I18N_EN, {
+  "导入角色包": "Import role pack",
+  "导出角色包": "Export role pack",
+  "预览后导入当前项目；不会覆盖已有角色或自动安装 Skill。": "Preview and import into this project; existing roles are not overwritten and Skills are not installed automatically.",
+  "待导入角色": "Roles to import",
+  "必须处理的问题": "Issues requiring attention",
+  "注意事项": "Important notes",
+  "已检查输入内容及 Shell/Python 脚本。导入本身不会执行脚本。": "Input and Shell/Python scripts have been reviewed. Importing does not execute scripts.",
+  "确认导入": "Confirm import",
+  "选择角色包 JSON": "Choose role-pack JSON"
+} );
