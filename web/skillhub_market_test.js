@@ -176,4 +176,18 @@ assert.ok(!ctx.assetMetaHTML({ id: 'p', projectId: 'p1' }).includes('SkillHub'))
 ctx.state.assetType = 'rules';
 assert.strictEqual(ctx.assetSkillSource(sourced), null, 'source badge is skill-only');
 
+
+ // Localized SkillHub catalog must use the publisher's original description in
+ // Vietnamese/English, not the API's Chinese-preferred legacy display field.
+ ctx.window.lfLang = () => 'vi';
+ reset();
+ const bilingual = {slug:'pdf-tools',name:'PDF 处理',description:'读取 PDF',descriptionOriginal:'Read PDFs',category:'office-efficiency'};
+ const viCard = ctx.skillhubCardHTML(bilingual, 0);
+ assert.ok(viCard.includes('Read PDFs') && !viCard.includes('读取 PDF'),viCard);
+ assert.strictEqual(ctx.skillhubCategoryName('office-efficiency'),'Hiệu suất văn phòng');
+ const detailView = ctx.skillhubDrawerView({slug:'pdf-tools',namespace:'team',item:bilingual,detail:{skill:{summary:'中文简介',summaryOriginal:'Original summary'}}});
+ assert.strictEqual(detailView.summary,'Original summary');
+ assert.strictEqual(ctx.skillhubLocalizedDescription('中文のみ',''),'中文のみ','no inventing translation when publisher original is absent');
+ delete ctx.window.lfLang;
+ 
 console.log('skillhub market ok');
