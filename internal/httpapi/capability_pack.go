@@ -257,8 +257,9 @@ func selectedCapabilities(c *gin.Context,pack capabilityManifest) (map[string]bo
  for _,r:=range pack.Rules{allowed["rules/"+r.ID]=true}
  for _,s:=range pack.Skills{allowed["skills/"+s.ID]=true}
  selected:=map[string]bool{}
- selection:=c.Query("selected")
- if selection=="" {return allowed,nil}
+ selection,provided:=c.GetQuery("selected")
+ if !provided {return allowed,nil}
+ if strings.TrimSpace(selection)=="" {return nil,errors.New("selected list cannot be empty")}
  for _,name:=range strings.Split(selection,","){
   if !allowed[name] {return nil,fmt.Errorf("unknown selected capability %q",name)}
   selected[name]=true
