@@ -59,6 +59,7 @@ type assistantRequest struct {
 	SessionID         string                           `json:"sessionId"`
 	Model             string                           `json:"model"`
 	Effort            string                           `json:"effort"`
+	ResponseLanguage  string                           `json:"responseLanguage,omitempty"`
 	RequireExactModel bool                             `json:"requireExactModel,omitempty"`
 	Executor          string                           `json:"executor,omitempty"`
 	ApprovalMode      string                           `json:"approvalMode"`
@@ -562,7 +563,7 @@ func (h *assistantHandlers) chat(c *gin.Context) {
 				prompt += conversationAttachmentNote(cliRoot, req, turnEngine)
 				var sentRepositoryHash string
 				if req.workspaceMode {
-					system = assistantWorkspaceSystemPrompt
+					system = assistantWorkspaceSystemPromptForRequest(req)
 					prefix := assistantWorkspaceSystemPrompt + "\n审批模式：" + approvalMode + "。\n"
 					var repositoryPrompt string
 					repositoryPrompt, sentRepositoryHash, err = h.workspaceRepositoryPrompt(toolSession, cliRoot, workspaceRepositoryHash, len(prefix)+len(prompt))
