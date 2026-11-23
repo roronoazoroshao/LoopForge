@@ -140,25 +140,25 @@ const flowPalette=(()=>{
 
   // ---- SOP switcher ----
   function workflowStatus(w){
-    if(catalogGeneric(w))return {cls:'ro',label:paletteCopy('只读模板','Mẫu chỉ đọc')};
-    if(catalogForeign(w.projectId))return {cls:'ro',label:paletteCopy('共享 · 只读','Chia sẻ · chỉ đọc')};
-    if(w.status==='published')return {cls:'ok',label:paletteCopy('已发布','Đã phát hành')};
-    if(w.status==='archived')return {cls:'ro',label:paletteCopy('已归档','Đã lưu trữ')};
-    return {cls:'draft',label:paletteCopy('草稿','Bản nháp')};
+    if(catalogGeneric(w))return {cls:'ro',label:window.lfT('只读模板','Read-only template','Mẫu chỉ đọc')};
+    if(catalogForeign(w.projectId))return {cls:'ro',label:window.lfT('共享 · 只读','Shared · read-only','Chia sẻ · chỉ đọc')};
+    if(w.status==='published')return {cls:'ok',label:window.lfT('已发布','Published','Đã phát hành')};
+    if(w.status==='archived')return {cls:'ro',label:window.lfT('已归档','Archived','Đã lưu trữ')};
+    return {cls:'draft',label:window.lfT('草稿','Draft','Bản nháp')};
   }
   function switcherGroups(){
     const wf=state.workflow,listed=catalogWorkflows(),generic=(state.data?.workflows||[]).filter(catalogGeneric);
     const own=listed.filter(w=>!catalogForeign(w.projectId)),shared=listed.filter(w=>catalogForeign(w.projectId));
     if(wf&&!listed.some(w=>w.id===wf.id)&&!generic.some(w=>w.id===wf.id))own.unshift(wf);
-    return [{title:paletteCopy('本项目','Dự án này'),items:own},{title:paletteCopy('共享给本项目','Được chia sẻ với dự án này'),items:shared},{title:paletteCopy('通用模板 · 只读','Mẫu chung · chỉ đọc'),items:generic}];
+    return [{title:window.lfT('本项目','This project','Dự án này'),items:own},{title:window.lfT('共享给本项目','Shared with this project','Được chia sẻ với dự án này'),items:shared},{title:window.lfT('通用模板 · 只读','Public templates · read-only','Mẫu chung · chỉ đọc'),items:generic}];
   }
   function renderSwitcher(){
     const host=document.getElementById('flowSwitchList');if(!host)return;
     const q=(document.getElementById('flowSwitchQ')?.value||'').trim().toLowerCase(),cur=state.workflow?.id;
     host.innerHTML=switcherGroups().map(g=>{
-      const items=g.items.filter(w=>matches(q,w.name||'',w.id||''));
+      const items=g.items.filter(w=>matches(q,sopSeedWorkflowDisplayName(w),w.name||'',w.id||''));
       if(!items.length)return '';
-      return `<div class="fd-pop-gh">${escapeHTML(g.title)}</div>`+items.map(w=>{const s=workflowStatus(w),current=w.id===cur,name=w.name||'未命名 SOP';return `<button type="button"${paletteVI()?' data-i18n-skip':''} class="fd-pop-item ${current?'cur':''}" role="option" aria-selected="${current}" data-switch-workflow="${escapeHTML(w.id)}"><span class="fd-sd ${s.cls}"></span><span class="fd-pop-text"><span class="fd-pop-title"><b>${escapeHTML(name)}</b><span class="fd-pop-copy" role="button" tabindex="0" data-copy-sop-name="${escapeHTML(name)}" aria-label="${paletteCopy('复制 SOP 名称','Sao chép tên SOP')}" title="${paletteCopy('复制 SOP 名称','Sao chép tên SOP')}">${icon('copy',14,1.7)}</span></span><small>${s.label} · v${w.version||1} · ${paletteCopy(`${(w.nodes||[]).length} 步`,`${(w.nodes||[]).length} bước`)}</small></span>${current?`<span class="fd-ck">${icon('check',15,2.2)}</span>`:''}</button>`}).join('');
+      return `<div class="fd-pop-gh">${escapeHTML(g.title)}</div>`+items.map(w=>{const s=workflowStatus(w),current=w.id===cur,name=sopSeedWorkflowDisplayName(w)||'未命名 SOP';return `<button type="button" class="fd-pop-item ${current?'cur':''}" role="option" aria-selected="${current}" data-switch-workflow="${escapeHTML(w.id)}"><span class="fd-sd ${s.cls}"></span><span class="fd-pop-text"><span class="fd-pop-title"><b data-i18n-skip>${escapeHTML(name)}</b><span class="fd-pop-copy" role="button" tabindex="0" data-copy-sop-name="${escapeHTML(name)}" aria-label="${window.lfT('复制 SOP 名称','Copy SOP name','Sao chép tên SOP')}" title="${window.lfT('复制 SOP 名称','Copy SOP name','Sao chép tên SOP')}">${icon('copy',14,1.7)}</span></span><small>${s.label} · v${w.version||1} · ${window.lfT(`${(w.nodes||[]).length} 步`,`${(w.nodes||[]).length} steps`,`${(w.nodes||[]).length} bước`)}</small></span>${current?`<span class="fd-ck">${icon('check',15,2.2)}</span>`:''}</button>`}).join('');
     }).join('')||`<div class="fd-pal-empty">没有匹配的 SOP</div>`;
   }
   function isSwitcherOpen(){const p=document.getElementById('flowSwitchPop');return !!p&&!p.hidden}

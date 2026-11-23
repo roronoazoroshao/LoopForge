@@ -111,7 +111,11 @@ function workflowNeedsPublish(wf=state.workflow){
 function renderFlowHeader(){
   const wf=state.workflow;
   const title=$('#flowCommandTitle');
-  if(title){title.textContent=wf?(wf.name||'未命名流程'):'选择或新建 SOP';title.title=wf?.name||''}
+  if(title){
+    if(wf)title.setAttribute?.('data-i18n-skip','');else title.removeAttribute?.('data-i18n-skip');
+    title.textContent=wf?(sopSeedWorkflowDisplayName(wf)||'未命名流程'):'选择或新建 SOP';
+    title.title=wf?sopSeedWorkflowDisplayName(wf):'';
+  }
   const copyName=$('#copyWorkflowName');if(copyName)copyName.hidden=!wf
   const meta=$('#workflowMeta');
   if(meta){
@@ -145,7 +149,7 @@ function renderWorkflowMeta(){
   // Generic templates and an unsaved AI draft are not in the project SOP list.
   // Keep the open workflow selected while it is being previewed.
   const options=wf&&!workflows.some(w=>w.id===wf.id)?[wf,...workflows]:workflows;
-  $('#workflowSelect').innerHTML=options.map(w=>`<option value="${escapeHTML(w.id)}" ${wf&&w.id===wf.id?'selected':''}>${escapeHTML(w.name)}</option>`).join('');
+  $('#workflowSelect').innerHTML=options.map(w=>`<option data-i18n-skip value="${escapeHTML(w.id)}" ${wf&&w.id===wf.id?'selected':''}>${escapeHTML(sopSeedWorkflowDisplayName(w))}</option>`).join('');
   if(!wf){
     $('#workflowName').value='';$('#workflowDescription').value='';$('#workflowOwner').value='';$('#workflowSandbox').innerHTML='';
     $('#workflowStatus').value='draft';$('#workflowTags').value='';$('#workflowMetricCategory').value='';$('#workflowSOPLane').value='';

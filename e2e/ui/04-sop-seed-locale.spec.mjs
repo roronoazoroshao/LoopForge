@@ -41,6 +41,12 @@ test('SOP template: VI → EN → ZH → VI keeps the canvas, role dropdown and 
     await language(page, lang);
     await expect(page.locator('#nodes .flow-node')).toHaveCount(8);
     await canvasLabels(page, index);
+    const templateName = {vi:'SOP bàn giao backend chung',
+      en:'General backend delivery SOP',zh:'通用后端交付 SOP'}[lang];
+    await expect(page.locator('#flowCommandTitle')).toHaveText(templateName);
+    await page.locator('#flowIdent').click();
+    await expect(page.locator('#flowSwitchList [data-switch-workflow="' + templateId + '"] .fd-pop-title b')).toHaveText(templateName);
+    await page.locator('#flowIdent').click();
     await page.locator('#nodes .flow-node[data-id="clarify"]').click();
     const select = page.locator('#properties select[data-p="agentId"]');
     const roleLabel = { vi: 'Vai trò cho bước này', en: 'Role for this step',

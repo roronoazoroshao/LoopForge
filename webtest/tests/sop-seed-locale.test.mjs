@@ -157,3 +157,24 @@ test('custom Chinese role names, descriptions and model IDs stay untouched in th
     assert.equal(app.evaluate('state.data.agents.find(a=>a.id==="custom-l10n-role").name'), role.name);
   }
 });
+
+
+test('all shipped template names localize by ID without translating user-created SOPs', async t => {
+  const known = [
+    ['generic-backend-delivery', '通用后端交付 SOP', 'General backend delivery SOP', 'SOP bàn giao backend chung'],
+    ['generic-frontend-delivery', '通用前端交付 SOP', 'General frontend delivery SOP', 'SOP bàn giao frontend chung'],
+    ['issue-fix-production', '通用缺陷修复 SOP', 'General bug-fix SOP', 'SOP sửa lỗi chung'],
+    ['generic-product-delivery', '通用产品方案 SOP', 'General product proposal SOP', 'SOP đề xuất sản phẩm chung'],
+  ];
+  for (const [lang, offset] of [['zh',1],['en',2],['vi',3]]) {
+    const app = await loadApp({ locale: lang });
+    t.after(app.close);
+    for (const [id, raw, en, vi] of known) {
+      assert.ok(seed.includes('"id": "' + id + '", "name": "' + raw + '"'), id + ' must still exist in seed');
+      const source = { id, name: raw, generic: true };
+      assert.equal(app.evaluate('sopSeedWorkflowDisplayName(' + JSON.stringify(source) + ')'), { zh: raw, en, vi }[lang]);
+      assert.equal(app.evaluate('sopSeedWorkflowDisplayName(' + JSON.stringify({ ...source, generic: false }) + ')'), raw);
+      assert.equal(app.evaluate('sopSeedWorkflowDisplayName(' + JSON.stringify({ ...source, name: '用户改名' }) + ')'), '用户改名');
+    }
+  }
+});
