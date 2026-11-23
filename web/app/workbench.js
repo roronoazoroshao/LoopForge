@@ -129,7 +129,7 @@ function agentCliCredentialKind(cli,o){
     guide:o.guide|| (credentialVI()?[['Tạo API Key trong bảng điều khiển của nhà cung cấp mô hình'],['Ghi lại Base URL và giao thức API mà dịch vụ cung cấp'],['Dán API Key, nhập Base URL khi cần và chọn giao thức. Sau khi lưu, chọn mô hình trong danh mục để dùng trong trò chuyện AI.']]:[['在模型服务商控制台创建 API Key'],['记下服务地址和它提供的接口协议'],['粘贴 Key，按需填写 Base URL 并选择协议；保存后可在模型目录里挑选 AI 对话的模型']]),
     placeholder:credentialCopy(`请输入 ${o.name} API Key`,`Nhập API Key ${o.name}`),
     ...(configurable?{
-      extra:{name:field+'baseUrl',label:'Base URL',placeholder:o.baseUrl,url:true,clearWithKey:true,required:o.required,note:credentialVI()?(o.required?'Bắt buộc':''):o.extraNote||(o.required?'必填':'')},
+      extra:{name:field+'baseUrl',label:'Base URL',placeholder:o.baseUrl,url:true,clearWithKey:true,required:o.required,note:credentialVI()?(o.extraNote?'Bắt buộc khi dùng gateway tương thích OpenAI':(o.required?'Bắt buộc':'')):(o.extraNote||(o.required?'必填'))},
       protocol:{name:field+'protocol',options:o.protocols},
     }:{}),
     models:{name:field+'models',engine:cli},
@@ -271,7 +271,7 @@ function credentialCatalogHTML(kind,user,{runnerLogin=false,label='模型目录'
   </section>`;
 }
 function credentialCatalogSource(baseUrl){return String(baseUrl||'').trim().replace(/\/+$/,'')}
-function credentialCatalogCountText(count){return count?`${count} 个模型`:'未自定义'}
+function credentialCatalogCountText(count){return credentialVI()?(count?`${count} mô hình`:'Chưa tùy chỉnh'):(count?`${count} 个模型`:'未自定义')}
 function credentialCatalogRows(catalog){return [...catalog.querySelectorAll('[data-catalog-row]')]}
 function credentialCatalogRowModel(row){
   const id=row.querySelector('[data-catalog-field="id"]').value,name=row.querySelector('[data-catalog-field="name"]').value;
@@ -346,7 +346,7 @@ function moveCredentialCatalogRow(catalog,row,step){
   if(step<0)target.before(row);else target.after(row);
   row.querySelector('[data-catalog-grip]')?.focus({preventScroll:true});
   credentialCatalogChanged(catalog);
-  announceCredentialCatalog(catalog,`已移到第 ${credentialCatalogRows(catalog).indexOf(row)+1} 位`);
+  announceCredentialCatalog(catalog,credentialCopy(`已移到第 ${credentialCatalogRows(catalog).indexOf(row)+1} 位`,`Đã chuyển đến vị trí ${credentialCatalogRows(catalog).indexOf(row)+1}`));
 }
 function startCredentialCatalogDrag(event,grip){
   if(event.button!==0)return;
@@ -376,18 +376,18 @@ function credentialCatalogProbeHTML(catalog,kind){
     return `<label class="credential-catalog-pick" data-pick="${escapeHTML((model.id+' '+(model.name||'')).toLowerCase())}"><input type="checkbox" value="${escapeHTML(model.id)}"${checked?' checked':''}><code>${escapeHTML(model.id)}</code>${model.name&&model.name!==model.id?`<small>${escapeHTML(model.name)}</small>`:''}${listed?'<em>已在目录</em>':''}</label>`;
   }).join('');
   const protocol=catalog.closest('.credential-editor-form')?.querySelector('select[name="protocol"]')?.value||catalog.dataset.catalogProtocol;
-  const sources={builtin:'CLI 内置模型',official:'来自官方服务',runner:'来自这台机器的账号登录'};
-  const source=sources[probe.source]||`来自 Base URL 的 ${escapeHTML(credentialModelsEndpoint(kind,protocol))}`;
+  const sources=credentialVI()?{builtin:'Mô hình tích hợp của CLI',official:'Từ dịch vụ chính thức',runner:'Từ tài khoản trên máy thực thi'}:{builtin:'CLI 内置模型',official:'来自官方服务',runner:'来自这台机器的账号登录'};
+  const source=sources[probe.source]||credentialCopy(`来自 Base URL 的 ${escapeHTML(credentialModelsEndpoint(kind,protocol))}`,`Từ Base URL: ${escapeHTML(credentialModelsEndpoint(kind,protocol))}`);
   return `<div class="credential-catalog-probe-top"><span class="credential-input is-plain is-search">${credentialGlyph('search',14)}<input data-catalog-search placeholder="搜索模型" aria-label="搜索模型" autocomplete="off" spellcheck="false"></span><span class="credential-catalog-picked" data-catalog-picked></span><button type="button" class="credential-btn link credential-ink" data-catalog-act="toggle-all">全选</button></div>
     <div class="credential-catalog-probe-list" role="group" aria-label="可用模型">${items}</div>
-    <div class="credential-catalog-probe-foot"><small>${source} · 勾选的模型会加入目录，取消勾选会移出</small><div><button type="button" class="credential-btn ghost credential-ink" data-catalog-act="probe-close">取消</button><button type="button" class="credential-btn primary credential-ink" data-catalog-act="probe-apply">更新列表</button></div></div>`;
+    <div class="credential-catalog-probe-foot"><small>${source} · ${credentialCopy('勾选的模型会加入目录，取消勾选会移出','Mô hình được chọn sẽ được thêm vào danh mục; bỏ chọn sẽ loại khỏi danh mục')}</small><div><button type="button" class="credential-btn ghost credential-ink" data-catalog-act="probe-close">取消</button><button type="button" class="credential-btn primary credential-ink" data-catalog-act="probe-apply">更新列表</button></div></div>`;
 }
 function syncCredentialCatalogProbe(catalog){
   const panel=catalog.querySelector('[data-catalog-probe]'),query=String(panel.querySelector('[data-catalog-search]')?.value||'').trim().toLowerCase();
   const picks=[...panel.querySelectorAll('.credential-catalog-pick')];
   picks.forEach(pick=>{pick.hidden=!!query&&!pick.dataset.pick.includes(query)});
   const visible=picks.filter(pick=>!pick.hidden),checked=picks.filter(pick=>pick.querySelector('input').checked).length;
-  const counter=panel.querySelector('[data-catalog-picked]');if(counter)counter.textContent=`已选 ${checked} / ${picks.length}`;
+  const counter=panel.querySelector('[data-catalog-picked]');if(counter)counter.textContent=credentialCopy(`已选 ${checked} / ${picks.length}`,`Đã chọn ${checked} / ${picks.length}`);
   const toggle=panel.querySelector('[data-catalog-act="toggle-all"]');
   if(toggle){toggle.textContent=visible.length&&visible.every(pick=>pick.querySelector('input').checked)?'全不选':'全选';toggle.disabled=!visible.length}
 }
@@ -761,7 +761,7 @@ function credentialOptionHTML({id,name,logo,monochrome,icon},selected){
 }
 function credentialAddMenu(group,user){
   const git=group.id==='platform';
-  const label=git?'新增 Git 配置':'新增执行器';
+  const label=git?credentialCopy('新增 Git 配置','Thêm cấu hình Git'):credentialCopy('新增执行器','Thêm trình thực thi');
   const options=git?GIT_ADD_OPTIONS:CREDENTIAL_KINDS.filter(kind=>kind.group==='model'&&!credentialConfigured(kind,user))
     .map(kind=>({id:kind.key,name:kind.name,logo:kind.logo,monochrome:kind.monochrome}));
   if(!options.length)return '';
