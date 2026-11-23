@@ -1991,3 +1991,25 @@ Object.assign(window.LF_I18N_EN, {
   "远程执行机器返回了空响应": "The remote runner returned an empty response",
   "Git 状态读取失败": "Could not read Git status"
 });
+
+// Additional role-editor labels; preserve {{...}} runtime placeholders.
+Object.assign(window.LF_I18N_EN, {
+  "读 {{feedback}}，只修失败项，不要重做已经通过的部分": "Read {{feedback}} and fix only failed items; do not redo work that already passed.",
+  "Run工作区（校验产物等场景）": "Run workspace (e.g. checking output artifacts)",
+  "Run 工作区": "Run workspace",
+  "Hook 名称": "Hook name",
+  "Agent 写完结论，人批准再往下走": "After the agent finishes, a person approves the findings before continuing.",
+  "+ 添加要交的文件": "+ Add deliverable file",
+  "⛶ 打开代码编辑器编写命令": "⛶ Open code editor to write commands",
+  "Agent 完成任务后必须先调用 submit_gate_result 提交终态；缺失时自动恢复同一会话重试。": "The agent must call submit_gate_result with its terminal status before completing. Otherwise, the current session resumes for another attempt.",
+  "Matcher（可选）": "Matcher (optional)",
+  "Hook 脚本": "Hook script",
+  "⛶ 打开代码编辑器编写脚本": "⛶ Open code editor to write script",
+  "+ 添加 Hook": "+ Add hook",
+  "Run工作区": "Run workspace",
+  "产物通过后的门禁命令": "Validation commands after artifact checks",
+  "+ 添加验收命令": "+ Add validation command",
+  "没有自定义 Hook。系统观测 Hook 不受这里影响。": "No custom hooks. Built-in observability hooks are unaffected.",
+  "要不要人看一眼": "Require a human review?",
+  "接入团队知识库": "Connect team knowledge base"
+});
