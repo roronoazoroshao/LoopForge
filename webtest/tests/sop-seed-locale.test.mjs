@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { loadApp, chooseOption, settle } from '../lib/load-app.mjs';
+import { loadApp, chooseOption, settle, sampleBootstrap } from '../lib/load-app.mjs';
 
 const templateId = 'generic-backend-delivery';
 const stages = [
@@ -110,4 +110,28 @@ test('cloned template roles and legacy seed names translate only with verified I
     assert.equal(app.evaluate('sopSeedNodeDisplayName(' + JSON.stringify({ ...node, name: '用户更名' }) + ',state.workflow)'), '用户更名');
     assert.equal(app.evaluate('sopSeedNodeDisplayName(' + JSON.stringify(node) + ',{id:"custom-sop",tags:[]})'), '实施');
   }
+});
+
+test('deep-link and reload open the public generic SOP without exposing private workflows', async t => {
+  const { workflow, agents } = fixture();
+  const bootstrap = sampleBootstrap();
+  bootstrap.workflows.push(workflow);
+  bootstrap.workflows.push({
+    id: 'private-elsewhere', projectId: 'different-project', shared: false,
+    name: 'Private', nodes: [{ id: 'x', name: 'Do not open', type: 'script',
+      position: { x: 100, y: 80 } }], edges: [],
+  });
+  const routes = [
+    { method: 'GET', path: '/api/bootstrap', body: bootstrap },
+    { method: 'GET', path: '/api/workflows/' + templateId + '/agents', body: agents },
+  ];
+  const app = await loadApp({ locale: 'vi', hash: '#/flow/' + templateId, routes });
+  t.after(app.close);
+  await settle(8);
+  assert.equal(app.evaluate('state.workflow?.id'), templateId, 'the link must restore the public template');
+  assert.equal(app.document.querySelectorAll('#nodes .flow-node').length, stages.length);
+  assert.equal(app.document.querySelector('#nodes [data-id="clarify"] .node-title')?.textContent, 'Chốt yêu cầu');
+  assert.equal(app.evaluate('state.genericTemplateAgents.length'), agents.length);
+  assert.equal(app.evaluate('openableWorkflow("private-elsewhere")'), null,
+    'private workflows from other projects must remain inaccessible');
 });

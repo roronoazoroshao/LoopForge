@@ -1957,8 +1957,14 @@ async function applyAgentRoute(){
     openAgentWizard(agent,routePart(2)==='gov'?3:1,{loaded:true});
   }catch(error){if(agentRouteId()===id)toast(error.message,'err')}
 }
-// Only SOPs visible in the active project can be restored from the URL or localStorage.
-function openableWorkflow(id){return id?catalogWorkflows().find(w=>w.id===id)||null:null}
+// Restore project-visible workflows and public built-in templates. The template
+// switcher already allows opening generic SOPs; direct links and reloads must
+// follow the same access rule without exposing other projects' private SOPs.
+function openableWorkflow(id){
+  if(!id)return null;
+  return catalogWorkflows().find(w=>w.id===id)||
+    (state.data?.workflows||[]).find(w=>w.id===id&&catalogGeneric(w))||null;
+}
 function savedWorkflowId(){
   const id=state.workflow?.id||'';
   return id&&(state.data?.workflows||[]).some(w=>w.id===id)?id:'';
