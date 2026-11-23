@@ -383,6 +383,22 @@
     } catch (error) { toast(error.message || String(error), 'err'); }
   };
   const bind = () => {
+    const translations = [
+      ['rolePackImport', '导入角色包', 'Import Role Pack', 'Nhập Role Pack'],
+      ['rolePackExport', '导出角色包', 'Export Role Pack', 'Xuất Role Pack'],
+      ['rolePackTitle', '导入角色包', 'Import Role Pack', 'Nhập Role Pack'],
+      ['rolePackHelp', '预览后导入当前项目；不会覆盖已有角色或自动安装 Skill。', 'Preview roles before import; existing roles are never overwritten and skills are not installed.', 'Xem trước trước khi nhập vào dự án; không ghi đè vai trò hoặc tự cài Skill.'],
+      ['rolePackPreviewTitle', '待导入角色', 'Roles to import', 'Các vai trò sẽ nhập'],
+      ['rolePackErrorTitle', '必须处理的问题', 'Problems to resolve', 'Các lỗi cần xử lý'],
+      ['rolePackWarningTitle', '注意事项', 'Important notes', 'Lưu ý quan trọng'],
+      ['rolePackAcknowledgeLabel', '已检查输入内容及 Shell/Python 脚本。导入本身不会执行脚本。', 'I reviewed the roles and any Shell/Python scripts. Import itself never executes them.', 'Tôi đã kiểm tra các vai trò và script Shell/Python. Thao tác nhập không chạy các script này.'],
+      ['rolePackCancel', '取消', 'Cancel', 'Hủy'],
+      ['rolePackApply', '确认导入', 'Import roles', 'Xác nhận nhập'],
+    ];
+    for (const [id, zh, en, vi] of translations) {
+      const el = $id(id);
+      if (el) el.textContent = tr(zh, en, vi);
+    }
     const pick = $id('rolePackPick');
     if (!pick) return;
     $id('rolePackImport')?.addEventListener('click', () => {
