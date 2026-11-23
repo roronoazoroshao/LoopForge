@@ -41,6 +41,8 @@ test('SOP template: VI → EN → ZH → VI keeps the canvas, role dropdown and 
     await language(page, lang);
     await expect(page.locator('#nodes .flow-node')).toHaveCount(8);
     await canvasLabels(page, index);
+    const approvalName={vi:'Nghiệm thu thủ công',en:'Human acceptance',zh:'人工验收'}[lang];
+    await expect(page.locator('#nodes .flow-node[data-id="accept"] .node-title')).toHaveText(approvalName);
     const templateName = {vi:'SOP bàn giao backend chung',
       en:'Generic backend delivery SOP',zh:'通用后端交付 SOP'}[lang];
     await expect(page.locator('#flowCommandTitle')).toHaveText(templateName);

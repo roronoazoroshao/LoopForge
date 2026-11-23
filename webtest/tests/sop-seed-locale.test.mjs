@@ -228,7 +228,7 @@ test('built-in template preview modal localizes its name, description, steps and
     assert.equal(app.document.querySelector('#genericTemplateIntro')?.textContent,localized[lang][1]);
     const structure=app.document.querySelector('#genericTemplateStructure');
     assert.ok(structure?.textContent.includes(localized[lang][2]));
-    assert.ok(structure.textContent.includes(lang==='vi'?'8 bước':lang==='en'?'8 steps':'8 个节点'));
+    assert.ok(structure.textContent.includes(lang==='vi'?stages.length+' bước':lang==='en'?stages.length+' steps':stages.length+' 个节点'));
     if(lang!=='zh')assert.doesNotMatch(structure.textContent,/[\u3400-\u9fff]/u);
     assert.equal(app.evaluate('state.data.workflows.find(w=>w.id==='+JSON.stringify(templateId)+').name'),'通用后端交付 SOP');
     assert.equal(app.evaluate('state.data.workflows.find(w=>w.id==='+JSON.stringify(templateId)+').description'),original);
