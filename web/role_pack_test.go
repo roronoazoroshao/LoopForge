@@ -10,7 +10,9 @@ func TestRolePackImportExport(t *testing.T) {
 	if err != nil {
 		t.Skip("node not installed")
 	}
-	if out, err := exec.Command(node, "role_pack_test.js", "app/role-pack.js").CombinedOutput(); err != nil {
-		t.Fatalf("role pack import/export: %v\n%s", err, out)
+	for _, script := range []string{"role_pack_test.js", "role_pack_dom_test.js"} {
+		if out, err := exec.Command(node, script, "app/role-pack.js").CombinedOutput(); err != nil {
+			t.Fatalf("%s: %v\n%s", script, err, out)
+		}
 	}
 }
