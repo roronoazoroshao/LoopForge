@@ -991,8 +991,8 @@ function agentBindCard(n){
   const available=workflowAgents(),owned=available.filter(x=>!generic&&x.projectId===projectId),shared=available.filter(x=>!generic&&x.projectId!==projectId);
   const options=items=>items.map(x=>{const owner=projects.find(p=>p.id===x.projectId)?.name||x.projectId;return `<option data-i18n-skip value="${escapeHTML(x.id)}" ${x.id===n.agentId?'selected':''}>${escapeHTML(sopSeedRoleDisplayName(x,state.workflow))}${!generic&&x.projectId!==projectId?` · ${window.lfT('来自','from','từ')} ${escapeHTML(owner)}`:''}</option>`}).join('');
   const grouped=generic
-    ?(available.length?`<optgroup label="${window.lfT('通用模板角色','Starter-template roles','Vai trò của mẫu chung')} · ${available.length} ${window.lfT('个','roles','vai trò')}">${options(available)}</optgroup>`:'')
-    :(owned.length?`<optgroup label="${window.lfT('本项目角色','Project roles','Vai trò của dự án')} · ${owned.length} ${window.lfT('个','roles','vai trò')}">${options(owned)}</optgroup>`:'')+(shared.length?`<optgroup label="${window.lfT('共享角色','Shared roles','Vai trò dùng chung')} · ${shared.length} ${window.lfT('个','roles','vai trò')}">${options(shared)}</optgroup>`:'');
+    ?(available.length?`<optgroup label="${window.lfT('通用模板角色','Starter-template roles','Vai trò của mẫu chung')} · ${available.length} ${window.lfT('个角色','roles','vai trò')}">${options(available)}</optgroup>`:'')
+    :(owned.length?`<optgroup label="${window.lfT('本项目角色','Project roles','Vai trò của dự án')} · ${owned.length} ${window.lfT('个角色','roles','vai trò')}">${options(owned)}</optgroup>`:'')+(shared.length?`<optgroup label="${window.lfT('共享角色','Shared roles','Vai trò dùng chung')} · ${shared.length} ${window.lfT('个角色','roles','vai trò')}">${options(shared)}</optgroup>`:'');
   const opts=(invalid+grouped)||(generic?'<option value="">该模板还没有打包角色</option>':'<option value="">当前项目暂无可用角色</option>');
   const hint=generic
     ?window.lfT(

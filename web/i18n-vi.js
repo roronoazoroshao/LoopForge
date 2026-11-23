@@ -6418,3 +6418,11 @@ Object.assign(window.LF_I18N_VI, {
   "手动输入 HTTPS 主机": "Nhập máy chủ HTTPS thủ công",
   "数量按创建时间，Token 按回复时间": "Số lượng theo thời điểm tạo, Token theo thời điểm phản hồi"
 });
+
+// Additional source-backed SOP role/switcher labels. Keep EN/VI keys paired.
+Object.assign(window.LF_I18N_VI, {
+  "本项目角色": "Vai trò của dự án",
+  "个角色": "vai trò",
+  "共享 · 只读": "Chia sẻ · chỉ đọc",
+  "通用模板 · 只读": "Mẫu chung · chỉ đọc"
+});

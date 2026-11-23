@@ -2133,3 +2133,11 @@ Object.assign(window.LF_I18N_EN, {
   "手动输入 HTTPS 主机": "Enter an HTTPS host",
   "数量按创建时间，Token 按回复时间": "Counts by creation time, tokens by reply time"
 });
+
+// Additional source-backed SOP role/switcher labels. Keep EN/VI keys paired.
+Object.assign(window.LF_I18N_EN, {
+  "本项目角色": "Project roles",
+  "个角色": "roles",
+  "共享 · 只读": "Shared · read-only",
+  "通用模板 · 只读": "Public templates · read-only"
+});
