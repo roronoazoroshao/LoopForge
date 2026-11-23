@@ -859,6 +859,9 @@ async function refreshGenericWorkflowRoles(){
   if(await hydrateGenericWorkflowRoles()){
     renderCanvas();
     renderProperties();
+    // The palette is an independent renderer: the API response updates roles,
+    // but MutationObserver cannot create rows that were never rendered.
+    if(typeof flowPalette!=='undefined')flowPalette.render();
   }
 }
 function scopedAgents(){const all=state.data?.agents||[];return state.agentScope==='shared'?all.filter(a=>catalogShared(a.projectId,a.shared)):all.filter(a=>catalogOwned(a.projectId))}

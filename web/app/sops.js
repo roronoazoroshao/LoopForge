@@ -146,11 +146,6 @@ function sopStatusBadge(w){
   return sopBadge('草稿','neutral','edit');
 }
 function sopCardHead(left,hint,right){return `<div class="sop-card-head"><div>${left}<span class="sop-card-hint">${escapeHTML(hint||'')}</span></div>${right}</div>`}
-// Keep this catalog renderer usable by the existing isolated UI harness, which
-// loads sops.js independently of app.js. The production page loads both.
-function sopDisplayName(w){
-  return typeof sopSeedWorkflowDisplayName==='function'?sopSeedWorkflowDisplayName(w):(w?.name||'');
-}
 function sopCardTitle(w){const display=escapeHTML(sopDisplayName(w));return `<div class="sop-card-title"><span class="sop-card-tile">${huiIcon('workflow')}</span><h3 data-i18n-skip title="${display}">${display}</h3></div>`}
 function sopCardPrimary(attr,id,label,icon='',title=''){return `<button type="button" class="sop-card-primary" ${attr}="${escapeHTML(id)}" data-hover-ink-control${title?` title="${escapeHTML(title)}"`:''}>${icon?huiIcon(icon):''}${escapeHTML(label)}</button>`}
 function sopCardMoreButton(w){return `<button type="button" class="sop-card-more" data-sop-menu="${escapeHTML(w.id)}" data-hover-ink-control aria-haspopup="menu" aria-expanded="false" aria-label="更多操作" title="更多操作">${huiIcon('more-horizontal')}</button>`}
@@ -202,6 +197,10 @@ function sopCatalogDescription(w){
   const seed=SOP_SEED_DESCRIPTION_COPY[templateId];
   // Copied, unchanged platform descriptions are default UI copy. User edits are data.
   return seed&&description===seed[0]?lfT(...seed):description;
+}
+function sopDisplayName(w){
+  // This file is also loaded in isolation by the catalogue/description harness.
+  return typeof sopSeedWorkflowDisplayName==='function'?sopSeedWorkflowDisplayName(w):(w?.name||'');
 }
 function genericProjectCopy(w){return (state.data?.workflows||[]).find(x=>!catalogGeneric(x)&&x.projectId===state.projectFilter&&(x.tags||[]).includes(`generic-source:${w.id}`))}
 function genericSOPCard(w){

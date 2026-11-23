@@ -1,5 +1,8 @@
 function agentVI(){return typeof window!=='undefined'&&window.lfLang?.()==='vi'}
 function agentCopy(zh,vi){return agentVI()?vi:zh}
+function agentTr(zh,en,vi){
+  return typeof window.lfT==='function'?window.lfT(zh,en,vi):agentCopy(zh,vi);
+}
 // The public seed's display name is platform copy; other names belong to users.
 function agentPublicRoleDisplayName(a){
   if(!a?.projectId&&a?.id==='baseline-align-resolver'&&a?.name==='基线对齐执行员'){
@@ -52,7 +55,7 @@ function renderAgents(){
 function agentRowTag(a){
   if(catalogOwned(a.projectId))return a.shared?`<span class="agent-row-tag shared">${agentCopy('已共享','Đã chia sẻ')}</span>`:'';
   const owner=(state.data.projects||[]).find(p=>p.id===a.projectId)?.name||a.projectId;
-  return `<span class="agent-row-tag" data-i18n-skip>${!a.projectId?window.lfT('平台','Platform','Nền tảng'):`${window.lfT('来自','From','Từ dự án')} ${escapeHTML(owner)}`}</span>`;
+  return `<span class="agent-row-tag" data-i18n-skip>${!a.projectId?agentTr('平台','Platform','Nền tảng'):`${agentTr('来自','From','Từ dự án')} ${escapeHTML(owner)}`}</span>`;
 }
 function agentConfigSummary(a){
   const parts=[];

@@ -49,7 +49,9 @@ for (const [lang, displayIndex] of [['vi', 2], ['en', 3], ['zh', 1]]) {
     app.evaluate('state.workflow=' + JSON.stringify(workflow) + ';state.selectedNode="clarify";'
       + 'state.genericTemplateAgents=[];state.genericTemplateAgentWorkflowId="";');
     await app.evaluate('refreshGenericWorkflowRoles()');
-    app.evaluate('flowPalette.render();renderProperties();renderCanvas();');
+    assert.equal(app.document.querySelector('#flowPaletteRoles [data-agent-id="'+templateId+'-clarify"] b')?.textContent,
+      stages[0][displayIndex], 'async API refresh must repaint the palette without manual refresh');
+    app.evaluate('renderProperties();renderCanvas();');
     await settle(2);
 
     const optionTexts = [...app.document.querySelectorAll('#properties select[data-p="agentId"] option')]
