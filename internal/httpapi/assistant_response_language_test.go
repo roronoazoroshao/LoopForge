@@ -8,7 +8,7 @@ import (
 func TestAssistantResponseLanguagePrompts(t *testing.T) {
     // Existing clients default to the original Chinese-language protocol.
     defaultPrompt := assistantSystemPromptForRequest(assistantRequest{}, AssistantApprovalConfirm)
-    if defaultPrompt != assistantSystemPromptForMode(AssistantApprovalConfirm) {
+    if defaultPrompt != withSpaceDeliverable(assistantRequest{}, assistantSystemPromptForMode(AssistantApprovalConfirm)) {
         t.Fatal("missing language must preserve existing prompt byte-for-byte")
     }
 
