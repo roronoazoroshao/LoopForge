@@ -267,7 +267,10 @@ func hookToolDetail(input any) string {
 			return strings.Join(strings.Fields(s), " ")
 		}
 	}
-	return // drainHookFile advances only past records that have actually been read.
+	return ""
+}
+
+// drainHookFile advances only past records that have actually been read.
 // File size is not a safe offset: a writer can append after EOF but before Stat.
 func drainHookFile(path string, offset *int64, emit func(domain.TelemetryEvent)) {
 	f, err := os.Open(path)
