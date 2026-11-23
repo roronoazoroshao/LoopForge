@@ -41,6 +41,18 @@ assert.equal(plan.ready[0].loop.maxIterations,2);
 assert.deepEqual(JSON.parse(JSON.stringify(plan.ready[0].verification[0].commands)),['test -s engineering/plan.md']);
 assert.ok(!('updatedAt' in plan.ready[0]));
 
+const diverseRole={
+ ...role,
+ artifactOutputs:[{name:'Preview film',path:'exports/final-film.mp4',mediaType:'video/mp4',required:true}],
+ verification:[{id:'manual-review',name:'Review video',mode:'manual',required:true,onFailure:'human'}],
+ interventions:[{id:'before',name:'Human planning approval',stage:'before_execution',required:true}],
+};
+const diverse=parse({...raw,roles:[diverseRole]});
+assert.equal(diverse.roles[0].artifactOutputs[0].mediaType,'video/mp4');
+assert.equal(diverse.roles[0].verification[0].mode,'manual');
+assert.equal(diverse.roles[0].interventions[0].stage,'before_execution');
+
+
 const exported=p.exportPack([{...role,projectId:'another-project',version:9,shared:true,updatedAt:'2026-11-23T00:00:00Z'}]);
 assert.equal(exported.format,'loopforge-role-pack');
 assert.equal(exported.schemaVersion,1);
