@@ -7,6 +7,7 @@ import (
  "io"
  "net/http"
  "net/http/httptest"
+ "os"
  "path/filepath"
  "strings"
  "testing"
@@ -34,7 +35,7 @@ func testCapabilityZip(t *testing.T, entries map[string]string) []byte {
 }
 
 func testCapabilityManifest() string {
- return `{"format":"loopforge-capability-pack","schemaVersion":1,"rules":[{"id":"rule-alpha","name":"Quy tắc thử nghiệm","description":"QA","content":"# Quy tắc\\nPhải kiểm thử.","priority":900}],"skills":[{"id":"skill-alpha","name":"Kỹ năng thử nghiệm","description":"QA"}]}`
+ return `{"format":"loopforge-capability-pack","schemaVersion":1,"rules":[{"id":"rule-alpha","name":"Quy tắc thử nghiệm","description":"QA","content":"# Quy tắc\\nPhải kiểm thử.","priority":900}],"skills":[{"id":"skill-alpha","name":"Kỹ năng thử nghiệm","description":"QA","author":"Original author","version":"1.0.0","license":"MIT","sourceUrl":"https://example.org/skill-alpha"}]}`
 }
 
 func TestCapabilityPackRejectsMaliciousZIP(t *testing.T) {
@@ -74,6 +75,9 @@ func TestCapabilityPackImportPreflightAndRoundTrip(t *testing.T) {
   req:=httptest.NewRequest(method,url,bytes.NewReader(body));if body!=nil {req.Header.Set("Content-Type","application/zip")}
   rec:=httptest.NewRecorder();router.ServeHTTP(rec,req);return rec
  }
+ // A write without consent cannot mutate the catalogue.
+ notConfirmed:=request("POST","/api/capability-packs/import?projectId=pack-project",z)
+ if notConfirmed.Code!=http.StatusBadRequest {t.Fatalf("import without consent status %d",notConfirmed.Code)}
  pre:=request("POST","/api/capability-packs/preflight?projectId=pack-project",z)
  if pre.Code!=http.StatusOK {t.Fatalf("preflight %d %s",pre.Code,pre.Body.String())}
  if _,ok:=s.Rule("rule-alpha");ok {t.Fatal("preflight mutated rules")}
@@ -82,6 +86,7 @@ func TestCapabilityPackImportPreflightAndRoundTrip(t *testing.T) {
  if imp.Code!=http.StatusOK {t.Fatalf("import %d %s",imp.Code,imp.Body.String())}
  rule,ok:=s.Rule("rule-alpha");if !ok||rule.Shared||rule.Global||rule.ProjectID!="pack-project" {t.Fatalf("bad rule: %+v",rule)}
  skill,ok:=s.Skill("skill-alpha");if !ok||skill.Shared||skill.ProjectID!="pack-project" {t.Fatalf("bad skill: %+v",skill)}
+ if skill.Attribution==nil||skill.Attribution.Author!="Original author"||skill.Attribution.License!="MIT"||skill.Attribution.Version!="1.0.0" {t.Fatalf("attribution lost: %+v",skill.Attribution)}
  content,ok:=s.SkillFileContent("skill-alpha","references/readme.md");if !ok||string(content)!="Tài liệu" {t.Fatalf("file lost: %s",content)}
  duplicate:=request("POST","/api/capability-packs/import?projectId=pack-project&confirm=1",z)
  if duplicate.Code!=http.StatusOK||!strings.Contains(duplicate.Body.String(),"skipped") {t.Fatalf("duplicate handling %d %s",duplicate.Code,duplicate.Body.String())}
@@ -90,7 +95,43 @@ func TestCapabilityPackImportPreflightAndRoundTrip(t *testing.T) {
  exported, exportedFiles, _, err:=parseCapabilityZIP(exp.Body.Bytes())
  if err!=nil {t.Fatal(err)}
  if len(exported.Rules)!=1||len(exported.Skills)!=1||len(exportedFiles["skill-alpha"])!=2 {t.Fatalf("round trip lost resources: %+v %+v",exported,exportedFiles)}
+ if exported.Skills[0].Author!="Original author"||exported.Skills[0].License!="MIT"||exported.Skills[0].SourceURL!="https://example.org/skill-alpha" {t.Fatalf("export lost attribution: %+v",exported.Skills[0])}
  var outcome map[string]any
  if err:=json.Unmarshal(imp.Body.Bytes(),&outcome);err!=nil {t.Fatal(err)}
  if outcome["created"]==nil {t.Fatalf("missing creation report %+v",outcome)}
+}
+
+func TestCapabilityPackSymlinkUnknownAndDuplicateNames(t *testing.T) {
+ symlink := func() []byte {
+  var buf bytes.Buffer
+  w:=zip.NewWriter(&buf)
+  h:=&zip.FileHeader{Name:"skills/skill-alpha/link",Method:zip.Deflate}
+  h.SetMode(os.ModeSymlink|0o777)
+  f,err:=w.CreateHeader(h);if err!=nil {t.Fatal(err)}
+  if _,err=io.WriteString(f,"/etc/shadow");err!=nil {t.Fatal(err)}
+  if err:=w.Close();err!=nil {t.Fatal(err)}
+  return buf.Bytes()
+ }
+ z:=symlink()
+ if _,_,_,err:=parseCapabilityZIP(z);err==nil {t.Fatal("accepted symlink")}
+ for _,test:=range []struct{name string;files map[string]string}{
+  {"unknown",map[string]string{"manifest.json":testCapabilityManifest(),"skills/skill-alpha/SKILL.md":"# Skill","unknown.sh":"echo bad"}},
+  {"duplicate case",map[string]string{"manifest.json":testCapabilityManifest(),"skills/skill-alpha/SKILL.md":"# Skill","skills/skill-alpha/skill.md":"DUP","skills/skill-alpha/SKILL.MD":"# duplicate"}},
+  {"bad schema",map[string]string{"manifest.json":`{"format":"loopforge-capability-pack","schemaVersion":2,"rules":[{"id":"x","name":"x","content":"x"}]}`}},
+  {"undeclared skill",map[string]string{"manifest.json":testCapabilityManifest(),"skills/skill-alpha/SKILL.md":"# Skill","skills/other/SKILL.md":"# Other"}},
+ }{
+  t.Run(test.name,func(t *testing.T){
+   if _,_,_,err:=parseCapabilityZIP(testCapabilityZip(t,test.files));err==nil {t.Fatalf("accepted invalid ZIP: %s",test.name)}
+  })
+ }
+}
+
+func TestCapabilityManifestBlocksDuplicateIDsAndUnsupportedFields(t *testing.T) {
+ for _,raw:=range []string{
+  `{"format":"loopforge-capability-pack","schemaVersion":1,"rules":[{"id":"x","name":"A","content":"A"},{"id":"X","name":"B","content":"B"}]}`,
+  `{"format":"loopforge-capability-pack","schemaVersion":1,"rules":[{"id":"x","name":"A","content":"A","shared":true}]}`,
+  `{"format":"loopforge-capability-pack","schemaVersion":1,"skills":[{"id":"x","name":"Skill"},{"id":"X","name":"Skill 2"}]}`,
+ }{
+  if _,err:=strictCapabilityManifest([]byte(raw));err==nil {t.Fatalf("accepted invalid manifest: %s",raw)}
+ }
 }
