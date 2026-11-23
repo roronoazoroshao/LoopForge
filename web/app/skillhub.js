@@ -4,6 +4,26 @@
  */
 function skillhubVI(){return typeof window!=='undefined'&&window.lfLang?.()==='vi'}
 function skillhubText(zh,vi){return skillhubVI()?vi:zh}
+const SKILLHUB_CATEGORY_VI={
+    "office-efficiency": "Hiệu suất văn phòng",
+    "content-creation": "Sáng tạo nội dung",
+    "dev-programming": "Phát triển phần mềm",
+    "data-analysis": "Phân tích dữ liệu",
+    "design-media": "Thiết kế và đa phương tiện",
+    "ai-agent": "Tác nhân AI",
+    "knowledge-management": "Quản lý tri thức",
+    "business-ops": "Vận hành kinh doanh",
+    "education": "Giáo dục và học tập",
+    "professional": "Chuyên môn theo ngành",
+    "it-ops-security": "Vận hành CNTT và bảo mật",
+    "life-service": "Dịch vụ đời sống"
+  };
+// Preserve catalog metadata; only switch which publisher-supplied description is shown.
+// Never machine-translate skill names, slugs, or SKILL.md: they are executable identity/content.
+function skillhubLocalizedDescription(chinesePreferred, original){
+  if((skillhubVI() || window.lfLang?.()==='en') && String(original||'').trim()) return String(original).trim();
+  return String(chinesePreferred||original||'').trim();
+}
 const SKILLHUB_PAGE_SIZE=24;
 const SKILLHUB_SORTS=[['downloads',skillhubText('按下载量','Theo lượt tải')],['score',skillhubText('按综合评分','Theo điểm tổng hợp')],['updated_at',skillhubText('最近更新','Cập nhật gần đây')]];
 const SKILLHUB_TRACE=[['trust','可信度','Trust'],['reliability','可靠性','Reliability'],['adaptability','适应性','Adaptability'],['convention','规范性','Convention'],['effectiveness','有效性','Effectiveness']];
@@ -78,7 +98,7 @@ function skillhubLabelBadges(labels){
 function skillhubBadge(tone,label,glyph=''){return `<span class="hui-badge" data-tone="${tone}" data-size="sm">${glyph}<span class="hui-badge-label">${escapeHTML(label)}</span></span>`}
 function skillhubLamp(){return '<span class="hui-lamp"><i></i></span>'}
 function skillhubTile(name){const ch=Array.from(String(name||'?').trim())[0]||'?';return escapeHTML(ch.toUpperCase())}
-function skillhubCategoryName(key){return (skillhubState().categories||[]).find(c=>c.key===key)?.name||key||''}
+function skillhubCategoryName(key){if(skillhubVI()&&SKILLHUB_CATEGORY_VI[key])return SKILLHUB_CATEGORY_VI[key];return (skillhubState().categories||[]).find(c=>c.key===key)?.name||key||''}
 function skillhubSubCategoryName(sub){return sub&&typeof sub==='object'?String(sub.name||sub.key||''):String(sub??'')}
 function skillhubProjectName(id){return (state.data?.projects||[]).find(p=>p.id===id)?.name||id||'其他项目'}
 
@@ -92,7 +112,7 @@ function skillhubCardHTML(item,index){
   const action=st.state==='update'?`<button type="button" class="button small hui-btn-soft" data-skillhub-update="${index}">${huiIcon('refresh')}${skillhubText('更新','Cập nhật')}</button>`
     :st.state==='installed'?`<span class="asset-card-go">${skillhubText('详情','Chi tiết')}${huiIcon('chevron-right')}</span>`
     :`<button type="button" class="button small hui-btn-soft" data-skillhub-install="${index}"${noProject?` disabled title="${skillhubText('请先选择项目','Vui lòng chọn dự án trước')}"`:''}>${huiIcon('plus')}${skillhubText('安装','Cài đặt')}</button>`;
-  return `<article class="asset-card skillhub-card" role="link" tabindex="0" data-skillhub-open="${index}"${skillhubVI()?' data-i18n-aria-skip':''} aria-label="${skillhubText('查看','Xem')} “${escapeHTML(item.name||item.slug)}”"><div class="asset-card-top"><span class="asset-tile skillhub-tile">${skillhubTile(item.name||item.slug)}</span><div class="asset-card-name"><h3 data-i18n-skip>${escapeHTML(item.name||item.slug)}</h3><code class="asset-mono">${escapeHTML(item.slug)}${item.version?` · v${escapeHTML(item.version)}`:''}</code></div></div><p class="asset-card-desc" data-i18n-skip>${escapeHTML(item.description||skillhubText('暂无说明','Chưa có mô tả'))}</p><div class="asset-meta"><span>${huiIcon('download')}${escapeHTML(skillhubCount(item.downloads))}</span><span>${huiIcon('star')}${escapeHTML(skillhubCount(item.stars))}</span>${item.category?`<span${skillhubVI()?' data-i18n-skip':''}>${huiIcon('layers')}${escapeHTML(skillhubCategoryName(item.category))}</span>`:''}${labels}</div><div class="asset-card-foot">${status}${action}</div></article>`;
+  return `<article class="asset-card skillhub-card" role="link" tabindex="0" data-skillhub-open="${index}"${skillhubVI()?' data-i18n-aria-skip':''} aria-label="${skillhubText('查看','Xem')} “${escapeHTML(item.name||item.slug)}”"><div class="asset-card-top"><span class="asset-tile skillhub-tile">${skillhubTile(item.name||item.slug)}</span><div class="asset-card-name"><h3 data-i18n-skip>${escapeHTML(item.name||item.slug)}</h3><code class="asset-mono">${escapeHTML(item.slug)}${item.version?` · v${escapeHTML(item.version)}`:''}</code></div></div><p class="asset-card-desc" data-i18n-skip>${escapeHTML(skillhubLocalizedDescription(item.description,item.descriptionOriginal)||skillhubText('暂无说明','Chưa có mô tả'))}</p><div class="asset-meta"><span>${huiIcon('download')}${escapeHTML(skillhubCount(item.downloads))}</span><span>${huiIcon('star')}${escapeHTML(skillhubCount(item.stars))}</span>${item.category?`<span${skillhubVI()?' data-i18n-skip':''}>${huiIcon('layers')}${escapeHTML(skillhubCategoryName(item.category))}</span>`:''}${labels}</div><div class="asset-card-foot">${status}${action}</div></article>`;
 }
 function skillhubSecurityRows(reports){
   return Object.entries(reports||{}).map(([vendor,r])=>({vendor,status:r?.status||'',text:r?.statusText||r?.status||'未知',url:skillhubSafeURL(r?.reportUrl),safe:!!r?.safe})).sort((a,b)=>a.vendor.localeCompare(b.vendor));
@@ -324,7 +344,7 @@ function skillhubDrawerView(d){
   const latest=d.detail?.latestVersion?.version||item.version||'';
   return {
     name:detail.name||item.name||d.slug,slug:d.slug,namespace:ns,latest,
-    summary:detail.summary||item.description||'',owner:d.detail?.owner?.displayName||item.ownerName||ns,
+    summary:skillhubLocalizedDescription(detail.summary||item.description,detail.summaryOriginal||item.descriptionOriginal),owner:d.detail?.owner?.displayName||item.ownerName||ns,
     category:detail.category||item.category||'',homepage:skillhubSafeURL(detail.homepage||item.homepage),
     downloads:detail.downloads??item.downloads,stars:detail.stars??item.stars,labels:{...(item.labels||{}),...(detail.labels||{})},subCategories:detail.subCategories||[],
     versions:d.versions?.versions||(d.detail?.latestVersion?[d.detail.latestVersion]:[]),
