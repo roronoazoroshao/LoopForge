@@ -40,9 +40,11 @@ test("the attribute translator protects a source-localized aria label containing
 });
 
 test("asset cards localize the action while preserving user-owned names in accessible text", () => {
+  const seedNames = assets.slice(assets.indexOf("const ASSET_SEED_NAMES="), assets.indexOf("function assetIsBuiltin("));
   const snippet = assets.slice(assets.indexOf("function assetCardHTML(a)"), assets.indexOf("function assetGridEmptyHTML()"));
-  const card = vm.runInNewContext(snippet + "\nassetCardHTML({id:'asset-1',name:'规则',description:'任务'})", {
+  const card = vm.runInNewContext(seedNames + snippet + "\nassetCardHTML({id:'asset-1',name:'规则',description:'任务'})", {
     assetVI: () => true,
+    state: { assetType: "rules" },
     assetUICopy: (_, vi) => vi,
     escapeHTML: value => String(value),
     assetUILabel: () => "quy tắc",
