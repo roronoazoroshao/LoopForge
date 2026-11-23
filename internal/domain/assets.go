@@ -39,8 +39,19 @@ type SkillDefinition struct {
 	// Source records where an installed skill came from. A non-nil source
 	// marks the files as a read-only snapshot that only the market update
 	// flow may replace.
-	Source    *SkillSource `json:"source,omitempty"`
-	UpdatedAt time.Time    `json:"updatedAt"`
+	Source      *SkillSource       `json:"source,omitempty"`
+	Attribution *SkillAttribution `json:"attribution,omitempty"`
+	UpdatedAt   time.Time          `json:"updatedAt"`
+}
+
+// SkillAttribution preserves version/license and original source information for
+// manually imported capability packs without impersonating SkillHub snapshots.
+// Unlike Source, this metadata does not lock editing or permit automatic updates.
+type SkillAttribution struct {
+    Author string `json:"author,omitempty"`
+    Version string `json:"version,omitempty"`
+    License string `json:"license,omitempty"`
+    SourceURL string `json:"sourceUrl,omitempty"`
 }
 
 // SkillSourceSkillHub is the provider of skills installed from skillhub.cn.

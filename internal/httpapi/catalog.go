@@ -699,10 +699,12 @@ func (h *catalogHandlers) skills(c *gin.Context) {
 				v.Files = existing.Files
 				v.Content = existing.Content
 				v.Source = existing.Source
+				v.Attribution = existing.Attribution
 			} else {
 				v.FileRefs = nil
 				v.Files = nil
 				v.Source = nil
+				v.Attribution = nil
 			}
 			respond(c, h.repo.PutSkill(v))
 		}
