@@ -155,12 +155,11 @@ func bindCommand(ctx context.Context, sandbox Sandbox, workspace string, command
 			if baseURL == "" {
 				baseURL = "https://api.anthropic.com"
 			}
-			bound.environment["ANTHROPIC_BASE_URL"] = baseURL
+			BindClaudeCodeEndpoint(bound.environment, baseURL)
 			if baseURL == "https://api.anthropic.com" {
 				bound.environment["ANTHROPIC_API_KEY"] = key
 			} else {
-				// Claude Code prefers ANTHROPIC_API_KEY when both variables exist.
-				// Use only the Bearer token on custom OmniRoute-style gateways.
+				// Custom gateways use bearer tokens only; API_KEY takes precedence in Claude Code.
 				bound.environment["ANTHROPIC_AUTH_TOKEN"] = key
 			}
 		case BindAgentCLI:

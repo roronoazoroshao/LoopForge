@@ -250,7 +250,7 @@ function projectWizardBasicHTML(w){
 function projectWizardRepoHint(url){
   const raw=String(url||'').trim(),info=raw?parseGongfengRepoURL(raw):null;
   if(!raw)return pwCopy("例如 https://github.com/owner/repo 或 git@gitlab.com:group/repo.git","Ví dụ: https://github.com/owner/repo hoặc git@gitlab.com:group/repo.git");
-  if(info?.provider==='ssh')return pwCopy(`识别为 Git SSH · <b>${escapeHTML(info.name)}</b>。请平台管理员在「平台管理 → Git SSH 主机信任」登记主机公钥，并在个人配置中添加 Git SSH 密钥。`,`Đã nhận diện Git SSH · <b data-i18n-skip>${escapeHTML(info.name)}</b>. Yêu cầu quản trị viên đăng ký khóa công khai của máy chủ trong mục Quản trị nền tảng → Tin cậy máy chủ Git SSH, rồi thêm khóa Git SSH trong cấu hình cá nhân.`);
+  if(info?.provider==='ssh')return pwCopy(`识别为 Git SSH · <b>${escapeHTML(info.name)}</b>。请平台管理员在「平台管理 → Git 主机信任」登记主机公钥，并在个人配置中添加 Git SSH 密钥。`,`Đã nhận diện Git SSH · <b data-i18n-skip>${escapeHTML(info.name)}</b>. Yêu cầu quản trị viên đăng ký khóa công khai của máy chủ trong mục Quản trị nền tảng → Tin cậy máy chủ Git, rồi thêm khóa Git SSH trong cấu hình cá nhân.`);
   return info?pwCopy(`识别为 <b>${escapeHTML(info.name)}</b> · ${escapeHTML(repoDisplayPath(info,info.project))}`,`Đã nhận diện <b data-i18n-skip>${escapeHTML(info.name)}</b> · ${pwData(repoDisplayPath(info,info.project))}`):pwCopy("请输入 GitHub 链接或 Git SSH 地址","Nhập liên kết GitHub hoặc địa chỉ Git SSH");
 }
 function projectWizardReposHTML(w){

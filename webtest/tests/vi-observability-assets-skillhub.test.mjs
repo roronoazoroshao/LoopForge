@@ -22,6 +22,7 @@ function renderDelivery(lang,delivery,summary){
   const context={
     state:{analytics:{delivery,summary}}, result:'',
     obsUi:(zh,vi)=>localize(lang,zh,vi),
+    obsScope:()=> 'project',
     obsKpiGroups:groups=>groups.join(' '),
     obsKpiGroup:(title,items)=>title+' '+items.map(item=>[
       item.label,item.value,item.foot,...(item.tip||[])

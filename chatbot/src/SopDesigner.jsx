@@ -368,7 +368,7 @@ export default function SopDesigner({ search = location.search, canvas = window.
         {!messages.length && !running ? (
           <div className="sop-designer-intro">
             <h3>{chatT("您好，我是", "Xin chào, tôi là")} <em>{chatT("AI 编排助手", "Trợ lý điều phối AI")}</em></h3>
-            <p>{chatT("画布是空的，就描述要搭的流程。画布上已经有流程时，直接说改哪一步，我只改你说的地方。", "Nếu canvas trống, mô tả quy trình cần xây dựng. Nếu đã có quy trình, hãy nói bước cần sửa; tôi chỉ sửa phần bạn yêu cầu.")}</p>
+            <p>{chatT("描述要创建的流程，或指出现有流程中需要调整的步骤。", "Mô tả quy trình cần tạo hoặc chỉ rõ bước cần điều chỉnh trong quy trình hiện có.")}</p>
             <div className="sop-designer-suggest-head">
               <span>{chatT("可以试试这些场景：", "Có thể thử các tình huống sau:")}</span>
               <button type="button" onClick={() => setPage((n) => n + 1)}>{chatT("换一批", "Đổi nhóm gợi ý")}</button>

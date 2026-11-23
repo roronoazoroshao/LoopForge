@@ -6349,3 +6349,72 @@ Object.assign(window.LF_I18N_VI, {
   "要不要人看一眼": "Có cần người phụ trách rà soát không?",
   "接入团队知识库": "Kết nối cơ sở tri thức của nhóm"
 });
+
+// Labels and runtime notices introduced by Tencent/LoopForge upstream 0.4.1.
+Object.assign(window.LF_I18N_VI, {
+  "展开全文": "Xem toàn bộ nội dung",
+  "收起全文": "Thu gọn nội dung",
+  "待审交付物": "Sản phẩm bàn giao chờ rà soát",
+  "待审交付物已更新，请刷新后重试": "Sản phẩm bàn giao chờ rà soát đã thay đổi. Hãy làm mới rồi thử lại.",
+  "重置缩放": "Đặt lại mức thu phóng",
+  "执行过的需求 / Bug": "Yêu cầu / lỗi đã thực thi",
+  "Agent 原生研发协作平台": "Nền tảng cộng tác phát triển phần mềm với tác nhân AI",
+  "平台服务器未安装 CLI": "CLI chưa được cài trên máy chủ nền tảng",
+  "测试连接": "Kiểm tra kết nối",
+  "正在测试连接…": "Đang kiểm tra kết nối…",
+  "测试中": "Đang kiểm tra",
+  "连接成功": "Kết nối thành công",
+  "执行机器已领取任务，正在准备工作区和沙箱": "Máy thực thi đã nhận tác vụ, đang chuẩn bị không gian làm việc và sandbox"
+});
+
+// Static role-pack controls retained by the upstream 0.4.1 synchronization.
+Object.assign(window.LF_I18N_VI, {
+  "导入角色包": "Nhập gói vai trò",
+  "导出角色包": "Xuất gói vai trò",
+  "预览后导入当前项目；不会覆盖已有角色或自动安装 Skill。": "Xem trước rồi nhập vào dự án hiện tại; không ghi đè vai trò đã có hoặc tự động cài đặt Skill.",
+  "待导入角色": "Vai trò chờ nhập",
+  "必须处理的问题": "Vấn đề cần xử lý",
+  "注意事项": "Lưu ý",
+  "已检查输入内容及 Shell/Python 脚本。导入本身不会执行脚本。": "Đã kiểm tra nội dung đầu vào và các script Shell/Python. Quá trình nhập sẽ không chạy script.",
+  "确认导入": "Xác nhận nhập",
+  "选择角色包 JSON": "Chọn tệp JSON gói vai trò"
+} );
+
+// Git HTTPS host authorization controls added upstream in v0.4.1.
+Object.assign(window.LF_I18N_VI, {
+  "Git HTTPS 主机授权": "Cấp quyền máy chủ Git HTTPS",
+  "授权平台访问自建 Git 实例，用于校验令牌和跟踪合并请求。": "Cho phép nền tảng truy cập máy chủ Git tự lưu trữ để xác minh token và theo dõi yêu cầu hợp nhất.",
+  "添加 HTTPS 主机": "Thêm máy chủ HTTPS",
+  "填写域名或 IPv6。默认端口为 443，IPv6 带端口用 [fd00::2]:8443。IPv4 服务器请填域名，在「手动编辑地址」里填 IPv4。": "Nhập tên miền hoặc địa chỉ IPv6. Cổng mặc định là 443; với IPv6 có cổng, dùng [fd00::2]:8443. Đối với máy chủ IPv4, nhập tên miền rồi điền IPv4 trong mục “Chỉnh sửa địa chỉ thủ công”.",
+  "托管平台": "Nền tảng lưu trữ Git",
+  "解析并核对地址": "Phân giải và kiểm tra địa chỉ",
+  "手动编辑地址": "Chỉnh sửa địa chỉ thủ công",
+  "允许连接的 IP 地址": "Địa chỉ IP được phép kết nối",
+  "每行填写一个 IPv4 或 IPv6 地址。": "Nhập một địa chỉ IPv4 hoặc IPv6 trên mỗi dòng.",
+  "核对已填地址": "Kiểm tra các địa chỉ đã nhập",
+  "更新授权": "Cập nhật quyền truy cập",
+  "撤销授权": "Thu hồi quyền truy cập",
+  "尚未授权 Git HTTPS 主机。": "Chưa cấp quyền cho máy chủ Git HTTPS nào.",
+  "新增地址": "Địa chỉ được thêm",
+  "移除地址": "Địa chỉ bị xóa",
+  "核对以上地址属于该 Git 实例。平台仅连接已确认的地址。": "Xác minh các địa chỉ trên thuộc máy chủ Git này. Nền tảng chỉ kết nối đến những địa chỉ đã được xác nhận.",
+  "确认 Git HTTPS 主机授权": "Xác nhận cấp quyền cho máy chủ Git HTTPS",
+  "确认授权": "Xác nhận cấp quyền",
+  "已保存 HTTPS 主机授权": "Đã lưu quyền truy cập máy chủ HTTPS",
+  "撤销 HTTPS 主机授权": "Thu hồi quyền truy cập máy chủ HTTPS",
+  "已撤销 HTTPS 主机授权": "Đã thu hồi quyền truy cập máy chủ HTTPS"
+});
+
+// Upstream sandbox selection, Git HTTPS and observability label translations.
+Object.assign(window.LF_I18N_VI, {
+  " · 共享": " · Được chia sẻ",
+  "当前项目没有可用的运行沙箱，请先配置或请管理员共享一个沙箱，再点击「刷新沙箱」。": "Dự án hiện tại chưa có sandbox khả dụng. Hãy cấu hình hoặc nhờ quản trị viên chia sẻ một sandbox, sau đó chọn “Làm mới sandbox”.",
+  "模板原有沙箱不可用，请重新选择运行沙箱。": "Sandbox gốc của mẫu không còn khả dụng. Hãy chọn lại sandbox thực thi.",
+  "请选择运行沙箱。如需本地执行，请确认流程中的任务均可信。": "Hãy chọn sandbox thực thi. Nếu chạy cục bộ, hãy đảm bảo mọi tác vụ trong SOP đều đáng tin cậy.",
+  "选择此 SOP 使用的运行环境，创建后仍可在流程设置中修改。": "Chọn môi trường thực thi cho SOP này; bạn có thể thay đổi trong phần cài đặt SOP sau khi tạo.",
+  "所选运行沙箱已不可用，请点击「刷新沙箱」后重新选择。": "Sandbox đã chọn không còn khả dụng. Hãy chọn “Làm mới sandbox” rồi chọn lại.",
+  "Git 实例": "Máy chủ Git",
+  "选择实例": "Chọn máy chủ",
+  "手动输入 HTTPS 主机": "Nhập máy chủ HTTPS thủ công",
+  "数量按创建时间，Token 按回复时间": "Số lượng theo thời điểm tạo, Token theo thời điểm phản hồi"
+});

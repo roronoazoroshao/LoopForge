@@ -2013,3 +2013,123 @@ Object.assign(window.LF_I18N_EN, {
   "要不要人看一眼": "Require a human review?",
   "接入团队知识库": "Connect team knowledge base"
 });
+
+Object.assign(window.LF_I18N_EN, {
+  "展开设置导航": "Expand settings navigation",
+  "收起设置导航": "Collapse settings navigation",
+  "展开全文": "Show full description",
+  "收起全文": "Collapse description",
+  "待审交付物": "Artifacts for review",
+  "待审交付物已更新，请刷新后重试": "The artifacts have changed. Refresh and try again.",
+  "重置缩放": "Reset zoom",
+  "适应视图": "Fit view",
+  "自动整理": "Auto arrange",
+  "小地图": "Minimap",
+  "Token 去向": "Token breakdown",
+  "成本去向": "Cost breakdown",
+  "按维度拆分；点一项跳到对应明细": "Grouped by dimension. Select an item to see its details.",
+  "累计口径，不随所选时段变化；点一项跳到对应明细": "Totals cover all periods. Select an item to see its details.",
+  "该维度只有一项或没有数据": "This dimension has at most one group with data",
+  "执行时段": "Execution hours",
+  "暂无执行时段数据": "No execution history",
+  "趋势明细": "Trend details",
+  "类型分布": "Type distribution",
+  "构成": "Composition",
+  "类型": "Type",
+  "样本不足，暂无环比": "Not enough data to compare periods",
+  "执行过的需求 / Bug": "Requirements / bugs with runs",
+  "Agent 原生研发协作平台": "Agent-native development collaboration",
+  "版本": "Version",
+  "构建": "Build",
+  "平台服务器未安装 CLI": "CLI is missing on the platform server",
+  "测试连接": "Test connection",
+  "正在测试连接…": "Testing connection…",
+  "测试中": "Testing",
+  "连接成功": "Connected"
+});
+
+Object.assign(window.LF_I18N_EN, {
+  "统计范围": "Scope",
+  "口径说明": "How metrics are counted",
+  "口径": "Methodology",
+  "Vibe Coding 与协作": "Vibe Coding and collaboration",
+  "会话数": "Conversations",
+  "普通对话 · 含已归档会话": "Conversations, including archived ones",
+  "按需求 ID 去重": "Distinct requirement IDs",
+  "多人协作会话": "Shared conversations",
+  "暂无会话": "No conversations",
+  "暂无统计数据": "No metrics yet",
+  "暂无用量统计": "No usage data yet",
+  "暂无用量": "No usage yet",
+  "本期": "Current period",
+  "上一周期": "Previous period",
+  "节点明细": "Step details",
+  "协作会话 Token": "Shared conversation tokens",
+  "已发起的 SOP 执行次数": "SOP runs started",
+  "投入 · SOP + 对话改代码": "Usage · SOP and coding conversations",
+  "SOP 产出与质量": "SOP output and quality",
+  "缓存命中": "Cache hit rate",
+  "人民币 · Hy 上报 / 其他公价": "CNY · reported for Hy, public rates for other models",
+  "选择日期": "Select date",
+  "选择月份": "Select month",
+  "选择周": "Select week",
+});
+
+// Localize the stable runner telemetry message at the presentation layer.
+Object.assign(window.LF_I18N_EN, {
+  "执行机器已领取任务，正在准备工作区和沙箱": "The execution machine has claimed the task and is preparing the workspace and sandbox"
+});
+
+// Static role-pack controls retained by the upstream 0.4.1 synchronization.
+Object.assign(window.LF_I18N_EN, {
+  "导入角色包": "Import role pack",
+  "导出角色包": "Export role pack",
+  "预览后导入当前项目；不会覆盖已有角色或自动安装 Skill。": "Preview and import into this project; existing roles are not overwritten and Skills are not installed automatically.",
+  "待导入角色": "Roles to import",
+  "必须处理的问题": "Issues requiring attention",
+  "注意事项": "Important notes",
+  "已检查输入内容及 Shell/Python 脚本。导入本身不会执行脚本。": "Input and Shell/Python scripts have been reviewed. Importing does not execute scripts.",
+  "确认导入": "Confirm import",
+  "选择角色包 JSON": "Choose role-pack JSON"
+} );
+
+// Git HTTPS host authorization controls added upstream in v0.4.1.
+Object.assign(window.LF_I18N_EN, {
+  "Git HTTPS 主机授权": "Git HTTPS host authorization",
+  "授权平台访问自建 Git 实例，用于校验令牌和跟踪合并请求。": "Authorize access to self-hosted Git instances for token verification and merge request tracking.",
+  "添加 HTTPS 主机": "Add HTTPS host",
+  "HTTPS 主机": "HTTPS host",
+  "填写域名或 IPv6。默认端口为 443，IPv6 带端口用 [fd00::2]:8443。IPv4 服务器请填域名，在「手动编辑地址」里填 IPv4。": "Enter a hostname or IPv6 address. Port 443 is the default. Use [fd00::2]:8443 for IPv6 with a port. For an IPv4 server, enter its hostname and put the IP under Edit addresses manually.",
+  "托管平台": "Git provider",
+  "取消": "Cancel",
+  "解析并核对地址": "Resolve and review addresses",
+  "手动编辑地址": "Edit addresses manually",
+  "允许连接的 IP 地址": "Approved IP addresses",
+  "每行填写一个 IPv4 或 IPv6 地址。": "Enter one IPv4 or IPv6 address per line.",
+  "核对已填地址": "Review entered addresses",
+  "更新授权": "Update authorization",
+  "撤销授权": "Revoke",
+  "尚未授权 Git HTTPS 主机。": "No Git HTTPS hosts are authorized.",
+  "新增地址": "Added addresses",
+  "移除地址": "Removed addresses",
+  "核对以上地址属于该 Git 实例。平台仅连接已确认的地址。": "Verify that these addresses belong to the Git instance. The platform will connect only to approved addresses.",
+  "确认 Git HTTPS 主机授权": "Confirm Git HTTPS host authorization",
+  "确认授权": "Authorize host",
+  "已保存 HTTPS 主机授权": "HTTPS host authorization saved",
+  "撤销 HTTPS 主机授权": "Revoke HTTPS host authorization",
+  "已撤销 HTTPS 主机授权": "HTTPS host authorization revoked"
+});
+
+// Upstream sandbox selection, Git HTTPS and observability label translations.
+Object.assign(window.LF_I18N_EN, {
+  " · 共享": " · Shared",
+  "当前项目没有可用的运行沙箱，请先配置或请管理员共享一个沙箱，再点击「刷新沙箱」。": "No sandbox is available for this project. Configure one or ask an administrator to share one, then refresh sandboxes.",
+  "模板原有沙箱不可用，请重新选择运行沙箱。": "The template sandbox is unavailable. Select a replacement sandbox.",
+  "请选择运行沙箱。如需本地执行，请确认流程中的任务均可信。": "Select a sandbox. Choose local execution only if you trust every task in this SOP.",
+  "选择此 SOP 使用的运行环境，创建后仍可在流程设置中修改。": "Choose the execution environment for this SOP. You can change it in SOP settings later.",
+  "所选运行沙箱已不可用，请点击「刷新沙箱」后重新选择。": "The selected sandbox is no longer available. Refresh sandboxes and select another one.",
+  "Git 实例": "Git instance",
+  "选择实例": "Select an instance",
+  "手动输入 HTTPS 主机": "Enter an HTTPS host",
+  "数量按创建时间，Token 按回复时间": "Counts by creation time, tokens by reply time"
+});

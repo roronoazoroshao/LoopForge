@@ -91,7 +91,7 @@ export const CREDENTIAL_GUIDES = {
   gitSshKey: {
     steps: [
       chatT("把专用公钥添加到代码托管账号，并按需授予仓库写权限", "Thêm khóa công khai chuyên dụng vào tài khoản lưu trữ mã và cấp quyền ghi kho mã nếu cần."),
-      chatT("到「个人配置 → Git SSH 密钥」为该主机添加无口令私钥，同一主机的仓库自动共用；请平台管理员在「平台管理 → Git SSH 主机信任」登记主机公钥", "Trong «Cấu hình cá nhân → Khóa SSH Git», thêm khóa riêng không có mật khẩu cho máy chủ này; các kho cùng máy chủ tự dùng chung. Yêu cầu quản trị viên đăng ký khóa công khai máy chủ trong «Quản trị nền tảng → Tin cậy máy chủ SSH Git»."),
+      chatT("到「个人配置 → Git SSH 密钥」为该主机添加无口令私钥，同一主机的仓库自动共用；请平台管理员在「平台管理 → Git 主机信任」登记主机公钥", "Trong «Cấu hình cá nhân → Khóa SSH Git», thêm khóa riêng không có mật khẩu cho máy chủ này; các kho cùng máy chủ tự dùng chung. Yêu cầu quản trị viên đăng ký khóa công khai máy chủ trong «Quản trị nền tảng → Tin cậy máy chủ Git»."),
       chatT("回到这里重试", "Quay lại đây để thử lại."),
     ],
   },

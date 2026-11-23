@@ -107,5 +107,6 @@ test("the runtime translator localizes known Go UI errors but keeps API codes an
   assert.equal(translate("workspace_busy"), "workspace_busy");
   assert.equal(translate("repository_required"), "repository_required");
   assert.equal(translate("custom-run-001"), "custom-run-001");
-  assert.equal(translator("zh")("远程工作区读取超时"), "远程工作区读取超时");
+  // Chinese mode is the source language; no DOM translator is installed.
+  assert.equal(translator("zh"), undefined);
 });

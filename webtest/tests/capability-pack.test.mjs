@@ -37,7 +37,7 @@ test('capability preflight displays untrusted text literally, not as HTML', asyn
 });
 
 test('capability pack import requires review and submits only checked nonduplicate IDs', async (t) => {
-  const app = await loadApp();
+  const app = await loadApp({ locale: 'vi' });
   t.after(app.close);
   app.router.post(/^\/api\/capability-packs\/preflight\?/, {
     format: 'loopforge-capability-pack', schemaVersion: 1, projectId: 'project-1',

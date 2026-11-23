@@ -20,8 +20,8 @@ function fixture(overrides = {}) {
   };
 }
 
-async function openPicker() {
-  const trigger = screen.getByRole("button", { name: /^执行机器：/ });
+async function openPicker(locale = "zh") {
+  const trigger = screen.getByRole("button", { name: locale === "vi" ? /^Máy thực thi:/ : /^执行机器：/ });
   trigger.getBoundingClientRect = () => ({
     top: 500,
     bottom: 528,
@@ -42,8 +42,7 @@ describe("execution machine picker", () => {
     try {
       const chat = fixture();
       render(<ExecutionMachinePicker chat={chat} />);
-      const user = userEvent.setup();
-      await user.click(screen.getByRole("button", { name: /^Máy thực thi:/ }));
+      const { user } = await openPicker("vi");
       const option = screen.getByRole("option", { name: /测试 Linux.*Ngoại tuyến, cần khởi động trước khi thực thi/ });
       await user.click(option);
       expect(chat.selectMachine).toHaveBeenCalledWith("linux");
