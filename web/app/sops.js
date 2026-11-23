@@ -472,11 +472,22 @@ async function openGenericTemplateModal(id){
   const w=(state.data?.workflows||[]).find(x=>x.id===id&&catalogGeneric(x));
   if(!w)return toast('通用模板不存在或已下架');
   state.genericTemplateId=id;
-  const title=$('#genericTemplateTitle');if(sopVI())title.setAttribute?.('data-i18n-skip','');else title.removeAttribute?.('data-i18n-skip');
-  title.textContent=sopUICopy(`使用「${w.name}」`,`Sử dụng “${w.name}”`);
-  $('#genericTemplateIntro').textContent=w.description||'平台提供的通用流程模板，复制后归本项目所有。';
+  const name=sopDisplayName(w),title=$('#genericTemplateTitle');
+  title.setAttribute?.('data-i18n-skip','');
+  title.textContent=lfT(`使用「${name}」`,`Use “${name}”`,`Sử dụng “${name}”`);
+  const intro=$('#genericTemplateIntro');
+  intro.setAttribute?.('data-i18n-skip','');
+  intro.textContent=sopCatalogDescription(w);
   const nodes=w.nodes||[],agentCount=nodes.filter(n=>n.type==='agent').length,gates=nodes.filter(n=>n.type==='approval').length;
-  $('#genericTemplateStructure').innerHTML=`<span>${sopUICopy(`${nodes.length} 个节点`,`${nodes.length} bước`)}</span><span>${sopUICopy(`${agentCount} 个角色节点`,`${agentCount} bước vai trò`)}</span><span>${sopUICopy(`${gates} 个人工门禁`,`${gates} bước phê duyệt thủ công`)}</span>${nodes.some(n=>n.id==='mr')?'<span class="highlight">含「发起 PR」节点</span>':''}<span>复制=归本项目、可自由修改、不再跟随平台更新</span><span>直接运行=始终使用平台最新版</span>`;
+  const structure=$('#genericTemplateStructure');
+  structure.setAttribute?.('data-i18n-skip','');
+  structure.innerHTML=`
+    <span>${lfT(`${nodes.length} 个节点`,`${nodes.length} steps`,`${nodes.length} bước`)}</span>
+    <span>${lfT(`${agentCount} 个角色节点`,`${agentCount} agent steps`,`${agentCount} bước Agent`)}</span>
+    <span>${lfT(`${gates} 个人工门禁`,`${gates} human approval gates`,`${gates} bước phê duyệt thủ công`)}</span>
+    ${nodes.some(n=>n.id==='mr')?`<span class="highlight">${lfT('含「发起 MR」节点','Includes a “Create Merge Request” step','Có bước “Tạo Merge Request”')}</span>`:''}
+    <span>${lfT('复制=归本项目、可自由修改、不再跟随平台更新','Copy = editable in this project; future platform template updates do not apply','Sao chép = thuộc dự án này, có thể chỉnh sửa và không tự nhận bản cập nhật của mẫu chung')}</span>
+    <span>${lfT('直接运行=始终使用平台最新版','Run directly = always use the latest platform template','Chạy trực tiếp = luôn dùng phiên bản mẫu mới nhất của nền tảng')}</span>`;
   const request=++genericRequirementRequest,modal=$('#genericTemplateModal');
   const needsExecutor=agentCount>0||w.preview?.enabled;
   renderGenericRequirementRows(w,needsExecutor?null:[],true);

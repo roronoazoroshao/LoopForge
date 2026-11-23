@@ -207,3 +207,32 @@ test('unchanged descriptions in a project copy stay localized without mutating t
     assert.equal(app.evaluate('sopCatalogDescription('+JSON.stringify({...wf,description:'用户编写的描述'})+')'),'用户编写的描述');
   }
 });
+
+
+test('built-in template preview modal localizes its name, description, steps and MR label', async t => {
+  const localized = {
+    zh: ['使用「通用后端交付 SOP」', '后端需求从需求定型到独立评审与交付。', '含「发起 MR」节点'],
+    en: ['Use “Generic backend delivery SOP”', 'Take backend requirements from scoping through independent review to delivery.', 'Includes a “Create Merge Request” step'],
+    vi: ['Sử dụng “SOP bàn giao backend chung”', 'Đưa yêu cầu backend từ bước làm rõ đến rà soát độc lập và bàn giao.', 'Có bước “Tạo Merge Request”'],
+  };
+  const original='后端需求从需求定型到独立评审与交付。';
+  for (const lang of ['zh','en','vi']) {
+    const app=await loadApp({locale:lang});
+    t.after(app.close);
+    const {workflow}=fixture();
+    workflow.description=original;
+    app.router.get('/api/workflows/'+templateId+'/executor-requirements',[]);
+    app.evaluate('state.data.workflows.push('+JSON.stringify(workflow)+')');
+    await app.evaluate('openGenericTemplateModal('+JSON.stringify(templateId)+')');
+    assert.equal(app.document.querySelector('#genericTemplateTitle')?.textContent,localized[lang][0]);
+    assert.equal(app.document.querySelector('#genericTemplateIntro')?.textContent,localized[lang][1]);
+    const structure=app.document.querySelector('#genericTemplateStructure');
+    assert.ok(structure?.textContent.includes(localized[lang][2]));
+    assert.ok(structure.textContent.includes(lang==='vi'?'8 bước':lang==='en'?'8 steps':'8 个节点'));
+    if(lang!=='zh')assert.doesNotMatch(structure.textContent,/[\u3400-\u9fff]/u);
+    assert.equal(app.evaluate('state.data.workflows.find(w=>w.id==='+JSON.stringify(templateId)+').name'),'通用后端交付 SOP');
+    assert.equal(app.evaluate('state.data.workflows.find(w=>w.id==='+JSON.stringify(templateId)+').description'),original);
+    assert.ok(app.document.querySelector('#genericTemplateTitle')?.hasAttribute('data-i18n-skip'));
+    assert.ok(app.document.querySelector('#genericTemplateIntro')?.hasAttribute('data-i18n-skip'));
+  }
+});
