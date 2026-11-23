@@ -109,19 +109,30 @@ const CREDENTIAL_KINDS=[
   agentCliCredentialKind('zcode',{name:'ZCode',logo:'glm',baseUrl:'https://open.bigmodel.cn/api/anthropic',
     note:'未填写 Base URL 时连接智谱 BigModel 的 Anthropic 兼容服务（Messages）。',protocols:[['messages','Messages（Anthropic）'],['chat','Chat Completions'],['responses','Responses']]}),
 ];
+function credentialVI(){return window.lfLang?.()==='vi';}
+function credentialCopy(zh,vi){return credentialVI()?vi:zh}
+const CLI_CREDENTIAL_NOTES_VI={
+  opencode:'OpenCode cần Base URL của nhà cung cấp mô hình.',
+  cursor:'Cursor CLI kết nối dịch vụ Cursor; có thể lấy mô hình bằng tài khoản.',
+  agy:'Mặc định kết nối API Gemini chính thức; gateway tương thích OpenAI cần Base URL.',
+  kimi:'Để trống Base URL để dùng dịch vụ chính thức của Kimi Code.',
+  pi:'Pi cần Base URL của nhà cung cấp mô hình.',
+  dsh:'Để trống Base URL để kết nối dịch vụ chính thức của DeepSeek.',
+  zcode:'Để trống Base URL để dùng dịch vụ tương thích Anthropic Messages của Zhipu BigModel.'
+};
 function agentCliCredentialKind(cli,o){
   const field=`agentCli.${cli}.`,configurable=!!o.protocols;
   return {key:`agentCli.${cli}`,agentCli:cli,group:'model',name:o.name,short:`${o.name} API Key`,logo:o.logo,monochrome:!!o.monochrome,
-    use:`AI 对话的 ${o.name} 模型与以 ${o.name} 运行的 SOP 节点`,
-    description:`AI 对话切换到 ${o.name} 后可选用它的模型，SOP 在执行机器上以 ${o.name} 运行的节点也使用它。${o.note||''}`,
-    guide:o.guide||[['在模型服务商控制台创建 API Key'],['记下服务地址和它提供的接口协议'],['粘贴 Key，按需填写 Base URL 并选择协议；保存后可在模型目录里挑选 AI 对话的模型']],
-    placeholder:`请输入 ${o.name} API Key`,
+    use:credentialCopy(`AI 对话的 ${o.name} 模型与以 ${o.name} 运行的 SOP 节点`,`Mô hình ${o.name} trong trò chuyện AI và các bước SOP chạy bằng ${o.name}`),
+    description:credentialCopy(`AI 对话切换到 ${o.name} 后可选用它的模型，SOP 在执行机器上以 ${o.name} 运行的节点也使用它。${o.note||''}`,`Trong cuộc trò chuyện AI, có thể chọn mô hình ${o.name}. Các bước SOP chạy bằng ${o.name} trên máy thực thi cũng sử dụng những mô hình này. ${CLI_CREDENTIAL_NOTES_VI[cli]||''}`),
+    guide:o.guide|| (credentialVI()?[['Tạo API Key trong bảng điều khiển của nhà cung cấp mô hình'],['Ghi lại Base URL và giao thức API mà dịch vụ cung cấp'],['Dán API Key, nhập Base URL khi cần và chọn giao thức. Sau khi lưu, chọn mô hình trong danh mục để dùng trong trò chuyện AI.']]:[['在模型服务商控制台创建 API Key'],['记下服务地址和它提供的接口协议'],['粘贴 Key，按需填写 Base URL 并选择协议；保存后可在模型目录里挑选 AI 对话的模型']]),
+    placeholder:credentialCopy(`请输入 ${o.name} API Key`,`Nhập API Key ${o.name}`),
     ...(configurable?{
-      extra:{name:field+'baseUrl',label:'Base URL',placeholder:o.baseUrl,url:true,clearWithKey:true,required:o.required,note:o.extraNote||(o.required?'必填':'')},
+      extra:{name:field+'baseUrl',label:'Base URL',placeholder:o.baseUrl,url:true,clearWithKey:true,required:o.required,note:credentialVI()?(o.required?'Bắt buộc':''):o.extraNote||(o.required?'必填':'')},
       protocol:{name:field+'protocol',options:o.protocols},
     }:{}),
     models:{name:field+'models',engine:cli},
-    impact:`AI 对话将不能再切换到 ${o.name}，以 ${o.name} 运行的 SOP 节点将无法执行${configurable?'，Base URL、协议与模型目录一并清空':''}。`};
+    impact:credentialCopy(`AI 对话将不能再切换到 ${o.name}，以 ${o.name} 运行的 SOP 节点将无法执行${configurable?'，Base URL、协议与模型目录一并清空':''}。`,`Không thể chuyển trò chuyện AI sang ${o.name}; các bước SOP dùng ${o.name} sẽ không thể chạy${configurable?'. Base URL, giao thức và danh mục mô hình cũng sẽ bị xóa':''}.`)};
 }
 function credentialValue(user,name){
   const [scope,cli,field]=String(name).split('.');
@@ -227,14 +238,19 @@ function credentialCatalogRowHTML(model={},engine=''){
 }
 function credentialCatalogCopy(mode,kind){
   const name=kind?.name||'该 CLI';
-  if(mode==='runner')return {title:'使用执行机器的账号模型',detail:'获取这台机器的账号模型，或手动添加。',reset:'清空自定义列表',restored:'已清空目录，保存后生效'};
-  return mode==='official'
-    ?{title:`使用 ${name} 自带的模型`,detail:`目录为空时，AI 对话列出 ${name} 支持的模型。获取可用模型可以改成自己的目录，也可以手动添加。`,reset:'清空目录，改回使用自带的模型',restored:'已恢复默认，保存后使用自带的模型'}
+  if(mode==='runner')return credentialVI()
+    ?{title:'Dùng mô hình của tài khoản trên máy thực thi',detail:'Lấy danh mục mô hình của tài khoản trên máy này hoặc thêm thủ công.',reset:'Xóa danh sách tùy chỉnh',restored:'Đã xóa danh mục; có hiệu lực sau khi lưu'}
+    :{title:'使用执行机器的账号模型',detail:'获取这台机器的账号模型，或手动添加。',reset:'清空自定义列表',restored:'已清空目录，保存后生效'};
+  if(mode==='official')return credentialVI()
+    ?{title:`Dùng mô hình tích hợp của ${name}`,detail:`Khi danh mục trống, trò chuyện AI hiển thị các mô hình do ${name} hỗ trợ. Bạn có thể tải danh sách có sẵn hoặc thêm mô hình thủ công.`,reset:'Xóa danh sách để dùng lại mô hình tích hợp',restored:'Đã khôi phục mặc định; lưu để áp dụng mô hình tích hợp'}
+    :{title:`使用 ${name} 自带的模型`,detail:`目录为空时，AI 对话列出 ${name} 支持的模型。获取可用模型可以改成自己的目录，也可以手动添加。`,reset:'清空目录，改回使用自带的模型',restored:'已恢复默认，保存后使用自带的模型'};
+  return credentialVI()
+    ?{title:'Theo danh mục mô hình của dịch vụ',reset:'Xóa danh sách để sử dụng lại mô hình từ dịch vụ',restored:'Đã khôi phục mặc định; lưu để áp dụng danh mục của dịch vụ'}
     :{title:'跟随服务发布的模型',reset:'清空目录，改回跟随服务发布的模型',restored:'已恢复默认，保存后跟随服务发布的模型'};
 }
 function credentialCatalogDetailHTML(mode,kind,protocol){
   const copy=credentialCatalogCopy(mode,kind);
-  return mode!=='remote'?escapeHTML(copy.detail):`目录为空时，AI 对话列出 Base URL 的 <code data-catalog-endpoint>${escapeHTML(credentialModelsEndpoint(kind,protocol))}</code> 返回的模型。`;
+  return mode!=='remote'?escapeHTML(copy.detail):credentialVI()?`Khi danh mục trống, cuộc trò chuyện AI hiển thị các mô hình từ endpoint <code data-catalog-endpoint>${escapeHTML(credentialModelsEndpoint(kind,protocol))}</code> của Base URL.`:`目录为空时，AI 对话列出 Base URL 的 <code data-catalog-endpoint>${escapeHTML(credentialModelsEndpoint(kind,protocol))}</code> 返回的模型。`;
 }
 function credentialCatalogHTML(kind,user,{runnerLogin=false,label='模型目录'}={}){
   const baseUrl=credentialValue(user,kind.baseURL||(kind.extra?.url?kind.extra.name:'')),protocol=credentialProtocol(kind,user);
@@ -1375,9 +1391,9 @@ function credentialWizardStepTwoHTML(kind){
   const fields=(kind.extra?.options?extraField+secretField:secretField+extraField+protocolField)+baseField;
   if(isDirectExecutorForm(wizard)){
     const error=wizard.error?`<p class="credential-vline is-err" role="alert">${escapeHTML(wizard.error)}</p>`:'';
-    return `<div class="credential-direct-heading">${credentialLogo(kind)}<h3>新增 ${escapeHTML(kind.name)}</h3></div>
+    return `<div class="credential-direct-heading">${credentialLogo(kind)}<h3>${escapeHTML(credentialCopy(`新增 ${kind.name}`,`Thêm ${kind.name}`))}</h3></div>
       <fieldset class="credential-fields"${wizard.saving?' disabled':''}>${fields}</fieldset>
-      <details class="credential-direct-help"><summary>如何获取密钥</summary><ol class="credential-guide">${guide}</ol></details>${error}`;
+      <details class="credential-direct-help"><summary>${credentialCopy("如何获取密钥","Cách lấy API Key")}</summary><ol class="credential-guide">${guide}</ol></details>${error}`;
   }
   return `<div class="credential-question">${credentialLogo(kind,'is-mini')}<span>${github?'使用访问令牌':'配置 '+escapeHTML(kind.short)}</span><small class="credential-description">${escapeHTML(kind.description)}</small></div>${methods}<ol class="credential-guide">${guide}</ol><div class="credential-fields">
     ${fields}
@@ -1432,7 +1448,7 @@ function paintCredentialWizard(direction){
   scrim.querySelector('[data-wizard-step]').textContent=wizard.done?'已完成':`${wizard.step} / 3`;
   scrim.querySelector('[data-wizard-close]').disabled=wizard.saving;
   const dialog=scrim.querySelector('.credential-dialog');
-  dialog.setAttribute('aria-label',isDirectExecutorForm(wizard)?`新增 ${credentialKind(wizard.kind).name}`:'添加凭证');
+  dialog.setAttribute('aria-label',isDirectExecutorForm(wizard)?credentialCopy(`新增 ${credentialKind(wizard.kind).name}`,`Thêm ${credentialKind(wizard.kind).name}`):credentialCopy('添加凭证','Thêm thông tin xác thực'));
   scrim.querySelector('.credential-dialog-foot').innerHTML=credentialWizardFootHTML();
   hydrateCredentialIcons(scrim);
   if(typeof hydrateGitHubConnections==='function')hydrateGitHubConnections(pane);
