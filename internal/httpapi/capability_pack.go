@@ -44,6 +44,7 @@ type capabilitySkill struct {
  ID string `json:"id"`
  Name string `json:"name"`
  Description string `json:"description,omitempty"`
+ Author string `json:"author,omitempty"`
  Version string `json:"version,omitempty"`
  License string `json:"license,omitempty"`
  SourceURL string `json:"sourceUrl,omitempty"`
@@ -103,7 +104,7 @@ func strictCapabilityManifest(raw []byte) (capabilityManifest,error) {
  }
  for _,s:=range out.Skills {
   if !capabilityID.MatchString(s.ID)||strings.TrimSpace(s.Name)==""||len(s.Name)>200||
-   len(s.Description)>2000||len(s.Version)>100||len(s.License)>160||len(s.SourceURL)>2000 {
+   len(s.Description)>2000||len(s.Author)>200||len(s.Version)>100||len(s.License)>160||len(s.SourceURL)>2000 {
    return out,fmt.Errorf("invalid skill %q",s.ID)
   }
   key:=strings.ToLower(s.ID)
@@ -264,7 +265,8 @@ func (h *catalogHandlers) capabilityImport(c *gin.Context) {
   key:="skills/"+s.ID
   if !selected[key] {continue}
   if _,exists:=h.repo.Skill(s.ID);exists{result.Skipped=append(result.Skipped,key+": ID exists");continue}
-  v:=domain.SkillDefinition{ID:s.ID,Name:s.Name,Description:s.Description,ProjectID:projectID}
+  v:=domain.SkillDefinition{ID:s.ID,Name:s.Name,Description:s.Description,ProjectID:projectID,
+    Attribution:&domain.SkillAttribution{Author:s.Author,Version:s.Version,License:s.License,SourceURL:s.SourceURL}}
   if err:=h.repo.PutSkillSnapshot(v,files[s.ID],true);err!=nil {
    if errors.Is(err,repo.ErrSkillExists){result.Skipped=append(result.Skipped,key+": ID exists")}else{result.Failed=append(result.Failed,key+": "+err.Error())}
   }else{result.Created=append(result.Created,key)}
@@ -297,7 +299,18 @@ func (h *catalogHandlers) capabilityExport(c *gin.Context) {
  if kind=="all"||kind=="skills"{
   for _,s:=range h.repo.Skills(){
    if s.ProjectID!=projectID {continue}
-   pack.Skills=append(pack.Skills,capabilitySkill{ID:s.ID,Name:s.Name,Description:s.Description})
+   record:=capabilitySkill{ID:s.ID,Name:s.Name,Description:s.Description}
+   if s.Attribution!=nil {
+    record.Author=s.Attribution.Author
+    record.Version=s.Attribution.Version
+    record.License=s.Attribution.License
+    record.SourceURL=s.Attribution.SourceURL
+   } else if s.Source!=nil {
+    record.Author=s.Source.Namespace
+    record.Version=s.Source.Version
+    record.SourceURL=s.Source.Homepage
+   }
+   pack.Skills=append(pack.Skills,record)
    copied:=map[string]bool{}
    var skillTotal int64
    save:=func(rel string,blob []byte,mode uint32) {
