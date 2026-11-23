@@ -108,21 +108,21 @@ func skillhubVersionParam(c *gin.Context, raw string) (string, bool) {
 // --- read-only proxy ---
 
 type skillhubListItem struct {
-	Slug        string            `json:"slug"`
-	Namespace   string            `json:"namespace"`
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	DescriptionOriginal string `json:"descriptionOriginal,omitempty"`
-	IconURL     string            `json:"iconUrl,omitempty"`
-	Category    string            `json:"category"`
-	Version     string            `json:"version"`
-	OwnerName   string            `json:"ownerName"`
-	Homepage    string            `json:"homepage"`
-	Downloads   int64             `json:"downloads"`
-	Stars       int64             `json:"stars"`
-	Labels      map[string]string `json:"labels"`
-	Verified    bool              `json:"verified,omitempty"`
-	UpdatedAt   int64             `json:"updatedAt,omitempty"`
+	Slug                string            `json:"slug"`
+	Namespace           string            `json:"namespace"`
+	Name                string            `json:"name"`
+	Description         string            `json:"description"`
+	DescriptionOriginal string            `json:"descriptionOriginal,omitempty"`
+	IconURL             string            `json:"iconUrl,omitempty"`
+	Category            string            `json:"category"`
+	Version             string            `json:"version"`
+	OwnerName           string            `json:"ownerName"`
+	Homepage            string            `json:"homepage"`
+	Downloads           int64             `json:"downloads"`
+	Stars               int64             `json:"stars"`
+	Labels              map[string]string `json:"labels"`
+	Verified            bool              `json:"verified,omitempty"`
+	UpdatedAt           int64             `json:"updatedAt,omitempty"`
 }
 
 // skillhubListQuery whitelists the list parameters forwarded upstream.
