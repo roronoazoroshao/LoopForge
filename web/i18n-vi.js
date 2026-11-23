@@ -6327,3 +6327,25 @@ Object.assign(window.LF_I18N_VI, {
   "远程执行机器返回了空响应": "Máy thực thi từ xa trả về phản hồi rỗng",
   "Git 状态读取失败": "Không đọc được trạng thái Git"
 });
+
+// Additional role-editor labels; preserve {{...}} runtime placeholders.
+Object.assign(window.LF_I18N_VI, {
+  "读 {{feedback}}，只修失败项，不要重做已经通过的部分": "Đọc {{feedback}}, chỉ sửa các mục thất bại; không làm lại phần đã đạt.",
+  "Run工作区（校验产物等场景）": "Workspace của lượt chạy (chẳng hạn kiểm tra sản phẩm đầu ra)",
+  "Run 工作区": "Workspace của lượt chạy",
+  "Hook 名称": "Tên hook",
+  "Agent 写完结论，人批准再往下走": "Agent hoàn tất kết luận, người phụ trách phê duyệt trước khi tiếp tục.",
+  "+ 添加要交的文件": "+ Thêm tệp bàn giao",
+  "⛶ 打开代码编辑器编写命令": "⛶ Mở trình soạn thảo mã để viết lệnh",
+  "Agent 完成任务后必须先调用 submit_gate_result 提交终态；缺失时自动恢复同一会话重试。": "Sau khi hoàn thành, Agent phải gọi submit_gate_result để gửi trạng thái cuối; nếu thiếu, hệ thống sẽ tiếp tục phiên làm việc hiện tại để thử lại.",
+  "Matcher（可选）": "Điều kiện khớp (không bắt buộc)",
+  "Hook 脚本": "Script của hook",
+  "⛶ 打开代码编辑器编写脚本": "⛶ Mở trình soạn thảo mã để viết script",
+  "+ 添加 Hook": "+ Thêm hook",
+  "Run工作区": "Workspace của lượt chạy",
+  "产物通过后的门禁命令": "Lệnh kiểm tra sau khi xác minh tệp bàn giao",
+  "+ 添加验收命令": "+ Thêm lệnh nghiệm thu",
+  "没有自定义 Hook。系统观测 Hook 不受这里影响。": "Chưa có hook tùy chỉnh. Các hook giám sát tích hợp không bị ảnh hưởng.",
+  "要不要人看一眼": "Có cần người phụ trách rà soát không?",
+  "接入团队知识库": "Kết nối cơ sở tri thức của nhóm"
+});
