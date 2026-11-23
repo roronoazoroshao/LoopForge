@@ -482,3 +482,6 @@ html[data-theme="dark"] {
   .hui-switch,
   .hui-switch::before { transition: none !important; animation: none !important; }
 }
+
+/* The VI system-font override belongs to the shared Harness token owner. */
+html[data-lang="vi"]{--hui-sans:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Arial,sans-serif}

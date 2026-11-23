@@ -56,6 +56,7 @@ const { createDOM } = require('./hui_fake_dom.js');
 async function openIDE({ status, readOnly = false, preparation }) {
   const dom = createDOM();
   const { document, window } = dom;
+  window.lfT = zh => zh;
   const host = dom.html('<div id="workbench"></div>');
   host.before = node => document.body.insertBefore(node, host);
   const appendChild = document.head.appendChild.bind(document.head);

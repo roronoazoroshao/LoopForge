@@ -38,6 +38,9 @@ elements["#reqWorkflow"].value = "sop";
 elements["#importTAPDWorkflow"].value = "sop";
 const storage = new Map(), requests = [], notices = [], opened = [], chats = [];
 const ctx = {
+  reqUICopy: zh=>zh,
+  issuesVI:()=>false,
+  issuesCopy:zh=>zh,
   state: {
     projectFilter: "p", currentUser: {id: 1},
     data: {repositories: [
@@ -81,14 +84,14 @@ assert.equal(input.disabled, false);
 assert.match(input.placeholder, /release\/2026\.10/);
 assert.equal(hint.hidden, true, "a single repository needs no inline branch hint");
 assert.match(input.title, /继续该已有分支/, "the long branch explanation moves into the input title");
-assert.match(elements["#reqRepoChipLabel"].innerHTML, /仓库 <b>API<\/b>/);
+assert.match(elements["#reqRepoChipLabel"].innerHTML, /仓库 <b data-i18n-skip>API<\/b>/);
 assert.ok(!elements["#reqRepository"].innerHTML.includes("data-remove-req-repo"), "a lone repository cannot be removed");
 assert.ok(elements["#reqRepository"].innerHTML.includes("＋ 添加仓库"));
 assert.ok(!elements["#reqRepository"].innerHTML.includes("已全部选择"));
 input.value = "feature/continue";
 ctx.renderReqRepositoryPicker();
 assert.equal(input.value, "feature/continue", "rerendering the same repository must preserve an explicit branch");
-assert.match(elements["#reqRepoChipLabel"].innerHTML, /API<\/b> · feature\/continue/);
+assert.match(elements["#reqRepoChipLabel"].innerHTML, /API<\/b> · <span data-i18n-skip>feature\/continue<\/span>/);
 
 ctx.setReqRepositoryIds(["r2"]);
 assert.equal(input.value, "", "changing repository must clear a branch from the previous repository");

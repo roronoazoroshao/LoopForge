@@ -3508,7 +3508,6 @@ html[data-theme="dark"] #runnersView .runner-runtime-icon:is(.codex,.claude-code
 @media(min-width:1001px){.topbar #themeToggle{display:none!important}}
 
 /* Vietnamese copy: compact badges, responsive grid and readable text. */
-html[data-lang="vi"]{--hui-sans:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Arial,sans-serif}
 html[data-lang="vi"] body{font-family:var(--hui-sans);letter-spacing:normal}
 html[data-lang="vi"] #agentModal .agent-start-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr))}
 html[data-lang="vi"] #agentModal .as-preset{min-width:0;overflow-wrap:anywhere;gap:4px}

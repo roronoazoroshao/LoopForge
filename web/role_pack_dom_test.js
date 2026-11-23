@@ -3,6 +3,7 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const source=fs.readFileSync(process.argv[2],'utf8');
 const events=new Map(),elements={},toasts=[],requests=[],created=[],downloaded=[];
+let exportConfirmed=false, exportPromptCount=0;
 function element(id){
   const obj={id,checked:false,disabled:false,textContent:'',value:'',files:[],children:[],open:false,
     classList:{toggle:(_name,open)=>{obj.open=!!open}},
@@ -22,6 +23,7 @@ const document={readyState:'complete',getElementById:id=>elements[id],
 const state={projectFilter:'project-a',data:{agents:[],executors:[{id:'claude'}]},agentScope:'project'};
 const window={lfLang:()=> 'vi',lfT:(_zh,_en,vi)=>vi,confirm:()=>true};
 const context=vm.createContext({window,document,state,
+ afConfirm:async()=>{exportPromptCount++;return exportConfirmed;},
  api:async(path,opts={})=>{
    requests.push({path,method:opts.method||'GET'});
    if(opts.method==='PUT'){
@@ -79,6 +81,10 @@ const pack=id=>JSON.stringify({format:'loopforge-role-pack',schemaVersion:1,role
  await events.get('rolePackPick:change')();
  assert.equal(elements.rolePackPreview.children[0].textContent,'<img src=x onerror=alert(1)> (new-role)');
  await events.get('rolePackExport:click')();
+ assert.equal(downloaded.length,0,'declining the in-app confirmation prevents export');
+ exportConfirmed=true;
+ await events.get('rolePackExport:click')();
+ assert.equal(exportPromptCount,2);
  assert.equal(downloaded.length,1);
  assert.match(downloaded[0].download,/^loopforge-roles-project-a\.json$/);
  console.log('role pack UI tests passed');

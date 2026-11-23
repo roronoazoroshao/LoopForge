@@ -174,11 +174,15 @@
     if (busy) return;
     let id;
     try {id = project();} catch (error) {status(error.message);show(true);return;}
-    if (!window.confirm(tr(
+    if (!(await afConfirm({
+      title:tr('导出能力包','Export capability pack','Xuất gói năng lực'),
+      message:tr(
       '导出内容可能包含密钥或敏感代码。分享前请检查。继续？',
       'Exported files may contain secrets or sensitive code. Review before sharing. Continue?',
       'Tệp xuất có thể chứa secrets hoặc mã nhạy cảm. Hãy rà soát trước khi chia sẻ. Tiếp tục?'
-    ))) return;
+      ),
+      confirmText:tr('继续导出','Continue export','Tiếp tục xuất'),
+    }))) return;
     busy = true;sync();
     const kind = state.assetType;
     try {

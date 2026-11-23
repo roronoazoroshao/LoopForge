@@ -238,6 +238,7 @@ func TestMCPJSONImportParser(t *testing.T) {
 	script := `
 const assert = require('node:assert/strict');
 const code = require('node:fs').readFileSync('` + appBundlePath(t) + `', 'utf8');
+const mcpCopy=zh=>zh;
 eval(code.slice(code.indexOf('function mcpImportPlainObject('), code.indexOf('function mcpApplyImportedServer(')));
 const stdio = mcpImportCandidates({mcpServers:{playwright:{command:'npx',args:['@playwright/mcp@latest'],env:{TOKEN:'secret'},cwd:'tools',pathEntries:['custom/bin']}}});
 assert.equal(stdio.length, 1);
@@ -485,6 +486,7 @@ func TestCredentialListAndWizard(t *testing.T) {
 	script := `
 const assert = require('node:assert/strict');
 const code = require('node:fs').readFileSync('` + appBundlePath(t) + `', 'utf8');
+global.window={lfLang:()=> 'zh', lfT:zh=>zh};
 const user = {id: 1, gitHubCredentialConfigured: true, codexApiKeyConfigured: true, codexBaseUrl: 'https://proxy.example.com/v1'};
 const state = {currentUser: {id: 1}, data: {users: [user]}};
 const userById = id => state.data.users.find(u => u.id === id);
@@ -1341,6 +1343,7 @@ eval(code.slice(code.indexOf('function obsTrendGrain(){'), code.indexOf('functio
 function formatTokens(n){return String(n)}
 function escapeHTML(s){return String(s)}
 function lfT(zh){return zh}
+function obsUi(zh){return zh}
 assert.equal(obsWeekLabel('2026-W37'), '9/7–9/13');
 assert.equal(obsTrendLabel({date:'2026-09-16'}), '09/16');
 assert.equal(obsTrendValue({tokens:10,runs:2,issues:3,costUsd:1.5},'issues'), 3);
@@ -2398,6 +2401,9 @@ const code = require('node:fs').readFileSync('` + appBundlePath(t) + `', 'utf8')
 const escapeHTML = value => String(value??'').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 const isScriptWorkflowNode = node => node?.type==='script'||node?.type==='command';
 const relativeTime = () => '8 小时';
+const approvalVI=()=>false;
+const approvalUICopy=zh=>zh;
+const approvalCopy=zh=>zh;
 const runs = {};
 const cachedRun = id => runs[id]||null;
 const state = {data:{tasks:[{runId:'run-1',issueId:'iss-1'}], issues:[{id:'iss-1',title:'移除多余分组标题',projectId:'p1',number:31}], projects:[{id:'p1',key:'AF'}], workflows:[]}};
