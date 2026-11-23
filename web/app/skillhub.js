@@ -18,6 +18,106 @@ const SKILLHUB_CATEGORY_VI={
     "it-ops-security": "Vận hành CNTT và bảo mật",
     "life-service": "Dịch vụ đời sống"
   };
+// Official SkillHub taxonomy: 12 primary categories, 96 subcategories.
+// Keep keys stable; translate only presentation labels.
+const SKILLHUB_SUBCATEGORY_VI={
+  "office-doc": "Xử lý tài liệu",
+  "office-spreadsheet": "Xử lý bảng tính",
+  "office-ppt": "Tạo bài trình chiếu",
+  "office-meeting-notes": "Biên bản cuộc họp",
+  "office-report": "Báo cáo công việc",
+  "office-email": "Xử lý email",
+  "office-pdf": "Xử lý PDF",
+  "office-automation": "Tự động hóa quy trình",
+  "content-article": "Viết bài",
+  "content-marketing-copy": "Nội dung tiếp thị",
+  "content-social-media": "Quản lý mạng xã hội",
+  "content-short-video-script": "Kịch bản video ngắn",
+  "content-seo": "Tối ưu hóa SEO",
+  "content-topic-planning": "Lập kế hoạch chủ đề",
+  "content-title": "Tạo tiêu đề",
+  "content-rewrite": "Viết lại nội dung",
+  "dev-code-gen": "Sinh mã",
+  "dev-code-review": "Rà soát mã",
+  "dev-bug-fix": "Sửa lỗi",
+  "dev-test-gen": "Tạo kiểm thử",
+  "dev-frontend": "Phát triển frontend",
+  "dev-backend": "Phát triển backend",
+  "dev-script": "Tập lệnh tiện ích",
+  "dev-git": "Hỗ trợ Git",
+  "data-cleaning": "Làm sạch dữ liệu",
+  "data-visualization": "Trực quan hóa dữ liệu",
+  "data-report": "Tạo báo cáo",
+  "data-insight": "Phân tích chuyên sâu dữ liệu",
+  "data-web-scraping": "Thu thập dữ liệu web",
+  "data-competitor": "Phân tích đối thủ",
+  "data-user-analysis": "Phân tích người dùng",
+  "data-metrics-monitoring": "Giám sát chỉ số",
+  "design-image-gen": "Tạo hình ảnh",
+  "design-image-edit": "Chỉnh sửa hình ảnh",
+  "design-poster": "Thiết kế áp phích",
+  "design-video": "Xử lý video",
+  "design-audio": "Xử lý âm thanh",
+  "design-brand": "Thiết kế nhận diện thương hiệu",
+  "design-visual-asset": "Tài nguyên đồ họa",
+  "design-ui": "Thiết kế giao diện",
+  "agent-framework": "Framework tác nhân AI",
+  "agent-task-automation": "Tự động hóa tác vụ",
+  "agent-multi-agent": "Phối hợp nhiều tác nhân AI",
+  "agent-workflow": "Điều phối quy trình",
+  "agent-prompt": "Tối ưu hóa prompt",
+  "agent-context": "Quản lý ngữ cảnh",
+  "agent-memory": "Tăng cường bộ nhớ",
+  "agent-tool-use": "Sử dụng công cụ",
+  "knowledge-base-qa": "Hỏi đáp cơ sở tri thức",
+  "knowledge-organize": "Sắp xếp tư liệu",
+  "knowledge-retrieval": "Truy xuất thông tin",
+  "knowledge-summary": "Tóm tắt",
+  "knowledge-notes": "Tổ chức ghi chú",
+  "knowledge-archive": "Lưu trữ tri thức",
+  "knowledge-doc-qa": "Hỏi đáp tài liệu",
+  "knowledge-long-reading": "Đọc tài liệu dài",
+  "biz-sales": "Trợ lý bán hàng",
+  "biz-customer-service": "Chăm sóc khách hàng",
+  "biz-crm": "Quản lý CRM",
+  "biz-growth": "Phân tích tăng trưởng",
+  "biz-ecommerce": "Vận hành thương mại điện tử",
+  "biz-project-management": "Quản lý dự án",
+  "biz-sop": "Tạo quy trình SOP",
+  "biz-user-ops": "Vận hành người dùng",
+  "edu-tutoring": "Hỗ trợ học tập",
+  "edu-language": "Học ngoại ngữ",
+  "edu-course-design": "Thiết kế khóa học",
+  "edu-question-gen": "Tạo câu hỏi",
+  "edu-exam-prep": "Ôn thi",
+  "edu-grading": "Chấm bài",
+  "edu-teaching-aid": "Hỗ trợ giảng dạy",
+  "edu-explanation": "Giải thích kiến thức",
+  "pro-finance": "Phân tích tài chính",
+  "pro-legal": "Pháp lý và tuân thủ",
+  "pro-medical": "Y tế và sức khỏe",
+  "pro-research": "Nghiên cứu khoa học",
+  "pro-tax-accounting": "Thuế và kế toán",
+  "pro-government": "Dịch vụ hành chính công",
+  "pro-industry-research": "Nghiên cứu ngành",
+  "pro-risk-control": "Quản trị rủi ro",
+  "itops-log-analysis": "Phân tích nhật ký",
+  "itops-monitoring": "Giám sát và cảnh báo",
+  "itops-server": "Vận hành máy chủ",
+  "itops-security-scan": "Quét bảo mật",
+  "itops-permission": "Kiểm tra quyền truy cập",
+  "itops-troubleshooting": "Xử lý sự cố",
+  "itops-config": "Tạo cấu hình",
+  "itops-devops": "DevOps",
+  "life-travel": "Lập kế hoạch du lịch",
+  "life-health": "Quản lý sức khỏe",
+  "life-personal-plan": "Kế hoạch cá nhân",
+  "life-consumption": "Ra quyết định mua sắm",
+  "life-local": "Dịch vụ địa phương",
+  "life-entertainment": "Gợi ý giải trí",
+  "life-family": "Trợ lý gia đình",
+  "life-habit": "Thói quen và năng suất"
+};
 // Preserve catalog metadata; only switch which publisher-supplied description is shown.
 // Never machine-translate skill names, slugs, or SKILL.md: they are executable identity/content.
 function skillhubLocalizedDescription(chinesePreferred, original){
@@ -99,7 +199,7 @@ function skillhubBadge(tone,label,glyph=''){return `<span class="hui-badge" data
 function skillhubLamp(){return '<span class="hui-lamp"><i></i></span>'}
 function skillhubTile(name){const ch=Array.from(String(name||'?').trim())[0]||'?';return escapeHTML(ch.toUpperCase())}
 function skillhubCategoryName(key){if(skillhubVI()&&SKILLHUB_CATEGORY_VI[key])return SKILLHUB_CATEGORY_VI[key];return (skillhubState().categories||[]).find(c=>c.key===key)?.name||key||''}
-function skillhubSubCategoryName(sub){return sub&&typeof sub==='object'?String(sub.name||sub.key||''):String(sub??'')}
+function skillhubSubCategoryName(sub){const key=sub&&typeof sub==='object'?String(sub.key||''):String(sub??'');if(skillhubVI()&&SKILLHUB_SUBCATEGORY_VI[key])return SKILLHUB_SUBCATEGORY_VI[key];return sub&&typeof sub==='object'?String(sub.name||sub.key||''):String(sub??'')}
 function skillhubProjectName(id){return (state.data?.projects||[]).find(p=>p.id===id)?.name||id||'其他项目'}
 
 function skillhubCardHTML(item,index){
@@ -241,7 +341,7 @@ async function ensureSkillhubCategories(){
   }catch{s.categories=[]}
   s.categoriesLoading=false;
   const sel=$('#skillhubCategory');
-  if(sel)sel.innerHTML=`<option value="">全部分类</option>${s.categories.map(c=>`<option value="${escapeHTML(c.key)}"${c.key===s.category?' selected':''}>${escapeHTML(c.name||c.key)}</option>`).join('')}`;
+  if(sel)sel.innerHTML=`<option value="">全部分类</option>${s.categories.map(c=>`<option value="${escapeHTML(c.key)}"${c.key===s.category?' selected':''}>${escapeHTML(skillhubCategoryName(c.key))}</option>`).join('')}`;
   if(s.items.length)renderSkillhubGrid();
 }
 let skillhubBound=false,skillhubKeywordTimer=null;
