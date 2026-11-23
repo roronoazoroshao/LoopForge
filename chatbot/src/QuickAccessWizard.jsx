@@ -1401,7 +1401,7 @@ export default function QuickAccessWizard({
         project: targetProject,
         repository: boundRepo,
         workflow: provisionedWorkflow || activeWorkflow,
-        rolesCount: roles.length,
+        roles: roles.map(({ id, name }) => ({ id, name })),
         gitAccess: gitAccess(parseGongfengRepo(boundRepo?.cloneUrl, gongfengHost)),
         cliNames: EXECUTORS.filter(cli => personalEngineConfigured(storedUser, cli.id)).map(cli => cli.label),
       });
@@ -1534,7 +1534,7 @@ export default function QuickAccessWizard({
                     >
                       <div className="qa-card-title">{chatT("默认角色与流程", "Vai trò và quy trình mặc định")}</div>
                       <ul className="qa-role-list">
-                        {roles.slice(0, 6).map((role) => (
+                        {(completedSummary?.roles || []).map((role) => (
                           <li key={role.id}>
                             <span className="qa-avatar">
                               {(builtinDisplay(role.name) || chatT("角", "V")).slice(0, 1)}
@@ -1598,9 +1598,7 @@ export default function QuickAccessWizard({
                         </li>
                       </ul>
                     </section>
-                  </div>
 
-                  <div className="qa-actions-grid">
                     <button
                       type="button"
                       className="qa-action is-primary qa-success-item"

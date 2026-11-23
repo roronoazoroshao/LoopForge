@@ -1061,10 +1061,14 @@ function obsActivityUsageCard(a,collaborative){
   const usage=a?.[collaborative?'collaborativeUsage':'sessionUsage'];
   const missing=Number(usage?.missingReplies||0),reported=Number(usage?.reportedReplies||0);
   const undated=Number(usage?.undatedReplies||0);
+  const input=formatTokens(usage?.inputTokens||0),output=formatTokens(usage?.outputTokens||0);
+  const foot=missing
+    ?lfT(`${missing} 条回复未采集 · 仅含已记录部分`,`${missing} replies missing usage · reported usage only`)
+    :lfT(`输入 ${input} / 输出 ${output}`,`Input ${input} / Output ${output}`);
   return {
     label:collaborative?'协作会话 Token':'会话 Token',
-    value:!usage?'—':(!reported&&missing?'未采集':formatTokens(usage.tokens||0)),
-    foot:!usage?'暂无用量统计':missing?obsUi(`${missing} 条回复未采集 · 仅含已记录部分`,`${missing} phản hồi chưa thu thập · chỉ tính phần đã ghi nhận`):`输入 ${formatTokens(usage.inputTokens||0)} / 输出 ${formatTokens(usage.outputTokens||0)}`,
+    value:!usage?'—':(!reported&&missing?lfT('未采集','Not recorded','Chưa thu thập'):formatTokens(usage.tokens||0)),
+    foot:!usage?lfT('暂无用量统计','No usage recorded','Chưa có dữ liệu sử dụng'):missing?obsUi(`${missing} 条回复未采集 · 仅含已记录部分`,`${missing} phản hồi chưa thu thập · chỉ tính phần đã ghi nhận`):`输入 ${formatTokens(usage.inputTokens||0)} / 输出 ${formatTokens(usage.outputTokens||0)}`,
     tip:[
       collaborative?'当前至少两位用户实际发言的普通会话所消耗的 Token，包含在会话 Token 中，不要重复相加。':'普通会话中已保存回复的模型用量，按回复时间统计；不含 SOP 执行，分支继承的历史回复不重复计入。',
       '总量沿用模型上报的 totalTokens，缺少总量时按输入 + 输出计算；缓存读写单独列出。个人范围展示本人创建或参与的会话整体用量。',
@@ -1085,7 +1089,7 @@ function obsActivityKpis(){
     {label:'需求 SOP',value:n('sopRuns'),foot:'已发起的 SOP 执行次数',tip:['仅计关联需求的顶层 SOP 运行；重复发起分别计数，排除对话工作区和子运行。个人范围沿用运行责任人口径。']},
     {label:'多人协作会话',value:n('collaborativeSessions'),foot:a?(sessions?obsUi(`占会话 ${rate.toFixed(1)}%`,`Chiếm ${rate.toFixed(1)}% số cuộc trò chuyện`):'暂无会话'):obsUi('暂无统计数据','Chưa có dữ liệu thống kê'),meter:rate,tip:['同一普通会话中至少两位不同用户实际发送过消息。机器人回复、定时触发、系统回执和项目成员数不算参与人数。协作占比 = 多人协作会话 ÷ 会话数。']},
     obsActivityUsageCard(a,false),obsActivityUsageCard(a,true),
-  ],'数量按创建时间，Token 按回复时间 · '+escapeHTML(obsRangeCaption()))]);
+  ],lfT('数量按创建时间，Token 按回复时间','Counts by creation time, tokens by reply time')+' · '+escapeHTML(obsRangeCaption()))]);
 }
 function obsUsageKpis(view){
   const summary=state.analytics?.summary||{};
@@ -1150,6 +1154,7 @@ function obsTrendCard(){
   const trend=state.analytics?.trend||[];
   const list=obsTrendWindow(trend);
   const grainName=obsGrainCaption();
+  const unit={day:'day',week:'week',month:'month',all:'month'}[obsTrendGrain()];
   const metric=obsTrendMetric();
   const tokenDelta=obsPeriodDelta(trend,'tokens'),issueDelta=obsPeriodDelta(trend,'issues');
   const last=list[list.length-1]||{};
@@ -1286,11 +1291,12 @@ function obsHeatCard(){
   const list=cells||obsTraceWeekHour(view.traces);
   const metric=state.obsHeatMetric==='runs'?'runs':'tokens';
   const peak=obsHeatPeak(list,metric);
-  const peakText=peak?obsUi(`高峰 ${OBS_WEEKDAYS[peak.weekday]} ${String(peak.hour).padStart(2,'0')}:00 · ${metric==='runs'?peak.value+' 次':formatTokens(peak.value)}`,`Cao điểm ${OBS_WEEKDAYS[peak.weekday]} ${String(peak.hour).padStart(2,'0')}:00 · ${metric==='runs'?peak.value+' lượt':formatTokens(peak.value)}`):'';
+  const weekdays=obsWeekdayLabels();
+  const peakText=peak?obsUi(`高峰 ${weekdays[peak.weekday]} ${String(peak.hour).padStart(2,'0')}:00 · ${metric==='runs'?peak.value+' 次':formatTokens(peak.value)}`,`Cao điểm ${weekdays[peak.weekday]} ${String(peak.hour).padStart(2,'0')}:00 · ${metric==='runs'?peak.value+' lượt':formatTokens(peak.value)}`):'';
   const chart=obsChartSlot('heat',{
     empty:!list.length,emptyText:'暂无执行时段数据',
     option:(theme,reduced)=>obsHeatOption(list,metric,obsChartFormatters(theme,reduced)),
-    fallback:()=>{const grid=obsHeatMatrix(list);const max=Math.max(1,...grid.flat().map(c=>metric==='runs'?c.runs:c.tokens));return `<div class="obs-heat-fallback">${grid.map((row,d)=>`<div><span>${OBS_WEEKDAYS[d]}</span>${row.map((c,h)=>{const v=metric==='runs'?c.runs:c.tokens;return `<i title="${OBS_WEEKDAYS[d]} ${h}:00 · ${metric==='runs'?obsUi(v+' 次',v+' lượt'):formatTokens(v)}" style="opacity:${v?(.15+.85*v/max).toFixed(2):.06}"></i>`}).join('')}</div>`).join('')}</div>`}
+    fallback:()=>{const grid=obsHeatMatrix(list);const max=Math.max(1,...grid.flat().map(c=>metric==='runs'?c.runs:c.tokens));return `<div class="obs-heat-fallback">${grid.map((row,d)=>`<div><span>${weekdays[d]}</span>${row.map((c,h)=>{const v=metric==='runs'?c.runs:c.tokens;return `<i title="${weekdays[d]} ${h}:00 · ${metric==='runs'?obsUi(v+' 次',v+' lượt'):formatTokens(v)}" style="opacity:${v?(.15+.85*v/max).toFixed(2):.06}"></i>`}).join('')}</div>`).join('')}</div>`}
   },220);
   const tz=obsTimeZone();
   return obsCard('heat',obsUi('执行时段','Khung giờ thực thi'),obsUi(`星期 × 小时（${escapeHTML(tz)}）${peakText?' · '+peakText:''}`,`Thứ × giờ (${escapeHTML(tz)})${peakText?' · '+peakText:''}`),obsSeg('data-obs-heat-metric',[['tokens','Token'],['runs',obsUi('运行','Lượt chạy')]],metric,true),chart,{expand:true});
@@ -1407,7 +1413,9 @@ function obsSetDeliveryFilter(filter,scroll){
   if(scroll)document.querySelector('[data-obs-card="deliveries"]')?.scrollIntoView({behavior:obsReducedMotion()?'auto':'smooth',block:'start'});
 }
 function obsDelivery(){
-  obsCardBuilders={funnel:obsFunnelCard,owners:obsOwnersCard,deliveries:obsDeliveriesCard};
+  const projectScope=obsScope()==='project';
+  obsCardBuilders={funnel:obsFunnelCard,deliveries:obsDeliveriesCard};
+  if(projectScope)obsCardBuilders.owners=obsOwnersCard;
   const d=state.analytics?.delivery||{};
   const summary=state.analytics?.summary||{};
   const kpis=obsKpiGroups([
@@ -1420,8 +1428,8 @@ function obsDelivery(){
       {label:obsUi('完成需求 / Bug','Yêu cầu / lỗi đã hoàn tất'),value:`${d.requirementCount||0} / ${d.bugFixCount||0}`,foot:obsUi('按 SOP 统计标签归类，需求去重','Phân loại theo nhãn thống kê SOP; không đếm trùng yêu cầu')},
       {label:obsUi('PR 已合入','PR đã hợp nhất'),value:String(d.mrMerged||0),meter:(d.totalMrs??d.withMr)?d.mrMerged*100/(d.totalMrs??d.withMr):0,
         foot:obsUi(`按 PR 计数 · 默认分支；${d.mrIntegrated||0} 个已合入基线`,`Đếm theo PR trên nhánh mặc định; ${d.mrIntegrated||0} PR đã hợp nhất vào baseline`)},
-      {label:obsUi('人均周吞吐','Số bàn giao hằng tuần mỗi người'),value:summary.weeklyActiveContributors?Number(summary.weeklyThroughputPerUser||0).toFixed(2):'—',
-        foot:obsUi(`近 7 天 ${summary.weeklyDeliveredIssues||0} 个交付 / ${summary.weeklyActiveContributors||0} 人`,`7 ngày qua: ${summary.weeklyDeliveredIssues||0} yêu cầu bàn giao / ${summary.weeklyActiveContributors||0} người đóng góp`)},
+      ...(projectScope?[{label:obsUi('人均周吞吐','Số bàn giao hằng tuần mỗi người'),value:summary.weeklyActiveContributors?Number(summary.weeklyThroughputPerUser||0).toFixed(2):'—',
+        foot:obsUi(`近 7 天 ${summary.weeklyDeliveredIssues||0} 个交付 / ${summary.weeklyActiveContributors||0} 人`,`7 ngày qua: ${summary.weeklyDeliveredIssues||0} yêu cầu bàn giao / ${summary.weeklyActiveContributors||0} người đóng góp`)}]:[]),
     ]),
     obsKpiGroup(obsUi('耗时与返工','Thời lượng và làm lại'),[
       {label:obsUi('平均执行耗时','Thời gian thực thi trung bình'),value:d.averageExecutionDurationMs?duration(d.averageExecutionDurationMs):'—',
@@ -1435,7 +1443,7 @@ function obsDelivery(){
           `Thất bại ${summary.failuresPerIssue!=null?Number(summary.failuresPerIssue).toFixed(2):'—'} lượt/yêu cầu · ${summary.inProgressIssues||0} yêu cầu đang thực hiện`)},
     ]),
   ]);
-  return `${obsInsights(obsScopedView(),'delivery')}${kpis}<div class="obs-grid2">${obsFunnelCard()}${obsOwnersCard()}</div>${obsDeliveriesCard()}`;
+  return `${obsInsights(obsScopedView(),'delivery')}${kpis}${projectScope?`<div class="obs-grid2">${obsFunnelCard()}${obsOwnersCard()}</div>`:obsFunnelCard()}${obsDeliveriesCard()}`;
 }
 function obsFunnelCard(){
   const stages=obsDeliveryStages();
@@ -1445,7 +1453,7 @@ function obsFunnelCard(){
   const chart=obsChartSlot('funnel',{
     empty,emptyText:obsUi('还没有带需求上下文的运行','Chưa có lượt chạy gắn với yêu cầu'),
     option:(theme,reduced)=>obsFunnelOption(stages,{...obsChartFormatters(theme,reduced),active}),
-    fallback:()=>{const st=obsFunnelStats(stages);const max=Math.max(1,...st.stages.map(s=>s.value));return `<div class="obs-funnel-fallback">${st.stages.map(s=>`<button type="button" data-obs-funnel="${s.key}"><span>${escapeHTML(s.name)}</span>${obsMeter(s.value*100/max)}<b>${s.value}</b><em class="${s.worst?'bad':''}">${s.conv==null?'':Math.round(s.conv)+'%'}</em></button>`).join('')}</div>`},
+    fallback:()=>{const st=obsFunnelStats(stages);const max=Math.max(1,...st.stages.map(s=>s.value));return `<div class="obs-funnel-fallback">${st.stages.map(s=>`<button type="button" data-obs-funnel="${s.key}"><span>${escapeHTML(s.name)}</span>${obsMeter(s.value*100/max)}<b>${s.value}</b><em class="${s.worst?'bad':''}">${s.conv==null?'':`↓ ${Math.round(s.drop)}%`}</em></button>`).join('')}</div>`},
     on:{click:p=>obsSetDeliveryFilter(stages[p.dataIndex]?.key||'all',true)}
   },210);
   return obsCard('funnel',obsUi('交付漏斗','Phễu bàn giao'),obsUi('点一层筛选下方明细；红字为最大流失','Nhấp một bước để lọc chi tiết; màu đỏ biểu thị mức giảm lớn nhất'),filter!=='all'?`<button type="button" class="obs-btn ghost" data-obs-delivery="all">${obsUi('清除筛选','Bỏ bộ lọc')}</button>`:'',chart,{expand:true});

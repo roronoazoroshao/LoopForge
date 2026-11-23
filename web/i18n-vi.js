@@ -6349,3 +6349,20 @@ Object.assign(window.LF_I18N_VI, {
   "要不要人看一眼": "Có cần người phụ trách rà soát không?",
   "接入团队知识库": "Kết nối cơ sở tri thức của nhóm"
 });
+
+// Labels and runtime notices introduced by Tencent/LoopForge upstream 0.4.1.
+Object.assign(window.LF_I18N_VI, {
+  "展开全文": "Xem toàn bộ nội dung",
+  "收起全文": "Thu gọn nội dung",
+  "待审交付物": "Sản phẩm bàn giao chờ rà soát",
+  "待审交付物已更新，请刷新后重试": "Sản phẩm bàn giao chờ rà soát đã thay đổi. Hãy làm mới rồi thử lại.",
+  "重置缩放": "Đặt lại mức thu phóng",
+  "执行过的需求 / Bug": "Yêu cầu / lỗi đã thực thi",
+  "Agent 原生研发协作平台": "Nền tảng cộng tác phát triển phần mềm với tác nhân AI",
+  "平台服务器未安装 CLI": "CLI chưa được cài trên máy chủ nền tảng",
+  "测试连接": "Kiểm tra kết nối",
+  "正在测试连接…": "Đang kiểm tra kết nối…",
+  "测试中": "Đang kiểm tra",
+  "连接成功": "Kết nối thành công",
+  "执行机器已领取任务，正在准备工作区和沙箱": "Máy thực thi đã nhận tác vụ, đang chuẩn bị không gian làm việc và sandbox"
+});

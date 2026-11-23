@@ -156,7 +156,7 @@ test("the rename pencil keeps its slot but only shows on hover or focus", () => 
 });
 
 test("read-only sessions still omit the pencil", () => {
-  assert.match(app, /\{!chat\.readOnly \? \(\s*<IconButton\s+label="重命名会话"/);
+  assert.match(app, /\{!chat\.readOnly \? \(\s*<IconButton\s+label=\{chatT\("重命名会话", "Đổi tên cuộc trò chuyện"\)\}/);
 });
 
 test("the project switcher stays visible on laptop widths and hides only at phone width", () => {

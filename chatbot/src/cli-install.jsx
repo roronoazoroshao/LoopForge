@@ -53,11 +53,13 @@ export function cliFailureSettles(text) {
 // CLIInstallAction installs the CLI named by a conversation failure.
 // The server keeps the download after a reload, so the button asks for the
 // current status instead of trusting a click that only this page remembers.
-export function CLIInstallAction({ text, onResult }) {
-  const hint = cliInstallHint(text);
+export function CLIInstallAction({ text, executor, onResult }) {
+  const hint = executor || cliInstallHint(text);
   const onResultRef = useRef(onResult);
   onResultRef.current = onResult;
   const pending = useRef(hint ? rememberedInstall(hint.engine) : false);
+  const requestFailure = useRef("");
+  const [statusCheck, setStatusCheck] = useState(0);
   const [phase, setPhase] = useState(() =>
     hint && rememberedInstall(hint.engine) ? "installing" : "checking",
   );
@@ -100,6 +102,7 @@ export function CLIInstallAction({ text, onResult }) {
         pending.current = false;
         rememberInstall(hint.engine, false);
         if (status.status === "failed") setFailure(status.error || chatT("安装失败", "Cài đặt thất bại"));
+        else setFailure(requestFailure.current);
         setPhase("ready");
       } catch {
         if (cancelled) return;
@@ -115,7 +118,7 @@ export function CLIInstallAction({ text, onResult }) {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [hint?.engine, hint?.label]);
+  }, [hint?.engine, hint?.label, statusCheck]);
   if (!hint) return null;
   const installing = phase === "installing";
   const label = installing ? chatT("自动安装", "Tự động cài đặt") : chatT(`安装 ${hint.label}`, `Cài ${hint.label}`);
@@ -126,6 +129,7 @@ export function CLIInstallAction({ text, onResult }) {
         disabled={phase !== "ready"}
         onClick={() => {
           pending.current = true;
+          requestFailure.current = "";
           rememberInstall(hint.engine, true);
           setPhase("installing");
           setFailure("");
@@ -136,6 +140,14 @@ export function CLIInstallAction({ text, onResult }) {
               onResultRef.current?.(cliInstallNotice(hint.label));
             })
             .catch((error) => {
+              const message = error.message || "安装失败";
+              // A disconnected request can leave the server job running.
+              // Recover its status before deciding whether to offer a retry.
+              if (!error.status || error.status >= 500) {
+                requestFailure.current = message;
+                setStatusCheck((check) => check + 1);
+                return;
+              }
               pending.current = false;
               rememberInstall(hint.engine, false);
               setFailure(error.message || chatT("安装失败", "Cài đặt thất bại"));
