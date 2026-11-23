@@ -80,6 +80,14 @@ func TestCapabilityPackImportPreflightAndRoundTrip(t *testing.T) {
  if notConfirmed.Code!=http.StatusBadRequest {t.Fatalf("import without consent status %d",notConfirmed.Code)}
  pre:=request("POST","/api/capability-packs/preflight?projectId=pack-project",z)
  if pre.Code!=http.StatusOK {t.Fatalf("preflight %d %s",pre.Code,pre.Body.String())}
+ var preview struct{Items []capabilityPreviewItem `json:"items"`}
+ if err:=json.Unmarshal(pre.Body.Bytes(),&preview);err!=nil{t.Fatal(err)}
+ if len(preview.Items)!=2||!strings.Contains(preview.Items[0].Preview,"Quy tắc")||
+  !strings.Contains(preview.Items[1].Preview,"Test")||preview.Items[1].FileCount!=2 {
+  t.Fatalf("missing review data: %+v",preview.Items)
+ }
+ emptySelection:=request("POST","/api/capability-packs/import?projectId=pack-project&confirm=1&selected=",z)
+ if emptySelection.Code!=http.StatusBadRequest {t.Fatalf("empty explicit selection must fail: %d",emptySelection.Code)}
  if _,ok:=s.Rule("rule-alpha");ok {t.Fatal("preflight mutated rules")}
  if _,ok:=s.Skill("skill-alpha");ok {t.Fatal("preflight mutated skills")}
  imp:=request("POST","/api/capability-packs/import?projectId=pack-project&confirm=1",z)
@@ -179,4 +187,12 @@ func TestCapabilityPackProjectOwnerOnly(t *testing.T) {
  if got:=call(owner,http.MethodPost,"/api/capability-packs/preflight?projectId=cap-private",archive);got!=http.StatusOK {
   t.Fatalf("owner preflight returned %d",got)
  }
+}
+
+func TestCapabilityPackRejectsNonUTF8SkillMarkdown(t *testing.T) {
+ z:=testCapabilityZip(t,map[string]string{
+  "manifest.json":testCapabilityManifest(),
+  "skills/skill-alpha/SKILL.md":string([]byte{0xff,0xfe,0}),
+ })
+ if _,_,_,err:=parseCapabilityZIP(z);err==nil {t.Fatal("accepted binary SKILL.md")}
 }
