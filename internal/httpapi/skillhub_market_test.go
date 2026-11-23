@@ -278,6 +278,9 @@ func TestSkillhubListWhitelistsParamsAndNormalizes(t *testing.T) {
 	if first.Description != "读取 PDF" || first.Namespace != "team" || first.OwnerName != "PDF Team" || first.Labels["requires_api_key"] != "true" {
 		t.Fatalf("first item not normalised: %+v", first)
 	}
+	if first.DescriptionOriginal != "Read PDFs" || second.DescriptionOriginal != "English only" {
+		t.Fatalf("original SkillHub descriptions must be preserved: %+v %+v", first, second)
+	}
 	if first.Homepage != "https://skillhub.cn/skills/team/pdf-tools" {
 		t.Fatalf("homepage = %q", first.Homepage)
 	}
@@ -398,6 +401,9 @@ func TestSkillhubDetailVersionsFilesAndPreview(t *testing.T) {
 	skill := detail["skill"].(map[string]any)
 	if skill["summary"] != "中文简介" || skill["namespace"] != "team" || skill["homepage"] != "https://skillhub.cn/skills/team/pdf-tools" {
 		t.Fatalf("detail not normalised: %v", skill)
+	}
+	if skill["summaryOriginal"] != "summary en" {
+		t.Fatalf("original SkillHub summary must be preserved: %v", skill)
 	}
 	if detail["latestVersion"].(map[string]any)["version"] != "1.3.0" {
 		t.Fatalf("latest version: %v", detail["latestVersion"])
