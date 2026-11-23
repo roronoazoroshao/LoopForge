@@ -306,7 +306,7 @@ func (h *catalogHandlers) capabilityExport(c *gin.Context) {
     record.License=s.Attribution.License
     record.SourceURL=s.Attribution.SourceURL
    } else if s.Source!=nil {
-    record.Author=s.Source.Namespace
+    // A publisher namespace is not necessarily the original author.
     record.Version=s.Source.Version
     record.SourceURL=s.Source.Homepage
    }
