@@ -54,6 +54,24 @@ function reset(type, data) {
   };
 }
 
+// Vietnamese create forms must never emit mixed-language dynamic labels.
+ctx.window = { lfLang: () => 'vi' };
+reset('sandboxes');
+let vietnameseHeader = ctx.assetDetailHeadHTML({}, { creating: true, dirty: false });
+assert.ok(vietnameseHeader.includes('Sandbox mới') && vietnameseHeader.includes('Nhập mã định danh'), vietnameseHeader);
+assert.ok(!vietnameseHeader.includes('填写标识和名称后创建'), vietnameseHeader);
+let vietnameseFields = ctx.assetBasicFieldsHTML({}, { creating: true });
+assert.ok(vietnameseFields.includes('Đặt tên cho sandbox') && !vietnameseFields.includes('给沙箱起个名字'), vietnameseFields);
+let vietnamesePane = ctx.assetMainPanesHTML({}, { creating: true, readonly: false });
+assert.ok(vietnamesePane.includes('không lưu thông tin xác thực'), vietnamesePane);
+reset('environments');
+vietnameseHeader = ctx.assetDetailHeadHTML({}, { creating: true, dirty: false });
+assert.ok(vietnameseHeader.includes('Tập lệnh cài đặt mới'), vietnameseHeader);
+reset('dockerfiles');
+vietnameseHeader = ctx.assetDetailHeadHTML({}, { creating: true, dirty: false });
+assert.ok(vietnameseHeader.includes('Dockerfile mới'), vietnameseHeader);
+delete ctx.window;
+
 // ---------- Cards: three share states, no actions on the card ----------
 reset('rules', {
   rules: [
