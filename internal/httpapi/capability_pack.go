@@ -12,6 +12,7 @@ import (
  "regexp"
  "sort"
  "strings"
+ "unicode/utf8"
 
  "agentflow/internal/domain"
  "agentflow/internal/repo"
@@ -59,6 +60,10 @@ type capabilityPreviewItem struct {
  Kind string `json:"kind"`
  ID string `json:"id"`
  Name string `json:"name"`
+ Description string `json:"description,omitempty"`
+ Preview string `json:"preview,omitempty"`
+ FileCount int `json:"fileCount,omitempty"`
+ FilePaths []string `json:"filePaths,omitempty"`
  Ready bool `json:"ready"`
  Reason string `json:"reason,omitempty"`
 }
@@ -184,13 +189,24 @@ func parseCapabilityZIP(raw []byte) (capabilityManifest,map[string][]repo.SkillF
   found:=false
   for _,f:=range files[skill.ID]{
    sum+=int64(len(f.Content))
-   if f.Path=="SKILL.md"&&len(bytes.TrimSpace(f.Content))!=0 {found=true}
+   if f.Path=="SKILL.md"&&len(bytes.TrimSpace(f.Content))!=0 {
+    if !utf8.Valid(f.Content)||bytes.IndexByte(f.Content,0)>=0 {return empty,nil,nil,fmt.Errorf("skill %s has invalid UTF-8 SKILL.md",skill.ID)}
+    found=true
+   }
   }
   if !found{return empty,nil,nil,fmt.Errorf("skill %s missing nonempty SKILL.md",skill.ID)}
   if sum>domain.SkillTotalMaxBytes{return empty,nil,nil,fmt.Errorf("skill %s exceeds 64 MiB",skill.ID)}
   sort.Slice(files[skill.ID],func(i,j int)bool{return files[skill.ID][i].Path<files[skill.ID][j].Path})
  }
  return pack,files,warnings,nil
+}
+
+// Return a bounded, plain-text preview. The frontend must render it with
+// textContent, never raw innerHTML, because archive contents are untrusted.
+func previewCapabilityText(value string) string {
+ chars:=[]rune(value)
+ if len(chars)>2400{return string(chars[:2400])+"\\n… (trích đoạn)"}
+ return value
 }
 
 func (h *catalogHandlers) capabilityProject(c *gin.Context) (string,bool) {
@@ -214,17 +230,22 @@ func (h *catalogHandlers) capabilityUpload(c *gin.Context) (capabilityManifest,m
 
 func (h *catalogHandlers) capabilityPreflight(c *gin.Context) {
  projectID,ok:=h.capabilityProject(c);if !ok{return}
- pack,_,warnings,ok:=h.capabilityUpload(c);if !ok{return}
+ pack,files,warnings,ok:=h.capabilityUpload(c);if !ok{return}
  items:=make([]capabilityPreviewItem,0,len(pack.Rules)+len(pack.Skills))
  for _,r:=range pack.Rules {
   _,exists:=h.repo.Rule(r.ID)
-  item:=capabilityPreviewItem{Kind:"rules",ID:r.ID,Name:r.Name,Ready:!exists}
+  item:=capabilityPreviewItem{Kind:"rules",ID:r.ID,Name:r.Name,Description:r.Description,Preview:previewCapabilityText(r.Content),Ready:!exists}
   if exists {item.Reason="ID already exists; will not overwrite"}
   items=append(items,item)
  }
  for _,s:=range pack.Skills {
   _,exists:=h.repo.Skill(s.ID)
-  item:=capabilityPreviewItem{Kind:"skills",ID:s.ID,Name:s.Name,Ready:!exists}
+  item:=capabilityPreviewItem{Kind:"skills",ID:s.ID,Name:s.Name,Description:s.Description,Ready:!exists}
+  for _,f:=range files[s.ID] {
+   item.FileCount++
+   if len(item.FilePaths)<80 {item.FilePaths=append(item.FilePaths,f.Path)}
+   if f.Path=="SKILL.md" {item.Preview=previewCapabilityText(string(f.Content))}
+  }
   if exists {item.Reason="ID already exists; will not overwrite"}
   items=append(items,item)
  }
