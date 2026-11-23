@@ -691,6 +691,51 @@ function catalogVisible(projectId,shared){return catalogOwned(projectId)||catalo
 function isPlatformAdmin(){return !!(state.currentUser&&!state.currentUser.isGuest&&state.currentUser.isPlatformAdmin)}
 function canEditGeneric(wf){return catalogGeneric(wf)&&isPlatformAdmin()}
 function catalogGeneric(item){return !!item?.generic}
+// The backend persists Chinese seed names. Only localize display for verified
+// template provenance, canonical stage/role IDs and unchanged seed names.
+const SOP_SEED_TEMPLATE_IDS=['generic-backend-delivery','generic-frontend-delivery',
+  'issue-fix-production','generic-product-delivery'];
+const SOP_SEED_STAGE_COPY={
+  clarify:['需求定型','Requirement scoping','Chốt yêu cầu'],
+  design:['方案设计','Solution design','Thiết kế giải pháp'],
+  implement:['开发实现','Implementation','Triển khai'],
+  review:['独立评审','Independent review','Rà soát độc lập'],
+  test:['测试验证','Testing and verification','Kiểm thử và xác minh'],
+  accept:['人工验收','Human acceptance','Nghiệm thu thủ công'],
+  deliver:['交付汇总','Delivery summary','Tổng hợp bàn giao'],
+  mr:['发起 MR','Create Merge Request','Tạo Merge Request'],
+};
+function sopSeedTemplateId(wf){
+  if(!wf)return '';
+  if(wf.generic&&SOP_SEED_TEMPLATE_IDS.includes(wf.id))return wf.id;
+  const tag=(wf.tags||[]).find(t=>typeof t==='string'&&t.startsWith('generic-source:'));
+  const id=tag?.slice('generic-source:'.length);
+  return SOP_SEED_TEMPLATE_IDS.includes(id)?id:'';
+}
+function sopSeedNodeDisplayName(n,wf=state.workflow){
+  const copy=SOP_SEED_STAGE_COPY[n?.id];
+  if(!copy||!sopSeedTemplateId(wf)||n.name!==copy[0]||
+     n.type!==(n.id==='accept'?'approval':'agent'))return n?.name||'';
+  return window.lfT(...copy);
+}
+function sopSeedRoleDisplayName(a,wf=null){
+  if(!a)return '';
+  const source=wf?sopSeedTemplateId(wf):'';
+  const ids=wf?(source?[source]:[]):SOP_SEED_TEMPLATE_IDS;
+  for(const id of ids){
+    for(const [stage,copy] of Object.entries(SOP_SEED_STAGE_COPY)){
+      if(stage==='accept'||a.name!==copy[0])continue;
+      const seedId=id+'-'+stage,roleId=String(a.id||'');
+      // Project-cloned roles can use the unchanged ID, a project suffix or a
+      // collision suffix; changed user-authored names always take precedence.
+      if(roleId!==seedId&&!(a.projectId&&roleId.startsWith(seedId+'-')))continue;
+      if(wf&&wf.projectId&&a.projectId!==wf.projectId)continue;
+      if(wf&&wf.generic&&a.projectId)continue;
+      return window.lfT(...copy);
+    }
+  }
+  return a.name||'';
+}
 // Generic roles live in generic_templates, but the first project that
 // adopted a template often reused the same role id. Looking the wizard
 // subject up in the project catalog then marks that role as foreign and

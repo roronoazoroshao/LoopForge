@@ -57,21 +57,21 @@ const flowPalette=(()=>{
   const initial=name=>(String(name||'?').trim()[0]||'?').toUpperCase();
   function roleDesc(a){
     const exec=(state.data?.executors||[]).find(x=>x.id===a.executorId);
-    const model=a.model||exec?.model||exec?.name||paletteCopy('未选模型','Chưa chọn mô hình');
-    if(catalogGeneric(state.workflow))return paletteCopy(`${model} · 通用模板`,`${model} · Mẫu chung`);
+    const model=a.model||exec?.model||exec?.name||window.lfT('未选模型','No model','Chưa chọn mô hình');
+    if(catalogGeneric(state.workflow))return `${model} · ${window.lfT('通用模板','Starter template','Mẫu chung')}`;
     const projectId=state.workflow?.projectId||state.projectFilter||'';
-    if(a.projectId===projectId)return paletteCopy(`${model} · 本项目`,`${model} · Dự án này`);
+    if(a.projectId===projectId)return `${model} · ${window.lfT('本项目','This project','Dự án này')}`;
     const owner=(state.data?.projects||[]).find(p=>p.id===a.projectId)?.name||a.projectId;
-    return paletteCopy(`${model} · 共享自 ${owner}`,`${model} · Được chia sẻ từ ${owner}`);
+    return `${model} · ${window.lfT('共享自','Shared by','Được chia sẻ từ')} ${owner}`;
   }
   const matches=(q,...texts)=>!q||texts.join(' ').toLowerCase().includes(q);
 
   function render(){
     const host=document.getElementById('flowPaletteRoles');if(!host)return;
     const input=document.getElementById('flowPaletteQ'),raw=(input?.value||'').trim(),q=raw.toLowerCase();
-    const roles=workflowAgents().map(a=>({id:a.id,name:a.name||a.id,desc:roleDesc(a)})).filter(r=>matches(q,r.name,r.desc));
+    const roles=workflowAgents().map(a=>({id:a.id,name:sopSeedRoleDisplayName(a,state.workflow)||a.id,original:a.name||'',desc:roleDesc(a)})).filter(r=>matches(q,r.name,r.original,r.id,r.desc));
     const all=workflowAgents().length;
-    host.innerHTML=roles.map(r=>`<div class="fd-pal-item"${paletteVI()?' data-i18n-skip':''} role="button" tabindex="0" draggable="true" data-add="agent" data-agent-id="${escapeHTML(r.id)}" data-tip="${escapeHTML(r.name)}"><span class="fd-tile" style="--tint:${roleTint(r.id)}">${escapeHTML(initial(r.name))}</span><div class="fd-pal-text"><b>${escapeHTML(r.name)}</b><small>${escapeHTML(r.desc)}</small></div><span class="fd-grip">${icon('grip',14)}</span></div>`).join('')
+    host.innerHTML=roles.map(r=>`<div class="fd-pal-item" data-i18n-skip role="button" tabindex="0" draggable="true" data-add="agent" data-agent-id="${escapeHTML(r.id)}" data-tip="${escapeHTML(r.name)}"><span class="fd-tile" style="--tint:${roleTint(r.id)}">${escapeHTML(initial(r.name))}</span><div class="fd-pal-text"><b>${escapeHTML(r.name)}</b><small>${escapeHTML(r.desc)}</small></div><span class="fd-grip">${icon('grip',14)}</span></div>`).join('')
       ||(!q&&!all?`<div class="fd-pal-none">${state.workflow?paletteCopy('这个项目还没有角色','Dự án chưa có vai trò'):paletteCopy('先选择一条 SOP','Hãy chọn SOP trước')}${state.workflow&&!catalogGeneric(state.workflow)?'<button type="button" class="fd-link" data-pal-agents>去角色定义</button>':''}</div>`:'');
     const count=document.getElementById('flowPaletteRoleCount');if(count)count.textContent=all?String(roles.length):'';
     let shown=roles.length;

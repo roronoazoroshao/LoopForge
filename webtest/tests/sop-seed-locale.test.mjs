@@ -81,6 +81,7 @@ for (const [lang, displayIndex] of [['vi', 2], ['en', 3], ['zh', 1]]) {
     // Changing an agent saves the stable ID, and repainting restores the same locale.
     const select = app.document.querySelector('#properties select[data-p="agentId"]');
     chooseOption(select, templateId + '-design');
+    select.dispatchEvent(new app.window.Event('input', { bubbles: true }));
     assert.equal(app.evaluate('state.workflow.nodes[0].agentId'), templateId + '-design');
     app.evaluate('renderProperties();renderCanvas();flowPalette.render();');
     assert.equal(app.document.querySelector('#properties .fd-role-t b')?.textContent, stages[1][displayIndex]);
