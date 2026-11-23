@@ -1,4 +1,4 @@
-import { chatT } from "./locale";
+import { chatT, chatLocale } from "./locale";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, write, sessionPath, newId, mergeEvents, restoreStream, parseReply } from "./api.js";
 import { RichContent } from "./RichContent";
@@ -324,6 +324,7 @@ export default function SopDesigner({ search = location.search, canvas = window.
       const id = base?.id || newId();
       const message = { role: "user", content, createdAt: new Date().toISOString() };
       const g = await write("/api/assistant/generations", {
+        responseLanguage: chatLocale(),
         surface: SURFACE,
         projectId: begun.projectId || context.projectId,
         sessionId: id,
