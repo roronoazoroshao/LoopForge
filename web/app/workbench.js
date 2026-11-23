@@ -55,6 +55,15 @@ function codeBuddyEnvironmentIntent(value){
 function codeBuddyEnvironmentLegacy(value){const raw=String(value||'').trim();return !!raw&&!codeBuddyEnvironment(raw)}
 function codeBuddyKeyURL(value){return (codeBuddyEnvironmentIntent(value)||CODEBUDDY_ENVIRONMENTS[0]).keyUrl}
 function codeBuddyKeyLinkLabel(value){return `前往${(codeBuddyEnvironmentIntent(value)||CODEBUDDY_ENVIRONMENTS[0]).label}获取 API Key`}
+const CLI_CREDENTIAL_NOTES_VI={
+  opencode:'OpenCode cần Base URL của nhà cung cấp mô hình.',
+  cursor:'Cursor CLI kết nối dịch vụ Cursor; có thể lấy mô hình bằng tài khoản.',
+  agy:'Mặc định kết nối API Gemini chính thức; gateway tương thích OpenAI cần Base URL.',
+  kimi:'Để trống Base URL để dùng dịch vụ chính thức của Kimi Code.',
+  pi:'Pi cần Base URL của nhà cung cấp mô hình.',
+  dsh:'Để trống Base URL để kết nối dịch vụ chính thức của DeepSeek.',
+  zcode:'Để trống Base URL để dùng dịch vụ tương thích Anthropic Messages của Zhipu BigModel.'
+};
 const CREDENTIAL_KINDS=[
   {key:'gitToken',group:'platform',name:'GitHub',short:'仓库授权',logo:'github',monochrome:true,
     use:'克隆私有仓库、创建任务分支、推送交付产物',
@@ -111,15 +120,7 @@ const CREDENTIAL_KINDS=[
 ];
 function credentialVI(){return window.lfLang?.()==='vi';}
 function credentialCopy(zh,vi){return credentialVI()?vi:zh}
-const CLI_CREDENTIAL_NOTES_VI={
-  opencode:'OpenCode cần Base URL của nhà cung cấp mô hình.',
-  cursor:'Cursor CLI kết nối dịch vụ Cursor; có thể lấy mô hình bằng tài khoản.',
-  agy:'Mặc định kết nối API Gemini chính thức; gateway tương thích OpenAI cần Base URL.',
-  kimi:'Để trống Base URL để dùng dịch vụ chính thức của Kimi Code.',
-  pi:'Pi cần Base URL của nhà cung cấp mô hình.',
-  dsh:'Để trống Base URL để kết nối dịch vụ chính thức của DeepSeek.',
-  zcode:'Để trống Base URL để dùng dịch vụ tương thích Anthropic Messages của Zhipu BigModel.'
-};
+
 function agentCliCredentialKind(cli,o){
   const field=`agentCli.${cli}.`,configurable=!!o.protocols;
   return {key:`agentCli.${cli}`,agentCli:cli,group:'model',name:o.name,short:`${o.name} API Key`,logo:o.logo,monochrome:!!o.monochrome,
