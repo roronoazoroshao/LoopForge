@@ -26,8 +26,8 @@ async function language(page, lang) {
 }
 
 async function canvasLabels(page, index) {
-  for (const [id, , ...translations] of stages) {
-    const display = [stages.find(s => s[0] === id)[1], ...translations][index];
+  for (const stage of stages) {
+    const id=stage[0],display=stage[index];
     await expect(page.locator('#nodes .flow-node[data-id="' + id + '"] .node-title')).toHaveText(display);
     await expect(page.locator('#nodes .flow-node[data-id="' + id + '"] .node-subtitle')).toHaveText(display);
   }
@@ -52,8 +52,8 @@ test('SOP template: VI → EN → ZH → VI keeps the canvas, role dropdown and 
     const roleLabel = { vi: 'Vai trò cho bước này', en: 'Role for this step',
       zh: '这个步骤用哪个角色' }[lang];
     await expect(select).toHaveAttribute('aria-label', roleLabel);
-    for (const [stageId, , ...translations] of stages) {
-      const display = [stages.find(s => s[0] === stageId)[1], ...translations][index];
+    for (const stage of stages) {
+      const stageId=stage[0],display=stage[index];
       await expect(select.locator('option[value="' + templateId + '-' + stageId + '"]')).toHaveText(display);
       await expect(page.locator('#flowPaletteRoles [data-agent-id="' + templateId + '-' + stageId + '"] b')).toHaveText(display);
     }
@@ -105,7 +105,7 @@ test('SOP project copy: user-defined Chinese role survives save and reload with 
   await expect(page.locator('#properties .fd-role-t b')).toHaveText(customName);
   const roleHint = page.locator('#properties .fd-field .prop-hint').first();
   await expect(roleHint).toContainText('đã ẩn vai trò riêng của dự án khác');
-  await expect(roleHint).not.toContainText(/[\\u3400-\\u9fff]/);
+  await expect(roleHint).not.toContainText(/[\u3400-\u9fff]/);
   await expect(page.locator('#properties select[data-p="agentId"]')).toHaveValue(customId);
   await page.screenshot({ path: test.info().outputPath('sop-clone-vi-after-reload.png') });
   await page.goto('/#/agents');
