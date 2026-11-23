@@ -1028,7 +1028,7 @@ function bind(){
     requestAnimationFrame(()=>{
       // Wait for the sidebar's descendants to inherit the restored visibility.
       requestAnimationFrame(()=>{
-        if(settingsSidebarExpanded()&&document.activeElement===document.body){
+        if(settingsSidebarExpanded()&&(document.activeElement===document.body||document.activeElement===$('#settingsSidebarExpand'))){
           $('#settingsSidebarToggle')?.focus({preventScroll:true});
         }
       });

@@ -51,13 +51,14 @@ func TestNativeProviderCustomGateway(t *testing.T) {
 				}
 				mu.Lock()
 				requests++
-				expectedPath, header := "/v1/responses", r.Header.Get("Authorization")
-				expectedKey := "Bearer local-gateway-test-key"
+				expectedPath := "/v1/responses"
 				if kind == "claude-code" {
 					expectedPath = "/v1/messages"
-					header = r.Header.Get("X-Api-Key")
-					expectedKey = "local-gateway-test-key"
 				}
+				// Custom gateways bind ANTHROPIC_AUTH_TOKEN, so Claude Code
+				// authenticates with the same Bearer header as Codex here.
+				header := r.Header.Get("Authorization")
+				expectedKey := "Bearer local-gateway-test-key"
 				if r.URL.Path != expectedPath || header != expectedKey || body["model"] != "gateway-test-model" {
 					wrong = "wrong endpoint, key or model"
 				}
