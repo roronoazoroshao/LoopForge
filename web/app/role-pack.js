@@ -58,26 +58,31 @@
     }
     return result;
   };
+  const mime = (value, path) => {
+    const type = str(value === undefined ? 'text/markdown' : value, path, 120, true);
+    if (!/^[A-Za-z0-9.+_-]+\/[A-Za-z0-9.+_-]+$/.test(type)) fail(path + ': invalid MIME type');
+    return type;
+  };
   const normalizeArtifact = (raw, path) => {
     fields(raw, ['name', 'path', 'mediaType', 'required'], path);
     return {
       name: str(raw.name, path + '.name', 120, true),
       path: safePath(raw.path, path + '.path'),
-      mediaType: choice(raw.mediaType, path + '.mediaType', ['text/markdown', 'application/json'], 'text/markdown'),
+      mediaType: mime(raw.mediaType, path + '.mediaType'),
       required: bool(raw.required, path + '.required', true),
     };
   };
   const normalizeGate = (raw, path) => {
     fields(raw, ['id', 'name', 'mode', 'stage', 'required', 'onFailure', 'commands', 'executionScope'], path);
-    const mode = choice(raw.mode, path + '.mode', ['command', 'mr'], 'command');
+    const mode = choice(raw.mode, path + '.mode', ['command', 'mr', 'manual'], raw.commands?.length ? 'command' : 'manual');
     const commands = raw.commands === undefined ? [] : listCommands(raw.commands, path + '.commands');
-    if (mode === 'mr' && commands.length) fail(path + ': MR gates must not include shell commands');
+    if ((mode === 'mr' || mode === 'manual') && commands.length) fail(path + ': this gate mode must not include shell commands');
     if (mode === 'command' && !commands.length) fail(path + '.commands: at least one command is required');
     const gate = {
       id: str(raw.id, path + '.id', 120, true),
       name: str(raw.name, path + '.name', 120, true),
       mode,
-      stage: choice(raw.stage, path + '.stage', ['after_execution'], 'after_execution'),
+      stage: choice(raw.stage, path + '.stage', ['after_execution', 'before_publish'], 'after_execution'),
       required: bool(raw.required, path + '.required', true),
       onFailure: choice(raw.onFailure, path + '.onFailure', ['loop', 'reject', 'fail', 'human'], 'loop'),
     };
@@ -109,7 +114,7 @@
     return {
       id: str(raw.id, path + '.id', 120, true),
       name: str(raw.name, path + '.name', 120, true),
-      stage: choice(raw.stage, path + '.stage', ['after_execution', 'before_publish']),
+      stage: choice(raw.stage, path + '.stage', ['before_execution', 'after_execution', 'before_publish', 'on_failure']),
       required: bool(raw.required, path + '.required', true),
       instructions: str(raw.instructions, path + '.instructions', 5000),
     };
