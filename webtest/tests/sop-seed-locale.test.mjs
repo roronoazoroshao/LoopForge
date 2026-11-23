@@ -161,10 +161,10 @@ test('custom Chinese role names, descriptions and model IDs stay untouched in th
 
 test('all shipped template names localize by ID without translating user-created SOPs', async t => {
   const known = [
-    ['generic-backend-delivery', '通用后端交付 SOP', 'General backend delivery SOP', 'SOP bàn giao backend chung'],
-    ['generic-frontend-delivery', '通用前端交付 SOP', 'General frontend delivery SOP', 'SOP bàn giao frontend chung'],
-    ['issue-fix-production', '通用缺陷修复 SOP', 'General bug-fix SOP', 'SOP sửa lỗi chung'],
-    ['generic-product-delivery', '通用产品方案 SOP', 'General product proposal SOP', 'SOP đề xuất sản phẩm chung'],
+    ['generic-backend-delivery', '通用后端交付 SOP', 'Generic backend delivery SOP', 'SOP bàn giao backend chung'],
+    ['generic-frontend-delivery', '通用前端交付 SOP', 'Generic frontend delivery SOP', 'SOP bàn giao frontend chung'],
+    ['issue-fix-production', '通用缺陷修复 SOP', 'Generic bug-fix SOP', 'SOP sửa lỗi chung'],
+    ['generic-product-delivery', '通用产品方案 SOP', 'Generic product proposal SOP', 'SOP đề xuất sản phẩm chung'],
   ];
   for (const [lang, offset] of [['zh',1],['en',2],['vi',3]]) {
     const app = await loadApp({ locale: lang });

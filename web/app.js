@@ -696,10 +696,10 @@ function catalogGeneric(item){return !!item?.generic}
 const SOP_SEED_TEMPLATE_IDS=['generic-backend-delivery','generic-frontend-delivery',
   'issue-fix-production','generic-product-delivery'];
 const SOP_SEED_WORKFLOW_COPY={
-  'generic-backend-delivery':['通用后端交付 SOP','General backend delivery SOP','SOP bàn giao backend chung'],
-  'generic-frontend-delivery':['通用前端交付 SOP','General frontend delivery SOP','SOP bàn giao frontend chung'],
-  'issue-fix-production':['通用缺陷修复 SOP','General bug-fix SOP','SOP sửa lỗi chung'],
-  'generic-product-delivery':['通用产品方案 SOP','General product proposal SOP','SOP đề xuất sản phẩm chung'],
+  'generic-backend-delivery':['通用后端交付 SOP','Generic backend delivery SOP','SOP bàn giao backend chung'],
+  'generic-frontend-delivery':['通用前端交付 SOP','Generic frontend delivery SOP','SOP bàn giao frontend chung'],
+  'issue-fix-production':['通用缺陷修复 SOP','Generic bug-fix SOP','SOP sửa lỗi chung'],
+  'generic-product-delivery':['通用产品方案 SOP','Generic product proposal SOP','SOP đề xuất sản phẩm chung'],
 };
 function sopSeedWorkflowDisplayName(wf){
   const copy=SOP_SEED_WORKFLOW_COPY[wf?.id];
