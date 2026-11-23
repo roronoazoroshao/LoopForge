@@ -2092,3 +2092,44 @@ Object.assign(window.LF_I18N_EN, {
   "确认导入": "Confirm import",
   "选择角色包 JSON": "Choose role-pack JSON"
 } );
+
+// Git HTTPS host authorization controls added upstream in v0.4.1.
+Object.assign(window.LF_I18N_EN, {
+  "Git HTTPS 主机授权": "Git HTTPS host authorization",
+  "授权平台访问自建 Git 实例，用于校验令牌和跟踪合并请求。": "Authorize access to self-hosted Git instances for token verification and merge request tracking.",
+  "添加 HTTPS 主机": "Add HTTPS host",
+  "HTTPS 主机": "HTTPS host",
+  "填写域名或 IPv6。默认端口为 443，IPv6 带端口用 [fd00::2]:8443。IPv4 服务器请填域名，在「手动编辑地址」里填 IPv4。": "Enter a hostname or IPv6 address. Port 443 is the default. Use [fd00::2]:8443 for IPv6 with a port. For an IPv4 server, enter its hostname and put the IP under Edit addresses manually.",
+  "托管平台": "Git provider",
+  "取消": "Cancel",
+  "解析并核对地址": "Resolve and review addresses",
+  "手动编辑地址": "Edit addresses manually",
+  "允许连接的 IP 地址": "Approved IP addresses",
+  "每行填写一个 IPv4 或 IPv6 地址。": "Enter one IPv4 or IPv6 address per line.",
+  "核对已填地址": "Review entered addresses",
+  "更新授权": "Update authorization",
+  "撤销授权": "Revoke",
+  "尚未授权 Git HTTPS 主机。": "No Git HTTPS hosts are authorized.",
+  "新增地址": "Added addresses",
+  "移除地址": "Removed addresses",
+  "核对以上地址属于该 Git 实例。平台仅连接已确认的地址。": "Verify that these addresses belong to the Git instance. The platform will connect only to approved addresses.",
+  "确认 Git HTTPS 主机授权": "Confirm Git HTTPS host authorization",
+  "确认授权": "Authorize host",
+  "已保存 HTTPS 主机授权": "HTTPS host authorization saved",
+  "撤销 HTTPS 主机授权": "Revoke HTTPS host authorization",
+  "已撤销 HTTPS 主机授权": "HTTPS host authorization revoked"
+});
+
+// Upstream sandbox selection, Git HTTPS and observability label translations.
+Object.assign(window.LF_I18N_EN, {
+  " · 共享": " · Shared",
+  "当前项目没有可用的运行沙箱，请先配置或请管理员共享一个沙箱，再点击「刷新沙箱」。": "No sandbox is available for this project. Configure one or ask an administrator to share one, then refresh sandboxes.",
+  "模板原有沙箱不可用，请重新选择运行沙箱。": "The template sandbox is unavailable. Select a replacement sandbox.",
+  "请选择运行沙箱。如需本地执行，请确认流程中的任务均可信。": "Select a sandbox. Choose local execution only if you trust every task in this SOP.",
+  "选择此 SOP 使用的运行环境，创建后仍可在流程设置中修改。": "Choose the execution environment for this SOP. You can change it in SOP settings later.",
+  "所选运行沙箱已不可用，请点击「刷新沙箱」后重新选择。": "The selected sandbox is no longer available. Refresh sandboxes and select another one.",
+  "Git 实例": "Git instance",
+  "选择实例": "Select an instance",
+  "手动输入 HTTPS 主机": "Enter an HTTPS host",
+  "数量按创建时间，Token 按回复时间": "Counts by creation time, tokens by reply time"
+});

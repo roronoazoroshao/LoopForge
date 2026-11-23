@@ -6379,3 +6379,42 @@ Object.assign(window.LF_I18N_VI, {
   "确认导入": "Xác nhận nhập",
   "选择角色包 JSON": "Chọn tệp JSON gói vai trò"
 } );
+
+// Git HTTPS host authorization controls added upstream in v0.4.1.
+Object.assign(window.LF_I18N_VI, {
+  "Git HTTPS 主机授权": "Cấp quyền máy chủ Git HTTPS",
+  "授权平台访问自建 Git 实例，用于校验令牌和跟踪合并请求。": "Cho phép nền tảng truy cập máy chủ Git tự lưu trữ để xác minh token và theo dõi yêu cầu hợp nhất.",
+  "添加 HTTPS 主机": "Thêm máy chủ HTTPS",
+  "填写域名或 IPv6。默认端口为 443，IPv6 带端口用 [fd00::2]:8443。IPv4 服务器请填域名，在「手动编辑地址」里填 IPv4。": "Nhập tên miền hoặc địa chỉ IPv6. Cổng mặc định là 443; với IPv6 có cổng, dùng [fd00::2]:8443. Đối với máy chủ IPv4, nhập tên miền rồi điền IPv4 trong mục “Chỉnh sửa địa chỉ thủ công”.",
+  "托管平台": "Nền tảng lưu trữ Git",
+  "解析并核对地址": "Phân giải và kiểm tra địa chỉ",
+  "手动编辑地址": "Chỉnh sửa địa chỉ thủ công",
+  "允许连接的 IP 地址": "Địa chỉ IP được phép kết nối",
+  "每行填写一个 IPv4 或 IPv6 地址。": "Nhập một địa chỉ IPv4 hoặc IPv6 trên mỗi dòng.",
+  "核对已填地址": "Kiểm tra các địa chỉ đã nhập",
+  "更新授权": "Cập nhật quyền truy cập",
+  "撤销授权": "Thu hồi quyền truy cập",
+  "尚未授权 Git HTTPS 主机。": "Chưa cấp quyền cho máy chủ Git HTTPS nào.",
+  "新增地址": "Địa chỉ được thêm",
+  "移除地址": "Địa chỉ bị xóa",
+  "核对以上地址属于该 Git 实例。平台仅连接已确认的地址。": "Xác minh các địa chỉ trên thuộc máy chủ Git này. Nền tảng chỉ kết nối đến những địa chỉ đã được xác nhận.",
+  "确认 Git HTTPS 主机授权": "Xác nhận cấp quyền cho máy chủ Git HTTPS",
+  "确认授权": "Xác nhận cấp quyền",
+  "已保存 HTTPS 主机授权": "Đã lưu quyền truy cập máy chủ HTTPS",
+  "撤销 HTTPS 主机授权": "Thu hồi quyền truy cập máy chủ HTTPS",
+  "已撤销 HTTPS 主机授权": "Đã thu hồi quyền truy cập máy chủ HTTPS"
+});
+
+// Upstream sandbox selection, Git HTTPS and observability label translations.
+Object.assign(window.LF_I18N_VI, {
+  " · 共享": " · Được chia sẻ",
+  "当前项目没有可用的运行沙箱，请先配置或请管理员共享一个沙箱，再点击「刷新沙箱」。": "Dự án hiện tại chưa có sandbox khả dụng. Hãy cấu hình hoặc nhờ quản trị viên chia sẻ một sandbox, sau đó chọn “Làm mới sandbox”.",
+  "模板原有沙箱不可用，请重新选择运行沙箱。": "Sandbox gốc của mẫu không còn khả dụng. Hãy chọn lại sandbox thực thi.",
+  "请选择运行沙箱。如需本地执行，请确认流程中的任务均可信。": "Hãy chọn sandbox thực thi. Nếu chạy cục bộ, hãy đảm bảo mọi tác vụ trong SOP đều đáng tin cậy.",
+  "选择此 SOP 使用的运行环境，创建后仍可在流程设置中修改。": "Chọn môi trường thực thi cho SOP này; bạn có thể thay đổi trong phần cài đặt SOP sau khi tạo.",
+  "所选运行沙箱已不可用，请点击「刷新沙箱」后重新选择。": "Sandbox đã chọn không còn khả dụng. Hãy chọn “Làm mới sandbox” rồi chọn lại.",
+  "Git 实例": "Máy chủ Git",
+  "选择实例": "Chọn máy chủ",
+  "手动输入 HTTPS 主机": "Nhập máy chủ HTTPS thủ công",
+  "数量按创建时间，Token 按回复时间": "Số lượng theo thời điểm tạo, Token theo thời điểm phản hồi"
+});
