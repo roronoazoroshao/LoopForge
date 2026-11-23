@@ -78,6 +78,31 @@
         (item.reason ? ' — ' + item.reason : '');
       label.append(caption);
       li.append(label);
+      const details = document.createElement('details');
+      const summary = document.createElement('summary');
+      const count = Number(item.fileCount || 0);
+      summary.textContent = tr('查看内容和文件', 'Review content and files', 'Xem nội dung và tệp') +
+        (count ? ' (' + count + ')' : '');
+      details.append(summary);
+      if (item.description) {
+        const description = document.createElement('p');
+        description.textContent = item.description;
+        details.append(description);
+      }
+      const preview = document.createElement('pre');
+      preview.textContent = item.preview || '';
+      preview.style.whiteSpace = 'pre-wrap';
+      preview.style.overflowWrap = 'anywhere';
+      preview.style.maxHeight = '220px';
+      preview.style.overflow = 'auto';
+      details.append(preview);
+      if (Array.isArray(item.filePaths) && item.filePaths.length) {
+        const files = document.createElement('p');
+        files.textContent = item.filePaths.join(', ') +
+          (count > item.filePaths.length ? ', …' : '');
+        details.append(files);
+      }
+      li.append(details);
       host.append(li);
     }
     appendTextList($('capabilityPackWarnings'), data.warnings || []);
