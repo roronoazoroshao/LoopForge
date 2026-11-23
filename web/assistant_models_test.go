@@ -76,6 +76,6 @@ func TestCredentialVietnameseCopy(t *testing.T) {
 		t.Skip("node not installed")
 	}
 	if out, err := exec.Command(node, "credential_vi_test.js", "app/workbench.js").CombinedOutput(); err != nil {
-		t.Fatalf("Vietnamese credential labels: %v\\n%s", err, out)
+		t.Fatalf("Vietnamese credential labels: %v\n%s", err, out)
 	}
 }
