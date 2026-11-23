@@ -33,6 +33,7 @@
   <link rel="stylesheet" href="/app/mcp.css">
   <link rel="stylesheet" href="/app/flow-canvas.css?v=20261109cli">
   <link rel="stylesheet" href="/app/assistant-settings.css">
+  <link rel="stylesheet" href="/app/role-pack.css?v=20261123rolepack1">
   <link rel="stylesheet" href="/preferences.css">
   <link rel="stylesheet" href="/app/issues-list.css">
   <link rel="stylesheet" href="/app/requirement-wizard.css?v=20261116nosop">
@@ -619,7 +620,12 @@
         <div>
           <h1>角色定义</h1><p>每个角色一套任务、产物和门禁。本项目角色可共享给其他项目；流程里只选角色，不在画布上改这些内容。</p>
         </div>
-        <button id="newAgent" class="button primary">＋ 新建角色</button>
+        <div class="role-pack-actions">
+          <button id="rolePackImport" class="button ghost" type="button">导入角色包</button>
+          <button id="rolePackExport" class="button ghost" type="button">导出角色包</button>
+          <button id="newAgent" class="button primary">＋ 新建角色</button>
+          <input type="file" id="rolePackPick" accept=".json,application/json" hidden aria-label="选择角色包 JSON">
+        </div>
       </div>
       <div class="agent-toolbar">
         <div class="agent-tabs" data-scope-for="agent" role="tablist" aria-label="角色范围">
@@ -632,6 +638,35 @@
       <div id="agentList" class="agent-list-table"></div>
       <div id="agentRowMenu" class="agent-row-menu" role="menu" hidden></div>
     </section>
+
+    <div id="rolePackModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="rolePackTitle">
+      <div class="modal-card role-pack-card">
+        <header class="role-pack-head">
+          <div>
+            <h2 id="rolePackTitle">导入角色包</h2>
+            <p id="rolePackHelp">预览后导入当前项目；不会覆盖已有角色或自动安装 Skill。</p>
+          </div>
+          <button type="button" class="modal-close" id="rolePackClose" aria-label="关闭">×</button>
+        </header>
+        <div class="role-pack-content">
+          <p id="rolePackStatus" role="status" aria-live="polite"></p>
+          <h3 id="rolePackPreviewTitle">待导入角色</h3>
+          <ul id="rolePackPreview" class="role-pack-list"></ul>
+          <h3 id="rolePackErrorTitle">必须处理的问题</h3>
+          <ul id="rolePackProblems" class="role-pack-list role-pack-errors"></ul>
+          <h3 id="rolePackWarningTitle">注意事项</h3>
+          <ul id="rolePackWarnings" class="role-pack-list"></ul>
+          <label class="role-pack-acknowledge">
+            <input id="rolePackAcknowledge" type="checkbox">
+            <span id="rolePackAcknowledgeLabel">已检查输入内容及 Shell/Python 脚本。导入本身不会执行脚本。</span>
+          </label>
+        </div>
+        <footer class="role-pack-footer">
+          <button id="rolePackCancel" class="button ghost" type="button">取消</button>
+          <button id="rolePackApply" class="button primary" type="button" disabled>确认导入</button>
+        </footer>
+      </div>
+    </div>
 
     <!-- 可观测与分析 -->
     <section id="observabilityView" class="view page-view">
@@ -1323,6 +1358,7 @@
   <script src="/app/sidebar-mode-motion.js"></script>
   <script src="/app/sliding-tabs.js?v=20261121lang1"></script>
   <script src="/app/start.js"></script>
+  <script src="/app/role-pack.js?v=20261123rolepack1"></script>
   </div>
   </div>
   <script src="/orchestrate.js?v=20261121roles"></script>
