@@ -979,6 +979,7 @@ function sectionHead(title,hint,count,unit){
 }
 function agentBindCard(n){
   const agent=workflowAgent(n.agentId);
+  const roleLabel=window.lfT('这个步骤用哪个角色','Role for this step','Vai trò cho bước này');
   const exec=(state.data.executors||[]).find(x=>x.id===(agent?.executorId||n.executorId));
   const generic=catalogGeneric(state.workflow);
   const projectId=state.workflow?.projectId||state.projectFilter||'',projects=state.data.projects||[];
@@ -990,7 +991,7 @@ function agentBindCard(n){
     :(owned.length?`<optgroup label="${window.lfT('本项目角色','Project roles','Vai trò của dự án')} · ${owned.length} ${window.lfT('个','roles','vai trò')}">${options(owned)}</optgroup>`:'')+(shared.length?`<optgroup label="${window.lfT('共享角色','Shared roles','Vai trò dùng chung')} · ${shared.length} ${window.lfT('个','roles','vai trò')}">${options(shared)}</optgroup>`:'');
   const opts=(invalid+grouped)||(generic?'<option value="">该模板还没有打包角色</option>':'<option value="">当前项目暂无可用角色</option>');
   const hint=generic?'这些角色打包在通用模板里，和当前项目目录无关。改任务书只影响平台模板，所有项目下次运行生效。':`本项目 ${owned.length} 个 · 共享 ${shared.length} 个；其他项目私有角色已隐藏。`;
-  if(!agent)return `<div class="fd-field"><label>这个步骤用哪个角色</label><select class="select" data-p="agentId">${opts}</select><p class="prop-hint">${hint}</p><p class="prop-hint">先选一个已定义的角色。画布只编排顺序和打回，不改编排角色内部的任务。</p></div>`;
+  if(!agent)return `<div class="fd-field"><label for="flowAgentSelect">${roleLabel}</label><select id="flowAgentSelect" aria-label="${roleLabel}" class="select" data-p="agentId">${opts}</select><p class="prop-hint">${hint}</p><p class="prop-hint">先选一个已定义的角色。画布只编排顺序和打回，不改编排角色内部的任务。</p></div>`;
   const arts=effectiveNodeArtifacts(n,agent),gates=roleGates(agent);
   const duty=String(agent.description||'').trim(),taskHint=duty?(duty.length>48?`${duty.slice(0,48)}…`:duty):'还没写职责，可在角色定义里补';
   const source=(state.workflow?.tags||[]).find(tag=>tag.startsWith('generic-source:'))?.slice('generic-source:'.length);
@@ -1000,7 +1001,7 @@ function agentBindCard(n){
   const inheritsExecutor=!n.executorId&&(!agent.executorId||legacyTemplate)&&
     !String(agent.model||'').trim()&&!String(agent.effort||'').trim();
   const model=inheritsExecutor?'跟随责任人':agent.model||exec?.model||exec?.name||'未选模型';
-  return `<div class="fd-field"><label>这个步骤用哪个角色</label><select class="select" data-p="agentId">${opts}</select><p class="prop-hint">${hint}</p></div>
+  return `<div class="fd-field"><label for="flowAgentSelect">${roleLabel}</label><select id="flowAgentSelect" aria-label="${roleLabel}" class="select" data-p="agentId">${opts}</select><p class="prop-hint">${hint}</p></div>
     <div class="fd-role"><div class="fd-role-h"><span class="fd-tile" style="--tint:${flowPalette.roleTint(agent.id)}">${escapeHTML(flowPalette.initial(sopSeedRoleDisplayName(agent,state.workflow)))}</span><span class="fd-role-t"><b data-i18n-skip>${escapeHTML(sopSeedRoleDisplayName(agent,state.workflow))}</b><small${duty?' data-i18n-skip':''}>${escapeHTML(taskHint)}</small></span>${boundRoleLink(agent)}</div><div class="fd-stats"><div title="${escapeHTML(model)}"><b class="txt">${escapeHTML(model)}</b><small>模型</small></div><div><b>${arts.length}</b><small>产物</small></div><div><b>${gates.length}</b><small>门禁</small></div><div><b>${agent.loop?.enabled?`${agent.loop.maxIterations||1} 轮`:'单轮'}</b><small>Loop</small></div></div></div>`;
 }
 function flowDrawerHead(n,kind,label){

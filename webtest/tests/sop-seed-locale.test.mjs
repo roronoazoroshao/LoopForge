@@ -69,6 +69,10 @@ for (const [lang, displayIndex] of [['vi', 2], ['en', 3], ['zh', 1]]) {
       assert.ok(palette.includes(wanted), 'palette: ' + wanted);
     }
     const first = stages[0][displayIndex];
+    const accessibleLabel = { vi: 'Vai trò cho bước này', en: 'Role for this step',
+      zh: '这个步骤用哪个角色' }[lang];
+    assert.equal(app.document.querySelector('#flowAgentSelect')?.getAttribute('aria-label'), accessibleLabel);
+    assert.equal(app.document.querySelector('label[for="flowAgentSelect"]')?.textContent, accessibleLabel);
     assert.equal(app.document.querySelector('#properties .fd-role-t b')?.textContent, first);
     assert.equal(app.document.querySelector('#properties .fd-dh-name')?.value, first);
 
@@ -88,3 +92,22 @@ for (const [lang, displayIndex] of [['vi', 2], ['en', 3], ['zh', 1]]) {
     assert.equal(app.evaluate('state.workflow.nodes[0].name'), '需求定型');
   });
 }
+
+
+test('cloned template roles and legacy seed names translate only with verified IDs', async t => {
+  for (const [lang, expected] of [['vi', 'Triển khai'], ['en', 'Implementation'], ['zh', '实施']]) {
+    const app = await loadApp({ locale: lang });
+    t.after(app.close);
+    const source = { id: 'copied-1', projectId: 'project-1',
+      tags: ['generic-source:generic-backend-delivery'], generic: false };
+    const role = { id: templateId + '-implement-project-1', projectId: 'project-1', name: '实施' };
+    const node = { id: 'implement', name: '实施', type: 'agent' };
+    app.evaluate('state.workflow=' + JSON.stringify(source) + ';');
+    assert.equal(app.evaluate('sopSeedRoleDisplayName(' + JSON.stringify(role) + ',state.workflow)'), expected);
+    assert.equal(app.evaluate('sopSeedNodeDisplayName(' + JSON.stringify(node) + ',state.workflow)'), expected);
+    assert.equal(app.evaluate('sopSeedRoleDisplayName(' + JSON.stringify({ ...role, name: '自定义角色' }) + ',state.workflow)'), '自定义角色');
+    assert.equal(app.evaluate('sopSeedRoleDisplayName(' + JSON.stringify({ ...role, id: 'custom-role' }) + ',state.workflow)'), '实施');
+    assert.equal(app.evaluate('sopSeedNodeDisplayName(' + JSON.stringify({ ...node, name: '用户更名' }) + ',state.workflow)'), '用户更名');
+    assert.equal(app.evaluate('sopSeedNodeDisplayName(' + JSON.stringify(node) + ',{id:"custom-sop",tags:[]})'), '实施');
+  }
+});

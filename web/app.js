@@ -705,6 +705,12 @@ const SOP_SEED_STAGE_COPY={
   deliver:['交付汇总','Delivery summary','Tổng hợp bàn giao'],
   mr:['发起 MR','Create Merge Request','Tạo Merge Request'],
 };
+// Previously shipped templates may retain their older Chinese step text.
+// Accept aliases only alongside a verified seed ID and workflow provenance.
+const SOP_SEED_LEGACY_STAGE_NAMES={implement:['实施'],review:['独立审查']};
+function sopSeedNameMatches(stage,name){
+  return name===SOP_SEED_STAGE_COPY[stage]?.[0]||(SOP_SEED_LEGACY_STAGE_NAMES[stage]||[]).includes(name);
+}
 function sopSeedTemplateId(wf){
   if(!wf)return '';
   if(wf.generic&&SOP_SEED_TEMPLATE_IDS.includes(wf.id))return wf.id;
@@ -714,9 +720,9 @@ function sopSeedTemplateId(wf){
 }
 function sopSeedNodeDisplayName(n,wf=state.workflow){
   const copy=SOP_SEED_STAGE_COPY[n?.id];
-  if(!copy||!sopSeedTemplateId(wf)||n.name!==copy[0]||
+  if(!copy||!sopSeedTemplateId(wf)||!sopSeedNameMatches(n.id,n.name)||
      n.type!==(n.id==='accept'?'approval':'agent'))return n?.name||'';
-  return window.lfT(...copy);
+  return window.lfT(n.name,copy[1],copy[2]);
 }
 function sopSeedRoleDisplayName(a,wf=null){
   if(!a)return '';
@@ -724,14 +730,14 @@ function sopSeedRoleDisplayName(a,wf=null){
   const ids=wf?(source?[source]:[]):SOP_SEED_TEMPLATE_IDS;
   for(const id of ids){
     for(const [stage,copy] of Object.entries(SOP_SEED_STAGE_COPY)){
-      if(stage==='accept'||a.name!==copy[0])continue;
+      if(stage==='accept'||!sopSeedNameMatches(stage,a.name))continue;
       const seedId=id+'-'+stage,roleId=String(a.id||'');
       // Project-cloned roles can use the unchanged ID, a project suffix or a
       // collision suffix; changed user-authored names always take precedence.
       if(roleId!==seedId&&!(a.projectId&&roleId.startsWith(seedId+'-')))continue;
       if(wf&&wf.projectId&&a.projectId!==wf.projectId)continue;
       if(wf&&wf.generic&&a.projectId)continue;
-      return window.lfT(...copy);
+      return window.lfT(a.name,copy[1],copy[2]);
     }
   }
   return a.name||'';
