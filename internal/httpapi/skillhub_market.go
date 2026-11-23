@@ -112,6 +112,7 @@ type skillhubListItem struct {
 	Namespace   string            `json:"namespace"`
 	Name        string            `json:"name"`
 	Description string            `json:"description"`
+	DescriptionOriginal string `json:"descriptionOriginal,omitempty"`
 	IconURL     string            `json:"iconUrl,omitempty"`
 	Category    string            `json:"category"`
 	Version     string            `json:"version"`
@@ -169,7 +170,8 @@ func (h *skillhubHandlers) list(c *gin.Context) {
 	for _, s := range remote.Data.Skills {
 		items = append(items, skillhubListItem{
 			Slug: s.Slug, Namespace: s.Namespace.Handle, Name: strings.TrimSpace(firstNonEmpty(s.Name, s.Slug)),
-			Description: strings.TrimSpace(firstNonEmpty(s.DescriptionZh, s.Description)), IconURL: s.IconURL,
+			Description: strings.TrimSpace(firstNonEmpty(s.DescriptionZh, s.Description)),
+			DescriptionOriginal: strings.TrimSpace(s.Description), IconURL: s.IconURL,
 			Category: s.Category, Version: s.Version,
 			OwnerName: strings.TrimSpace(firstNonEmpty(s.Namespace.DisplayName, s.OwnerName, s.Namespace.Handle)),
 			Homepage:  skillhubHomepage(s.Namespace.Handle, s.Slug), Downloads: s.Downloads, Stars: s.Stars,
@@ -252,7 +254,8 @@ func (h *skillhubHandlers) detail(c *gin.Context) {
 	c.JSON(http.StatusOK, map[string]any{
 		"skill": map[string]any{
 			"slug": firstNonEmpty(s.Slug, slug), "namespace": ns, "name": strings.TrimSpace(firstNonEmpty(s.DisplayName, s.Slug, slug)),
-			"summary": strings.TrimSpace(firstNonEmpty(s.SummaryZh, s.Summary)), "iconUrl": s.IconURL, "category": s.Category,
+			"summary": strings.TrimSpace(firstNonEmpty(s.SummaryZh, s.Summary)),
+			"summaryOriginal": strings.TrimSpace(s.Summary), "iconUrl": s.IconURL, "category": s.Category,
 			"subCategories": s.SubCategories, "labels": skillhubLabels(s.Labels), "createdAt": s.CreatedAt,
 			"downloads": s.Stats.Downloads, "stars": s.Stats.Stars, "installs": s.Stats.Installs, "versionCount": s.Stats.Versions,
 			"homepage": skillhubHomepage(ns, firstNonEmpty(s.Slug, slug)),
