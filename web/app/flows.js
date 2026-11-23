@@ -990,7 +990,15 @@ function agentBindCard(n){
     ?(available.length?`<optgroup label="${window.lfT('通用模板角色','Starter-template roles','Vai trò của mẫu chung')} · ${available.length} ${window.lfT('个','roles','vai trò')}">${options(available)}</optgroup>`:'')
     :(owned.length?`<optgroup label="${window.lfT('本项目角色','Project roles','Vai trò của dự án')} · ${owned.length} ${window.lfT('个','roles','vai trò')}">${options(owned)}</optgroup>`:'')+(shared.length?`<optgroup label="${window.lfT('共享角色','Shared roles','Vai trò dùng chung')} · ${shared.length} ${window.lfT('个','roles','vai trò')}">${options(shared)}</optgroup>`:'');
   const opts=(invalid+grouped)||(generic?'<option value="">该模板还没有打包角色</option>':'<option value="">当前项目暂无可用角色</option>');
-  const hint=generic?'这些角色打包在通用模板里，和当前项目目录无关。改任务书只影响平台模板，所有项目下次运行生效。':`本项目 ${owned.length} 个 · 共享 ${shared.length} 个；其他项目私有角色已隐藏。`;
+  const hint=generic
+    ?window.lfT(
+      '这些角色打包在通用模板里，和当前项目目录无关。改任务书只影响平台模板，所有项目下次运行生效。',
+      'These roles are bundled with the public template, not the current project. Editing a role affects the shared template for future runs in every project.',
+      'Những vai trò này thuộc mẫu chung, không thuộc dự án hiện tại. Chỉnh sửa vai trò trong mẫu sẽ ảnh hưởng đến các lượt chạy sau này của mọi dự án.')
+    :window.lfT(
+      `本项目 ${owned.length} 个 · 共享 ${shared.length} 个；其他项目私有角色已隐藏。`,
+      `This project: ${owned.length} · Shared: ${shared.length}; private roles in other projects are hidden.`,
+      `Dự án này: ${owned.length} · Dùng chung: ${shared.length}; đã ẩn vai trò riêng của dự án khác.`);
   if(!agent)return `<div class="fd-field"><label for="flowAgentSelect">${roleLabel}</label><select id="flowAgentSelect" aria-label="${roleLabel}" class="select" data-p="agentId">${opts}</select><p class="prop-hint">${hint}</p><p class="prop-hint">先选一个已定义的角色。画布只编排顺序和打回，不改编排角色内部的任务。</p></div>`;
   const arts=effectiveNodeArtifacts(n,agent),gates=roleGates(agent);
   const duty=String(agent.description||'').trim(),taskHint=duty?(duty.length>48?`${duty.slice(0,48)}…`:duty):'还没写职责，可在角色定义里补';

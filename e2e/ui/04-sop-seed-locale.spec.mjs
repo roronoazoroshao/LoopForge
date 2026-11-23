@@ -94,6 +94,9 @@ test('SOP project copy: user-defined Chinese role survives save and reload with 
   await expect(page.locator('#nodes .flow-node[data-id="clarify"] .node-subtitle')).toHaveText(customName);
   await page.locator('#nodes .flow-node[data-id="clarify"]').click();
   await expect(page.locator('#properties .fd-role-t b')).toHaveText(customName);
+  const roleHint = page.locator('#properties .fd-field .prop-hint').first();
+  await expect(roleHint).toContainText('đã ẩn vai trò riêng của dự án khác');
+  await expect(roleHint).not.toContainText(/[\\u3400-\\u9fff]/);
   await expect(page.locator('#properties select[data-p="agentId"]')).toHaveValue(customId);
   await page.screenshot({ path: test.info().outputPath('sop-clone-vi-after-reload.png') });
   expect(errors).toEqual([]);

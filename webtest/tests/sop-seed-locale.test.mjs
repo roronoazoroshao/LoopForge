@@ -75,6 +75,8 @@ for (const [lang, displayIndex] of [['vi', 2], ['en', 3], ['zh', 1]]) {
     assert.equal(app.document.querySelector('label[for="flowAgentSelect"]')?.textContent, accessibleLabel);
     assert.equal(app.document.querySelector('#properties .fd-role-t b')?.textContent, first);
     assert.equal(app.document.querySelector('#properties .fd-dh-name')?.value, first);
+    assert.match(app.document.querySelector('#properties .fd-field .prop-hint')?.textContent||'',
+      lang==='vi'?/Những vai trò này thuộc mẫu chung/:lang==='en'?/These roles are bundled/:/这些角色打包/);
 
     // Names are presentation only, never a mutation of source payloads.
     assert.equal(app.evaluate('state.workflow.nodes[0].name'), '需求定型');
