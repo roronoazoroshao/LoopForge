@@ -7,6 +7,7 @@ import (
  "errors"
  "fmt"
  "io"
+ "io/fs"
  "net/http"
  "net/url"
  "path"
@@ -332,7 +333,7 @@ func (h *catalogHandlers) capabilityExport(c *gin.Context) {
   } else if int64(len(data))>domain.SkillFileMaxBytes{return errors.New("export file exceeds 1 MiB")}
   h:=&zip.FileHeader{Name:name,Method:zip.Deflate}
   h.SetMode(0o644)
-  if mode!=0 {h.SetMode(mode & 0o777)}
+  if mode!=0 {h.SetMode(fs.FileMode(mode & 0o777))}
   f,err:=writer.CreateHeader(h);if err!=nil{return err}
   _,err=f.Write(data)
   if err==nil{entryCount++;unpackedBytes+=int64(len(data))}
