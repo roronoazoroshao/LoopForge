@@ -1,4 +1,4 @@
-import { chatT } from "./locale.js";
+import { chatT, chatLocale } from "./locale.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   api,
@@ -1194,6 +1194,7 @@ export function useChat() {
       clientRequestId = newId();
       if (currentId.current === s.id) setGenerationKnown(null);
       const g = await write("/api/assistant/generations", {
+        responseLanguage: chatLocale(),
         clientRequestId,
         requireExactModel: true,
         sessionId: s.id,
@@ -1320,6 +1321,7 @@ export function useChat() {
       const chosen = await modelForRequest(selection, stored, resolved);
       if (currentId.current === stored.id) setGenerationKnown(null);
       const g = await write("/api/assistant/generations", {
+        responseLanguage: chatLocale(),
         sessionId: stored.id,
         requireExactModel: true,
         projectId: stored.projectId || "",
