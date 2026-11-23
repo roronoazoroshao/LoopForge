@@ -118,11 +118,29 @@ func assistantRequestApprovalMode(req assistantRequest) string {
 	return normalizeAssistantApprovalMode(req.ApprovalMode)
 }
 
+// Only presentation language is affected. Technical identifiers, code, and
+// platform tool contracts remain unchanged. Unsupported locale values never
+// become prompt text, so a client cannot inject instructions via this field.
+func assistantResponseLanguageInstruction(language string) string {
+	switch language {
+	case "vi":
+		return "\n\nQUY TẮC NGÔN NGỮ PHẢN HỒI (ưu tiên cao hơn các ví dụ tiếng Trung ở trên): Trả lời người dùng, thông báo tiến độ và phần diễn giải trong message/drafts bằng Tiếng Việt. KHÔNG dịch tên công cụ, tên trường JSON, mã nguồn, lệnh shell, ID, đường dẫn, trích dẫn nguyên văn, log hay dữ liệu gốc. Khi các hướng dẫn cũ yêu cầu thông báo bằng tiếng Trung, hãy thông báo bằng tiếng Việt thay thế. Chỉ đổi ngôn ngữ khi người dùng trực tiếp yêu cầu."
+	case "en":
+		return "\n\nRESPONSE LANGUAGE (overrides Chinese-language examples above): Write user-facing answers, progress updates and explanations in English. Do not translate tool names, JSON keys, code, shell commands, IDs, paths, verbatim quotes, logs or source data. If an older instruction requests Chinese progress messages, use English instead. Follow an explicit user request to switch language."
+	default:
+		return ""
+	}
+}
+
+func assistantWorkspaceSystemPromptForRequest(req assistantRequest) string {
+	return assistantWorkspaceSystemPrompt + assistantResponseLanguageInstruction(req.ResponseLanguage)
+}
+
 func assistantSystemPromptForRequest(req assistantRequest, mode string) string {
 	if req.sopDesigner() {
-		return assistantSOPDesignerSystemPrompt
+		return assistantSOPDesignerSystemPrompt + assistantResponseLanguageInstruction(req.ResponseLanguage)
 	}
-	return withSpaceDeliverable(req, assistantSystemPromptForMode(mode))
+	return withSpaceDeliverable(req, assistantSystemPromptForMode(mode)) + assistantResponseLanguageInstruction(req.ResponseLanguage)
 }
 
 // Only approval receipts may update a shared transcript. Existing messages and
