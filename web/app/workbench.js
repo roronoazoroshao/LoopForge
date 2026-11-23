@@ -129,7 +129,7 @@ function agentCliCredentialKind(cli,o){
     guide:o.guide|| (credentialVI()?[['Tạo API Key trong bảng điều khiển của nhà cung cấp mô hình'],['Ghi lại Base URL và giao thức API mà dịch vụ cung cấp'],['Dán API Key, nhập Base URL khi cần và chọn giao thức. Sau khi lưu, chọn mô hình trong danh mục để dùng trong trò chuyện AI.']]:[['在模型服务商控制台创建 API Key'],['记下服务地址和它提供的接口协议'],['粘贴 Key，按需填写 Base URL 并选择协议；保存后可在模型目录里挑选 AI 对话的模型']]),
     placeholder:credentialCopy(`请输入 ${o.name} API Key`,`Nhập API Key ${o.name}`),
     ...(configurable?{
-      extra:{name:field+'baseUrl',label:'Base URL',placeholder:o.baseUrl,url:true,clearWithKey:true,required:o.required,note:credentialVI()?(o.extraNote?'Bắt buộc khi dùng gateway tương thích OpenAI':(o.required?'Bắt buộc':'')):(o.extraNote||(o.required?'必填'))},
+      extra:{name:field+'baseUrl',label:'Base URL',placeholder:o.baseUrl,url:true,clearWithKey:true,required:o.required,note:credentialVI()?(o.extraNote?'Bắt buộc khi dùng gateway tương thích OpenAI':(o.required?'Bắt buộc':'')):(o.extraNote||(o.required?'必填':''))},
       protocol:{name:field+'protocol',options:o.protocols},
     }:{}),
     models:{name:field+'models',engine:cli},
