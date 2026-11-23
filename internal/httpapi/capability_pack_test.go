@@ -135,3 +135,48 @@ func TestCapabilityManifestBlocksDuplicateIDsAndUnsupportedFields(t *testing.T) 
   if _,err:=strictCapabilityManifest([]byte(raw));err==nil {t.Fatalf("accepted invalid manifest: %s",raw)}
  }
 }
+
+func TestCapabilityPackProjectOwnerOnly(t *testing.T) {
+ t.Setenv("AGENTFLOW_AUTH_REQUIRED","true")
+ t.Setenv("AGENTFLOW_SCHEDULER_ENABLED","false")
+ s,err:=repo.OpenTest();if err!=nil{t.Fatal(err)}
+ t.Cleanup(s.Close)
+ h:=New(s,engine.New(s,runtime.NewManager(t.TempDir())),nil,"","")
+ register:=func(login string)*http.Cookie{
+  req:=httptest.NewRequest(http.MethodPost,"http://localhost/api/auth/register",bytes.NewBufferString(
+   `{"login":"`+login+`","password":"secret1"}`))
+  req.Header.Set("Content-Type","application/json")
+  req.Header.Set("Origin","http://localhost")
+  rec:=httptest.NewRecorder();h.ServeHTTP(rec,req)
+  cookies:=rec.Result().Cookies()
+  if rec.Code!=http.StatusOK||len(cookies)!=1 {t.Fatalf("register %s: %d %s",login,rec.Code,rec.Body.String())}
+  return cookies[0]
+ }
+ register("admin")
+ owner:=register("cap-owner")
+ guest:=register("cap-guest")
+ user,ok:=s.UserByLoginName("cap-owner");if !ok{t.Fatal("owner missing")}
+ if err:=s.PutProject(domain.Project{ID:"cap-private",Key:"CAP",Name:"CAP",OwnerID:user.ID});err!=nil{t.Fatal(err)}
+ archive:=testCapabilityZip(t,map[string]string{"manifest.json":testCapabilityManifest(),"skills/skill-alpha/SKILL.md":"# Test"})
+ call:=func(cookie *http.Cookie,method,path string,body []byte)int{
+  req:=httptest.NewRequest(method,"http://localhost"+path,bytes.NewReader(body))
+  req.Header.Set("Origin","http://localhost")
+  if body!=nil {req.Header.Set("Content-Type","application/zip")}
+  req.AddCookie(cookie)
+  rec:=httptest.NewRecorder();h.ServeHTTP(rec,req)
+  return rec.Code
+ }
+ for _,endpoint:=range []struct{method,path string;body []byte}{
+  {http.MethodPost,"/api/capability-packs/preflight?projectId=cap-private",archive},
+  {http.MethodPost,"/api/capability-packs/import?projectId=cap-private&confirm=1",archive},
+  {http.MethodGet,"/api/capability-packs/export?projectId=cap-private",nil},
+ }{
+  if got:=call(guest,endpoint.method,endpoint.path,endpoint.body);got!=http.StatusForbidden {
+   t.Fatalf("nonowner %s %s returned %d",endpoint.method,endpoint.path,got)
+  }
+ }
+ if _,ok:=s.Rule("rule-alpha");ok{t.Fatal("unauthorized request wrote rule")}
+ if got:=call(owner,http.MethodPost,"/api/capability-packs/preflight?projectId=cap-private",archive);got!=http.StatusOK {
+  t.Fatalf("owner preflight returned %d",got)
+ }
+}
