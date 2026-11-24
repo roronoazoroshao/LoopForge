@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "policy": "skillhub-first",
+  "reviewedHead": "99bd3c3bce52942bae92d780ef94a9ae27414b75",
+  "stages": [
+    {
+      "order": 1,
+      "id": "skillhub-ranking",
+      "state": "blocked",
+      "reason": "Official API DNS unavailable; no category/keyword rankings collected. Public homepage trending observations only."
+    },
+    {
+      "order": 2,
+      "id": "skill-review",
+      "state": "blocked",
+      "reason": "No downloaded pinned ZIP, license audit or verified external Skill."
+    },
+    {
+      "order": 3,
+      "id": "role-design",
+      "state": "blocked",
+      "reason": "Existing 32 Roles remain draft; no external Skill binding until reviewed."
+    },
+    {
+      "order": 4,
+      "id": "sop-design",
+      "state": "blocked",
+      "reason": "Existing 24 SOPs are draft."
+    },
+    {
+      "order": 5,
+      "id": "pipeline-design",
+      "state": "blocked",
+      "reason": "Existing 8 workflows are draft."
+    },
+    {
+      "order": 6,
+      "id": "runtime-test",
+      "state": "blocked",
+      "reason": "No LoopForge instance/Runner access."
+    },
+    {
+      "order": 7,
+      "id": "independent-expert-review",
+      "state": "blocked",
+      "reason": "No independent review evidence."
+    },
+    {
+      "order": 8,
+      "id": "default-seed",
+      "state": "blocked",
+      "reason": "No manual SQL seed for uncertified data."
+    },
+    {
+      "order": 9,
+      "id": "merge-main",
+      "state": "blocked",
+      "reason": "No acceptance or CI evidence."
+    }
+  ],
+  "marketplace": {
+    "targets": 50,
+    "categoryRankVerified": 0,
+    "versionPinned": 0,
+    "downloaded": 0,
+    "installed": 0,
+    "certified": 0
+  },
+  "notes": "Status ledger is informational; human verification and actual evidence required. No self-certification."
+}

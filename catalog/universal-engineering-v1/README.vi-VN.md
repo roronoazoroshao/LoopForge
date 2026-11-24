@@ -17,3 +17,6 @@ SOP generic template hiện tại dùng seed SQL riêng; pack này không đổi
 
 ## Wave 2/6 continuation
 Xem `skillhub/curation.vi-VN.md`, `reviews/resource-matrix.json` (154 resources/targets, 308 behavioral case specs), `reviews/behavioral-protocol.vi-VN.md`, và `reviews/2026-11-24-wave2-6-evidence.json`. Test evidence gate không phải kiểm thử model. 0 independent reviews; chưa certify.
+
+## SkillHub-first gate
+The approved execution order is now enforced as a documented release gate. See [ranking workflow](skillhub/skillhub-first.vi-VN.md), [release status](reviews/release-gate-status.json). Existing resources are drafts; selection, package audit, live Agent execution, independent review and seed remain blocked until evidence exists.

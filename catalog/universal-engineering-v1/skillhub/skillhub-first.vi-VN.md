@@ -1,0 +1,16 @@
+# SkillHub-first execution — 2026-11-24
+
+Approved sequence: ranking → Skill assessment → Role design → SOP → Pipeline → runtime verification → independent expert review → manual default seed → merge main. Existing draft resources are not promoted. See release-gate-status.json.
+
+## Official ranking discovery
+Tencent SkillHub Open API docs: https://github.com/Tencent/skillhub/blob/main/docs/api/categories.md and https://github.com/Tencent/skillhub/blob/main/docs/api/skills.md. Overall top 50 is `/api/skills/top` (score); category/keyword list is `/api/skills` with sortBy=score or downloads. Read active categories at runtime; query 50 capabilities using two ranking metrics each. Overall rank, category rank and search rank are separate fields. Use first 20 per query as the candidate screening pool, not proof of best overall. A missing category filter is recorded in exact query parameters. Retain distinct publisher/slug identities; no automatic selection. Raw bytes and hashes preserved. Public homepage trending evidence is separate, and cannot count as category rank.
+
+From root: `node catalog/universal-engineering-v1/skillhub/collect-rankings.mjs <new-output-dir>`. No credentials, public GET only, bounded response/time, sequential rate-limited, stop on first failure, write incomplete status and exit 1. No installation, no package execution. Review `rankings.json` and raw response hashes before selection. Never commit raw responses without checking rights and privacy. If endpoint requires authentication or rate limiting, obtain authorized network access and retry; do not bypass limits.
+
+## Selection
+For each capability, review top-score and top-download matches, actual relevance and overlap; compare top category list (same namespace + slug). Consider stars/installs only if returned. Scores are marketplace ranking metrics, not five-star assessment. Choose at most one unique package per capability and no duplicates across final 50 unless explicit approved redesign. When no eligible package exists, mark blocked; never fill with irrelevant or fabricated packages. Evaluate trust, reliability, adaptability, conventions and effectiveness using the evaluation endpoint when available; assessment version may differ from package pin. A missing evaluation is unknown. Require exact namespace/slug/version, license/redistribution rights, archive hash and official file SHA256 list; use audit_zip.py offline, inspect all files and execute only after review in staging. Then install from native LoopForge SkillHub API with explicit version and verify installed snapshot. No auto-update.
+
+## Gate
+No external package is currently reviewed, pinned or installed. Do not bind candidates to Roles. Do not publish SOP or pipeline. No SQL generated automatically; AGENTS.md requires manual migrations and seed. Only after behavioral evidence, independent reviews and human acceptance: author reviewed seed SQL manually, test preservation of existing project data and cross-project authorization, run CI on exact head, then merge. No bypass.
+
+Public homepage trending entries are recorded separately in homepage-observations.json. They do not establish category or score ranking. At this turn API access failed DNS and web open failed. The collector has been fixture-tested in isolated V8; actual network collection is not verified.
