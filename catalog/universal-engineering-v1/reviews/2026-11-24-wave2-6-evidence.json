@@ -1,0 +1,72 @@
+{
+  "sourceRevision": "bfb02394dd8d78dcfaef8ce79ff1801dfe67e46d",
+  "marketplace": {
+    "publicIndexedLeads": 18,
+    "observedVersionLabels": 4,
+    "verifiedPins": 0,
+    "installed": 0
+  },
+  "behavioral": {
+    "resourceCount": 154,
+    "caseCount": 308,
+    "minimumExpectedRecords": 616,
+    "actualRecords": 0,
+    "independentReviews": 0
+  },
+  "gateTests": {
+    "environment": "isolated V8",
+    "redFailed": 11,
+    "green": [
+      {
+        "name": "reject empty evidence",
+        "pass": true
+      },
+      {
+        "name": "reject missing guided result",
+        "pass": true
+      },
+      {
+        "name": "reject self review",
+        "pass": true
+      },
+      {
+        "name": "valid matched evidence",
+        "pass": true
+      },
+      {
+        "name": "reject guided failure",
+        "pass": true
+      },
+      {
+        "name": "reject stale revision",
+        "pass": true
+      },
+      {
+        "name": "reject duplicate arm",
+        "pass": true
+      },
+      {
+        "name": "reject missing trace",
+        "pass": true
+      },
+      {
+        "name": "reject shared run ID",
+        "pass": true
+      },
+      {
+        "name": "reject shared trace hash",
+        "pass": true
+      },
+      {
+        "name": "reject unrecognized case",
+        "pass": true
+      },
+      {
+        "name": "reject baseline abstention",
+        "pass": true
+      }
+    ],
+    "scope": "synthetic evidence validation logic only; not model/agent behavioral tests"
+  },
+  "network": "DNS unavailable; public page indexed metadata only; no live LoopForge endpoint"
+}

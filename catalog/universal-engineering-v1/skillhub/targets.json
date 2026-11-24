@@ -2,12 +2,23 @@
   {
     "capability": "Brainstorming",
     "status": "pending",
-    "candidate": null,
+    "candidate": {
+      "namespace": null,
+      "slug": "superpowers-brainstorming",
+      "url": "https://www.skillhub.cn/docs/verify-signature?slug=superpowers-brainstorming&version=1.0.0",
+      "observedVersion": "1.0.0",
+      "screeningNote": "signature help page only; namespace unresolved",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
+    },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-01",
+    "searchQuery": "Brainstorming",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Writing Plans",
@@ -17,7 +28,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-02",
+    "searchQuery": "Writing Plans",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Spec-driven Development",
@@ -25,13 +39,20 @@
     "candidate": {
       "namespace": "user_db7ebc1c",
       "slug": "sdd-driven-dev",
-      "url": "https://skillhub.cn/skills/user_db7ebc1c/sdd-driven-dev"
+      "url": "https://skillhub.cn/skills/user_db7ebc1c/sdd-driven-dev",
+      "observedVersion": "1.0.0",
+      "screeningNote": "PRD-driven workflow; overlaps with existing SOP, check conflicting approval",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
     },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-03",
+    "searchQuery": "Spec-driven Development",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Task Decomposition",
@@ -41,27 +62,52 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-04",
+    "searchQuery": "Task Decomposition",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Critical Thinking",
     "status": "pending",
-    "candidate": null,
+    "candidate": {
+      "namespace": "clawhub_ivangdavila",
+      "slug": "first-principles-thinking",
+      "url": "https://skillhub.cn/skills/clawhub_ivangdavila/first-principles-thinking",
+      "observedVersion": null,
+      "screeningNote": "first-principles reasoning",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
+    },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-05",
+    "searchQuery": "Critical Thinking",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "System Design",
     "status": "pending",
-    "candidate": null,
+    "candidate": {
+      "namespace": "user_e9af5021",
+      "slug": "digital-solution-designer",
+      "url": "https://skillhub.cn/skills/user_e9af5021/digital-solution-designer",
+      "observedVersion": null,
+      "screeningNote": "architecture patterns; verify depth and portability",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
+    },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-06",
+    "searchQuery": "System Design",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Architecture Decision Records",
@@ -71,7 +117,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-07",
+    "searchQuery": "Architecture Decision Records",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Domain-driven Design",
@@ -81,17 +130,31 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-08",
+    "searchQuery": "Domain-driven Design",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "API Design",
     "status": "pending",
-    "candidate": null,
+    "candidate": {
+      "namespace": "user_e40a4360",
+      "slug": "api-and-interface-design",
+      "url": "https://skillhub.cn/skills/user_e40a4360/api-and-interface-design",
+      "observedVersion": null,
+      "screeningNote": "interface design",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
+    },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-09",
+    "searchQuery": "API Design",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Database Design",
@@ -101,17 +164,31 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-10",
+    "searchQuery": "Database Design",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Clean Code",
     "status": "pending",
-    "candidate": null,
+    "candidate": {
+      "namespace": "clawhub_ivangdavila",
+      "slug": "software-engineer",
+      "url": "https://skillhub.cn/skills/clawhub_ivangdavila/software-engineer",
+      "observedVersion": null,
+      "screeningNote": "general engineering; verify specificity",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
+    },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-11",
+    "searchQuery": "Clean Code",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Backend Development",
@@ -119,13 +196,20 @@
     "candidate": {
       "namespace": "clawhub_ivangdavila",
       "slug": "backend",
-      "url": "https://skillhub.cn/skills/clawhub_ivangdavila/backend"
+      "url": "https://www.skillhub.cn/skills/backend",
+      "observedVersion": null,
+      "screeningNote": "backend API patterns; verify stack independence",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
     },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-12",
+    "searchQuery": "Backend Development",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Frontend Development",
@@ -135,27 +219,52 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-13",
+    "searchQuery": "Frontend Development",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Full-stack Integration",
     "status": "pending",
-    "candidate": null,
+    "candidate": {
+      "namespace": "clawhub_encryptshawn",
+      "slug": "dev-project-engineer",
+      "url": "https://skillhub.cn/skills/clawhub_encryptshawn/dev-project-engineer",
+      "observedVersion": null,
+      "screeningNote": "engineering coordination; may overlap or assume Asana",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
+    },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-14",
+    "searchQuery": "Full-stack Integration",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Refactoring",
     "status": "pending",
-    "candidate": null,
+    "candidate": {
+      "namespace": "clawhub_pskoett",
+      "slug": "simplify-and-harden",
+      "url": "https://skillhub.cn/skills/clawhub_pskoett/simplify-and-harden",
+      "observedVersion": null,
+      "screeningNote": "post-change simplification/hardening; review auto-trigger behavior",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
+    },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-15",
+    "searchQuery": "Refactoring",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Test-driven Development",
@@ -165,7 +274,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-16",
+    "searchQuery": "Test-driven Development",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Unit Testing",
@@ -175,7 +287,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-17",
+    "searchQuery": "Unit Testing",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Integration Testing",
@@ -185,17 +300,31 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-18",
+    "searchQuery": "Integration Testing",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Playwright E2E",
     "status": "pending",
-    "candidate": null,
+    "candidate": {
+      "namespace": "zcwl",
+      "slug": "agent-browser",
+      "url": "https://skillhub.cn/skills/zcwl/agent-browser",
+      "observedVersion": null,
+      "screeningNote": "adjacent browser automation candidate, not proof of Playwright compatibility",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
+    },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-19",
+    "searchQuery": "Playwright E2E",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Property-based Testing",
@@ -205,7 +334,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-20",
+    "searchQuery": "Property-based Testing",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Systematic Debugging",
@@ -215,7 +347,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-21",
+    "searchQuery": "Systematic Debugging",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Root Cause Analysis",
@@ -225,7 +360,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-22",
+    "searchQuery": "Root Cause Analysis",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Regression Analysis",
@@ -235,7 +373,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-23",
+    "searchQuery": "Regression Analysis",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Log Analysis",
@@ -245,7 +386,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-24",
+    "searchQuery": "Log Analysis",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Performance Profiling",
@@ -255,7 +399,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-25",
+    "searchQuery": "Performance Profiling",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Threat Modeling",
@@ -265,7 +412,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-26",
+    "searchQuery": "Threat Modeling",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Secure Code Review",
@@ -273,13 +423,20 @@
     "candidate": {
       "namespace": "user_6cc7d052",
       "slug": "code-reviewer",
-      "url": "https://skillhub.cn/skills/user_6cc7d052/code-reviewer"
+      "url": "https://skillhub.cn/skills/code-reviewer",
+      "observedVersion": "1.0.1",
+      "screeningNote": "Java-oriented quality review; not automatically generic security auditor",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
     },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-27",
+    "searchQuery": "Secure Code Review",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Dependency Audit",
@@ -289,7 +446,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-28",
+    "searchQuery": "Dependency Audit",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Secrets Management",
@@ -299,7 +459,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-29",
+    "searchQuery": "Secrets Management",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "LLM Application Security",
@@ -309,7 +472,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-30",
+    "searchQuery": "LLM Application Security",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Frontend Design",
@@ -317,13 +483,18 @@
     "candidate": {
       "namespace": "clawhub_paudyyin",
       "slug": "frontend-design",
-      "url": "https://skillhub.cn/skills/clawhub_paudyyin/frontend-design"
+      "url": "https://skillhub.cn/skills/clawhub_paudyyin/frontend-design",
+      "evidenceType": "prior lead; not reverified in this session",
+      "observedVersion": null
     },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-31",
+    "searchQuery": "Frontend Design",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "UX Research",
@@ -333,17 +504,31 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-32",
+    "searchQuery": "UX Research",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Design Systems",
     "status": "pending",
-    "candidate": null,
+    "candidate": {
+      "namespace": null,
+      "slug": "design-system-creation",
+      "url": "https://skillhub.cn/docs/verify-signature?slug=design-system-creation&version=1.0.0",
+      "observedVersion": "1.0.0",
+      "screeningNote": "signature help page only; namespace unresolved",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
+    },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-33",
+    "searchQuery": "Design Systems",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Accessibility Audit",
@@ -353,7 +538,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-34",
+    "searchQuery": "Accessibility Audit",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Responsive Design",
@@ -363,7 +551,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-35",
+    "searchQuery": "Responsive Design",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Docker Engineering",
@@ -373,7 +564,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-36",
+    "searchQuery": "Docker Engineering",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "CI/CD Engineering",
@@ -383,17 +577,31 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-37",
+    "searchQuery": "CI/CD Engineering",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Infrastructure as Code",
     "status": "pending",
-    "candidate": null,
+    "candidate": {
+      "namespace": "tencent-adm",
+      "slug": "tencentcloud-infra",
+      "url": "https://skillhub.cn/skills/tencent-adm/tencentcloud-infra",
+      "observedVersion": null,
+      "screeningNote": "vendor-specific adjacent lead; not universal",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
+    },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-38",
+    "searchQuery": "Infrastructure as Code",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Observability",
@@ -403,37 +611,73 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-39",
+    "searchQuery": "Observability",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Incident Response",
     "status": "pending",
-    "candidate": null,
+    "candidate": {
+      "namespace": "indiv-xy",
+      "slug": "multicloud-ops",
+      "url": "https://skillhub.cn/skills/indiv-xy/multicloud-ops",
+      "observedVersion": null,
+      "screeningNote": "adjacent operations candidate; verify incident procedure",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
+    },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-40",
+    "searchQuery": "Incident Response",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Prompt Engineering",
     "status": "pending",
-    "candidate": null,
+    "candidate": {
+      "namespace": "clawhub_memoryf",
+      "slug": "ai-agent-helper-moss",
+      "url": "https://skillhub.cn/skills/ai-agent-helper-moss",
+      "observedVersion": null,
+      "screeningNote": "agent/prompt design; inspect execution assumptions",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
+    },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-41",
+    "searchQuery": "Prompt Engineering",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Agent Orchestration",
     "status": "pending",
-    "candidate": null,
+    "candidate": {
+      "namespace": "clawhub_1yihui",
+      "slug": "yihui-agent-swarm",
+      "url": "https://skillhub.cn/skills/yihui-agent-swarm",
+      "observedVersion": null,
+      "screeningNote": "swarm architecture; check LoopForge compatibility",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
+    },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-42",
+    "searchQuery": "Agent Orchestration",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "MCP Development",
@@ -443,7 +687,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-43",
+    "searchQuery": "MCP Development",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "RAG Engineering",
@@ -453,17 +700,31 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-44",
+    "searchQuery": "RAG Engineering",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "LLM Evaluation",
     "status": "pending",
-    "candidate": null,
+    "candidate": {
+      "namespace": null,
+      "slug": "as-autoresearch-loop",
+      "url": "https://skillhub.cn/skills/as-autoresearch-loop",
+      "observedVersion": null,
+      "screeningNote": "evaluation iteration lead; namespace unresolved",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
+    },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-45",
+    "searchQuery": "LLM Evaluation",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Requesting Code Review",
@@ -473,7 +734,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-46",
+    "searchQuery": "Requesting Code Review",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Receiving Code Review",
@@ -483,7 +747,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-47",
+    "searchQuery": "Receiving Code Review",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Verification Before Completion",
@@ -493,7 +760,10 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-48",
+    "searchQuery": "Verification Before Completion",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Technical Documentation",
@@ -501,13 +771,20 @@
     "candidate": {
       "namespace": "clawhub_jerry-guo-mys",
       "slug": "docs-improver",
-      "url": "https://skillhub.cn/skills/clawhub_jerry-guo-mys/docs-improver"
+      "url": "https://skillhub.cn/skills/docs-improver",
+      "observedVersion": null,
+      "screeningNote": "documentation improvement; inspect script",
+      "evidenceType": "public indexed page, not package download",
+      "observedAt": "2026-11-24"
     },
     "version": null,
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-49",
+    "searchQuery": "Technical Documentation",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   },
   {
     "capability": "Release Readiness",
@@ -517,6 +794,9 @@
     "license": null,
     "sha256": null,
     "review": null,
-    "installed": false
+    "installed": false,
+    "targetId": "lf-market-50",
+    "searchQuery": "Release Readiness",
+    "quarantineReason": "No downloaded bytes, verified license, full-file review or independent behavioral evidence"
   }
 ]

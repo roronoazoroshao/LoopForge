@@ -1,6 +1,6 @@
 # Universal Engineering Pack — candidate v0.1.0
 
-Bản nháp dữ liệu cho LoopForge v0.4.2, baseline 33a21a24d4de013820f5b2d023ca0bd01a84ac90. Không tự động seed, cài, chia sẻ, publish hoặc chạy. Không sửa engine, DB hay CI. 104 tài nguyên tự biên soạn, 50 năng lực SkillHub mục tiêu (5 lead có trang công khai, 0 gói tải/pin/audit/cài). Chưa được hội đồng độc lập phê duyệt.
+Bản nháp dữ liệu cho LoopForge v0.4.2, baseline 33a21a24d4de013820f5b2d023ca0bd01a84ac90. Không tự động seed, cài, chia sẻ, publish hoặc chạy. Không sửa engine, DB hay CI. 104 tài nguyên tự biên soạn, 50 năng lực SkillHub mục tiêu (18 lead công khai được khảo sát trong Wave 2; 0 gói tải/pin/audit/cài). Chưa được hội đồng độc lập phê duyệt.
 
 ## Dùng thử có kiểm soát
 1. Chạy `node catalog/universal-engineering-v1/tests/validate.mjs` từ root. Dùng staging có tài khoản và sandbox riêng; không dùng production.
@@ -14,3 +14,6 @@ Dùng marketplace API /api/skillhub/skills, detail/versions/files/file/evaluatio
 
 ## Giới hạn
 SOP generic template hiện tại dùng seed SQL riêng; pack này không đổi seed và chưa tự động trở thành template. Chưa kiểm chứng nested SOP, artifact propagation, agent loop/approval execution, reject path, runtime model inheritance hay cross-project auth. Các profile là policy hướng dẫn, không phải loại entity runtime. Không có auto-deploy. Không tự xưng review độc lập.
+
+## Wave 2/6 continuation
+Xem `skillhub/curation.vi-VN.md`, `reviews/resource-matrix.json` (154 resources/targets, 308 behavioral case specs), `reviews/behavioral-protocol.vi-VN.md`, và `reviews/2026-11-24-wave2-6-evidence.json`. Test evidence gate không phải kiểm thử model. 0 independent reviews; chưa certify.
