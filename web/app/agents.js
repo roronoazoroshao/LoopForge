@@ -479,7 +479,7 @@ function renderAgentCreateReview(){
   const preset=agentPresets.find(x=>x.id===state.agentCreatePreset);
   const cli=f.elements.executorId?.selectedOptions?.[0]?.textContent||f.elements.executorId?.value||'';
   const effort=(f.elements.effort?.value||'').trim();
-  const rows=[['名称',f.elements.name.value.trim()],['标识',f.elements.id.value.trim()],['起点',preset?.name||'空白'],['CLI · 模型',`${cli} · ${agentEffectiveModel(f)||'未选模型'}${effort?` · ${effort}`:''}`],['职责',f.elements.description.value.trim()||(window.lfLang?.()==='vi'?'Chưa nhập trách nhiệm':'未填写职责')]];
+  const rows=[['名称',f.elements.name.value.trim()],['标识',f.elements.id.value.trim()],['起点',preset?.name||'空白'],['CLI · 模型',`${cli} · ${agentEffectiveModel(f)||'未选模型'}${effort?` · ${effort}`:''}`],['职责',f.elements.description.value.trim()||window.lfT('未填写职责','No responsibility entered','Chưa nhập trách nhiệm')]];
   host.innerHTML=rows.map(([k,v])=>`<div><dt>${k}</dt><dd${['名称','标识','职责'].includes(k)?' data-i18n-skip':''}>${escapeHTML(v)}</dd></div>`).join('');
 }
 function syncAgentModalChrome(){

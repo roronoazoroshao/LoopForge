@@ -82,7 +82,7 @@ const flowPalette=(()=>{
       group.hidden=!visibleItems;shown+=visibleItems;
     });
     const empty=document.getElementById('flowPaletteEmpty');
-    if(empty){if(paletteVI())empty.setAttribute('data-i18n-skip','');else empty.removeAttribute('data-i18n-skip');empty.hidden=!!shown||!q;empty.textContent=paletteCopy(`没有匹配「${raw}」的节点`,`Không tìm thấy bước phù hợp với “${raw}”`)}
+    if(empty){empty.setAttribute('data-i18n-skip','');empty.hidden=!!shown||!q;empty.textContent=window.lfT(`没有匹配「${raw}」的节点`,`No steps match “${raw}”`,`Không tìm thấy bước phù hợp với “${raw}”`)}
     const pal=document.getElementById('flowPalette');
     pal?.classList.toggle('readonly',typeof flowReadOnly==='function'&&flowReadOnly());
   }

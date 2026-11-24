@@ -739,6 +739,7 @@ function sopSeedTemplateId(wf){
   return SOP_SEED_TEMPLATE_IDS.includes(id)?id:'';
 }
 function sopSeedNodeDisplayName(n,wf=state.workflow){
+  if(wf?.preview?.enabled&&n?.id==='af-preview-build'&&n.type==='agent'&&n.agentId==='af-preview-builder'&&n.name==='构建静态站点')return window.lfT('构建静态站点','Build static site','Xây dựng trang web tĩnh');
   const copy=SOP_SEED_STAGE_COPY[n?.id];
   if(!copy||!sopSeedTemplateId(wf)||!sopSeedNameMatches(n.id,n.name)||
      n.type!==(n.id==='accept'?'approval':'agent'))return n?.name||'';

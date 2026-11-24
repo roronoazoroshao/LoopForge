@@ -157,12 +157,12 @@ function sopRunCardBody(w,m,liveCount){
 function projectSOPCard(w,m={},liveCount=0){
   const recent=formatTimestamp(m.lastRunAt);
   const meta=sopUICopy(`${w.owner||'未分配负责人'} · v${w.version||1} · ${recent?`最近 ${recent}`:'尚未运行'}`,`${w.owner||'Chưa có người phụ trách'} · v${w.version||1} · ${recent?`Gần nhất: ${recent}`:'Chưa chạy'}`);
-  return `<article class="sop-card" data-sop="${escapeHTML(w.id)}" tabindex="0" role="button" aria-label="打开流程设计器：${escapeHTML(w.name)}">${sopRunCardBody(w,m,liveCount)}<div class="sop-card-foot"><span class="sop-card-meta" title="${escapeHTML(meta)}">${escapeHTML(meta)}</span>${sopCardPrimary('data-open-sop',w.id,'打开')}${sopCardMoreButton(w)}</div></article>`;
+  return `<article class="sop-card" data-sop="${escapeHTML(w.id)}" tabindex="0" role="button" data-i18n-aria-skip aria-label="${escapeHTML(window.lfT(`打开流程设计器：${sopDisplayName(w)}`,`Open SOP designer: ${sopDisplayName(w)}`,`Mở trình thiết kế SOP: ${sopDisplayName(w)}`))}">${sopRunCardBody(w,m,liveCount)}<div class="sop-card-foot"><span class="sop-card-meta" title="${escapeHTML(meta)}">${escapeHTML(meta)}</span>${sopCardPrimary('data-open-sop',w.id,'打开')}${sopCardMoreButton(w)}</div></article>`;
 }
 function sharedSOPCard(w,m={},liveCount=0){
   const from=!w.projectId?sopUICopy('平台','Nền tảng'):sopUICopy(`来自 ${(state.data.projects||[]).find(p=>p.id===w.projectId)?.name||w.projectId}`,`Từ ${(state.data.projects||[]).find(p=>p.id===w.projectId)?.name||w.projectId}`);
   const meta=`${w.owner?`${w.owner} · `:''}v${w.version||1}`;
-  return `<article class="sop-card" data-sop="${escapeHTML(w.id)}" tabindex="0" role="button" aria-label="打开流程设计器：${escapeHTML(w.name)}">${sopRunCardBody(w,m,liveCount)}<div class="sop-card-foot"><span class="sop-card-meta" title="${escapeHTML(`${from} · ${meta}`)}"><span class="sop-card-tag">${escapeHTML(from)}</span>${escapeHTML(meta)}</span>${sopCardPrimary('data-clone-workflow',w.id,'复制到本项目','copy')}</div></article>`;
+  return `<article class="sop-card" data-sop="${escapeHTML(w.id)}" tabindex="0" role="button" data-i18n-aria-skip aria-label="${escapeHTML(window.lfT(`打开流程设计器：${sopDisplayName(w)}`,`Open SOP designer: ${sopDisplayName(w)}`,`Mở trình thiết kế SOP: ${sopDisplayName(w)}`))}">${sopRunCardBody(w,m,liveCount)}<div class="sop-card-foot"><span class="sop-card-meta" title="${escapeHTML(`${from} · ${meta}`)}"><span class="sop-card-tag">${escapeHTML(from)}</span>${escapeHTML(meta)}</span>${sopCardPrimary('data-clone-workflow',w.id,'复制到本项目','copy')}</div></article>`;
 }
 // Only the four immutable descriptions shipped with the opt-in public catalog are
 // UI copy. A platform admin may edit a generic template, so never translate a

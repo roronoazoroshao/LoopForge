@@ -27,14 +27,14 @@ function assetFindVisible(id){if(!id)return null;const owned=assetScopeItems('pr
 function assetProjectName(a){return (state.data.projects||[]).find(p=>p.id===a?.projectId)?.name||a?.projectId||'平台'}
 // Translate only unedited platform seed names; never rewrite saved resource data.
 const ASSET_SEED_NAMES={
-  'rules:public-engineering':['工程与验证约束','Quy tắc kỹ thuật và xác minh'],
-  'dockerfiles:generic-backend':['公共开发环境','Môi trường phát triển dùng chung'],
-  'sandboxes:generic-docker':['Docker 隔离沙箱','Sandbox cách ly bằng Docker'],
-  'sandboxes:local':['本地执行（仅可信任务）','Thực thi cục bộ (chỉ tác vụ đáng tin cậy)']
+  'rules:public-engineering':['工程与验证约束','Engineering and verification rules','Quy tắc kỹ thuật và xác minh'],
+  'dockerfiles:generic-backend':['公共开发环境','Shared development environment','Môi trường phát triển dùng chung'],
+  'sandboxes:generic-docker':['Docker 隔离沙箱','Docker sandbox','Sandbox cách ly bằng Docker'],
+  'sandboxes:local':['本地执行（仅可信任务）','Local execution (trusted tasks only)','Thực thi cục bộ (chỉ tác vụ đáng tin cậy)']
 };
 function assetDisplayName(a,type=state.assetType){
   const seed=ASSET_SEED_NAMES[`${type}:${a?.id||''}`];
-  return assetVI()&&seed&&a?.name===seed[0]?seed[1]:(a?.name||a?.id||'');
+  return seed&&!a?.projectId&&a?.name===seed[0]?window.lfT(...seed):(a?.name||a?.id||'');
 }
 
 function assetIsBuiltin(a,type=state.assetType){return (type==='sandboxes'&&(a?.id==='local'||a?.id==='generic-docker'))||(type==='dockerfiles'&&a?.id==='generic-backend')}
@@ -59,7 +59,7 @@ function assetMetaHTML(a){
 }
 function assetCardHTML(a){
   const readonly=!catalogOwned(a.projectId);const go=readonly?assetUICopy('查看','Xem'):assetUICopy('编辑','Sửa');
-  return `<article class="asset-card" role="link" tabindex="0" data-asset-id="${escapeHTML(a.id)}"${assetVI() ? ' data-i18n-aria-skip' : ''} aria-label="${go} ${escapeHTML(assetUILabel(assetKindLabel()))} “${escapeHTML(assetDisplayName(a))}”"><div class="asset-card-top"><span class="asset-tile">${huiIcon(assetIconName())}</span><div class="asset-card-name"><h3 data-i18n-skip>${escapeHTML(assetDisplayName(a))}</h3><code class="asset-mono">${escapeHTML(a.id)}</code></div></div><p class="asset-card-desc" data-i18n-skip>${escapeHTML(a.description||assetUICopy('暂无说明','Chưa có mô tả'))}</p><div class="asset-meta">${assetMetaHTML(a)}</div><div class="asset-card-foot">${assetStatusHTML(a)}<span class="asset-card-go">${go}${huiIcon('chevron-right')}</span></div></article>`;
+  return `<article class="asset-card" role="link" tabindex="0" data-asset-id="${escapeHTML(a.id)}"${assetVI() ? ' data-i18n-aria-skip' : ''} aria-label="${go} ${escapeHTML(assetUILabel(assetKindLabel()))} “${escapeHTML(assetDisplayName(a))}”"><div class="asset-card-top"><span class="asset-tile">${huiIcon(assetIconName())}</span><div class="asset-card-name"><h3 data-i18n-skip>${escapeHTML(assetDisplayName(a))}</h3><code class="asset-mono">${escapeHTML(a.id)}</code></div></div><p class="asset-card-desc" data-i18n-skip>${escapeHTML(a.description||window.lfT('暂无说明','No description','Chưa có mô tả'))}</p><div class="asset-meta">${assetMetaHTML(a)}</div><div class="asset-card-foot">${assetStatusHTML(a)}<span class="asset-card-go">${go}${huiIcon('chevron-right')}</span></div></article>`;
 }
 function assetGridEmptyHTML(){
   const kind=assetKindLabel(),copy=assetPageCopy();
