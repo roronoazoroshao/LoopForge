@@ -94,9 +94,9 @@ import {
 } from "./theme.js";
 
 const THEME_OPTIONS = [
-  { value: "light", label: chatT("浅色", "Sáng") },
-  { value: "dark", label: chatT("深色", "Tối") },
-  { value: "system", label: chatT("跟随系统", "Theo hệ thống") },
+  { value: "light", label: chatT("浅色", "Sáng", "Light") },
+  { value: "dark", label: chatT("深色", "Tối", "Dark") },
+  { value: "system", label: chatT("跟随系统", "Theo hệ thống", "System") },
 ];
 const environmentVisibilityKey = "agentflow.native-chat.environmentVisibility.v1";
 const sessionApprovalScope = ({ id, projectId }) => `approval.session:${JSON.stringify([id, projectId || ""])}`;
@@ -160,9 +160,9 @@ const homeStarters = [
     id: "quick-access",
     icon: "sparkles",
     tone: "blue",
-    title: chatT("快速接入", "Kết nối nhanh"),
-    description: chatT("提供最低限度的鉴权与仓库，用默认角色与 SOP 立即开始。", "Cung cấp xác thực và kho mã tối thiểu, bắt đầu ngay với vai trò và SOP mặc định."),
-    steps: [chatT("鉴权", "Xác thực"), chatT("仓库", "Kho mã"), chatT("默认 SOP", "SOP mặc định")],
+    title: chatT("快速接入", "Kết nối nhanh", "Quick setup"),
+    description: chatT("提供最低限度的鉴权与仓库，用默认角色与 SOP 立即开始。", "Cung cấp xác thực và kho mã tối thiểu, bắt đầu ngay với vai trò và SOP mặc định.", "Set up minimal authentication and a repository, then start with the default roles and SOP."),
+    steps: [chatT("鉴权", "Xác thực", "Authentication"), chatT("仓库", "Kho mã", "Repository"), chatT("默认 SOP", "SOP mặc định", "Default SOP")],
   },
   // New users asked how to hook up a test environment and how roles and SOPs
   // work; these two cards start a guided conversation instead of dropping them
@@ -171,21 +171,21 @@ const homeStarters = [
     id: "environment",
     icon: "terminal",
     tone: "violet",
-    title: chatT("接入测试环境", "Kết nối môi trường kiểm thử"),
-    description: chatT("助手先查执行机器、镜像和沙箱，再按缺口一步步带你配好。", "Trợ lý kiểm tra máy thực thi, image và sandbox rồi hướng dẫn cấu hình những phần còn thiếu."),
-    steps: [chatT("执行机器", "Máy thực thi"), chatT("镜像", "Image"), chatT("沙箱", "Sandbox")],
+    title: chatT("接入测试环境", "Kết nối môi trường kiểm thử", "Connect a test environment"),
+    description: chatT("助手先查执行机器、镜像和沙箱，再按缺口一步步带你配好。", "Trợ lý kiểm tra máy thực thi, image và sandbox rồi hướng dẫn cấu hình những phần còn thiếu.", "The assistant checks execution machines, images, and sandboxes, then guides you through the missing configuration."),
+    steps: [chatT("执行机器", "Máy thực thi", "Execution machines"), chatT("镜像", "Image", "Images"), chatT("沙箱", "Sandbox", "Sandbox")],
     prompt:
-      chatT("带我一步步接入测试环境：先查看当前项目已有的执行机器、容器镜像、环境脚本和沙箱，告诉我还缺什么、按什么顺序配、每一步在哪里操作；能由你提交的配置，直接起草出来给我。", "Hướng dẫn tôi từng bước kết nối môi trường kiểm thử: trước tiên xem máy thực thi, image container, script môi trường và sandbox hiện có của dự án; cho biết còn thiếu gì, cấu hình theo thứ tự nào và thao tác ở đâu; với cấu hình bạn có thể gửi, hãy tạo bản nháp trực tiếp cho tôi."),
+      chatT("带我一步步接入测试环境：先查看当前项目已有的执行机器、容器镜像、环境脚本和沙箱，告诉我还缺什么、按什么顺序配、每一步在哪里操作；能由你提交的配置，直接起草出来给我。", "Hướng dẫn tôi từng bước kết nối môi trường kiểm thử: trước tiên xem máy thực thi, image container, script môi trường và sandbox hiện có của dự án; cho biết còn thiếu gì, cấu hình theo thứ tự nào và thao tác ở đâu; với cấu hình bạn có thể gửi, hãy tạo bản nháp trực tiếp cho tôi.", "Guide me through connecting a test environment. First inspect this project's execution machines, container images, environment scripts, and sandboxes. Tell me what is missing, the configuration order, and where to perform each step. Draft any configuration you can submit for me."),
   },
   {
     id: "sop",
     icon: "workflow",
     tone: "green",
-    title: chatT("选用 SOP 与角色", "Chọn SOP và vai trò"),
-    description: chatT("了解产品、前端、后端三套交付 SOP 和其中的角色，按需求推荐一套。", "Tìm hiểu ba SOP bàn giao sản phẩm, frontend, backend và các vai trò; đề xuất SOP phù hợp yêu cầu."),
-    steps: [chatT("产品", "Sản phẩm"), chatT("前端", "Frontend"), chatT("后端", "Backend")],
+    title: chatT("选用 SOP 与角色", "Chọn SOP và vai trò", "Choose SOPs and roles"),
+    description: chatT("了解产品、前端、后端三套交付 SOP 和其中的角色，按需求推荐一套。", "Tìm hiểu ba SOP bàn giao sản phẩm, frontend, backend và các vai trò; đề xuất SOP phù hợp yêu cầu.", "Explore the product, frontend, and backend delivery SOPs and their roles, then recommend one based on the requirement."),
+    steps: [chatT("产品", "Sản phẩm", "Product"), chatT("前端", "Frontend", "Frontend"), chatT("后端", "Backend", "Backend")],
     prompt:
-      chatT("我准备写需求了。平台内置的产品、前端、后端交付 SOP 分别适合什么场景、好在哪里、里面有哪些角色？请结合当前项目推荐一套，并告诉我怎么绑定和派发第一条需求。我的需求是：", "Tôi chuẩn bị viết yêu cầu. SOP bàn giao sản phẩm, frontend và backend tích hợp phù hợp các tình huống nào, có ưu điểm và vai trò gì? Hãy đề xuất SOP theo dự án hiện tại và hướng dẫn liên kết, điều phối yêu cầu đầu tiên. Yêu cầu của tôi là:"),
+      chatT("我准备写需求了。平台内置的产品、前端、后端交付 SOP 分别适合什么场景、好在哪里、里面有哪些角色？请结合当前项目推荐一套，并告诉我怎么绑定和派发第一条需求。我的需求是：", "Tôi chuẩn bị viết yêu cầu. SOP bàn giao sản phẩm, frontend và backend tích hợp phù hợp các tình huống nào, có ưu điểm và vai trò gì? Hãy đề xuất SOP theo dự án hiện tại và hướng dẫn liên kết, điều phối yêu cầu đầu tiên. Yêu cầu của tôi là:", "I am about to write a requirement. What scenarios are the built-in product, frontend, and backend delivery SOPs suited for, what are their advantages, and what roles do they include? Recommend one for the current project and explain how to link and dispatch my first requirement. My requirement is:"),
   },
 ];
 
@@ -248,9 +248,9 @@ function AssistantTurn({ message, steps, assets, projectId, sessionId, local, re
       {message.failure && message.generationId && !local ? (
         <GenerationDiagnostics sessionId={sessionId} generationId={message.generationId} failure={message.failure} onCLIInstall={onCLIInstall} readOnly={readOnly} />
       ) : message.unfinished ? (
-        <p className="reply-stopped">{chatT("本轮未完成 ·", "Lượt này chưa hoàn tất ·")} {chatServerErrorText(message.unfinished)}</p>
+        <p className="reply-stopped">{chatT("本轮未完成 ·", "Lượt này chưa hoàn tất ·", "This turn is incomplete ·")} {chatServerErrorText(message.unfinished)}</p>
       ) : reply.stopped ? (
-        <p className="reply-stopped">{chatT("已停止，以上是停止前的内容。", "Đã dừng. Nội dung trên được tạo trước khi dừng.")}</p>
+        <p className="reply-stopped">{chatT("已停止，以上是停止前的内容。", "Đã dừng. Nội dung trên được tạo trước khi dừng.", "Stopped. The content above was generated before stopping.")}</p>
       ) : null}
     </>
   );
@@ -297,7 +297,7 @@ function LiveMessage({ live, generation, finished = false, local = false, readOn
         <p className="reply-stopped">
           {generation?.status === "failed" && generation?.error
             ? chatServerErrorText(generation.error)
-            : chatT("已停止，以上是停止前的内容。", "Đã dừng; nội dung phía trên là phần trước khi dừng.")}
+            : chatT("已停止，以上是停止前的内容。", "Đã dừng; nội dung phía trên là phần trước khi dừng.", "Stopped. The content above was generated before stopping.")}
         </p>
       ) : null}
     </div>
@@ -313,7 +313,7 @@ function readIssueMention() {
 export default function App() {
   const realChat = useChat();
   const chat = useLocalConversations(realChat);
-  const sessionTitle = chat.session?.displayTitle || chat.session?.title || chatT("新对话", "Cuộc trò chuyện mới");
+  const sessionTitle = chat.session?.displayTitle || chat.session?.title || chatT("新对话", "Cuộc trò chuyện mới", "New chat");
   const titleReveal = useTitleReveal(
     chat.session?.id,
     sessionTitle,
@@ -409,7 +409,7 @@ export default function App() {
     try {
       localStorage.setItem(key, JSON.stringify(draft));
     } catch {
-      chat.setError(chatT("浏览器存储空间不足，草稿仍保留在当前页面。请移除较大的附件后重试。", "Bộ nhớ trình duyệt không đủ. Bản nháp vẫn được giữ trên trang hiện tại. Hãy bỏ bớt tệp đính kèm lớn rồi thử lại."));
+      chat.setError(chatT("浏览器存储空间不足，草稿仍保留在当前页面。请移除较大的附件后重试。", "Bộ nhớ trình duyệt không đủ. Bản nháp vẫn được giữ trên trang hiện tại. Hãy bỏ bớt tệp đính kèm lớn rồi thử lại.", "Browser storage is full. Your draft is still on this page. Remove larger attachments and try again."));
     }
   }
   function clearDraftIfUnchanged(key, snapshot) {
@@ -509,7 +509,7 @@ export default function App() {
   const projectName =
     chat.projects.find((p) => p.id === chat.projectId)?.name ||
     (chat.projectId && (chat.session?.projectName || chat.projectId)) ||
-    chatT("个人对话", "Cuộc trò chuyện cá nhân");
+    chatT("个人对话", "Cuộc trò chuyện cá nhân", "Personal chat");
   const sessionLoading = !!chat.activeId && chat.session?.id !== chat.activeId;
   const composerLoading = sessionLoading || chat.replyStatePending;
   const hasComposerExecutor = !!chat.executor || chat.local;
@@ -517,7 +517,7 @@ export default function App() {
     !hasComposerExecutor && !composerLoading && (chat.machinesReady || chat.machineError);
   const selectedModel = chat.models.find((m) => m.id === chat.model) || (!chat.local ? chat.modelDetails : null);
   const modelLabel =
-    (hasComposerExecutor && (selectedModel?.name || chat.model)?.replace(/^Claude-/, "").replace(/^GPT-/, "")) || chatT("模型", "Mô hình");
+    (hasComposerExecutor && (selectedModel?.name || chat.model)?.replace(/^Claude-/, "").replace(/^GPT-/, "")) || chatT("模型", "Mô hình", "Model");
   // The CLI switch is only for a conversation that has not started. A reply
   // in flight, or one already saved, keeps that CLI; another CLI needs a new chat.
   const lockedExecutorId = chat.session
@@ -535,7 +535,7 @@ export default function App() {
   const projectActions = [
     {
       id: "new-project",
-      label: chatT("新建项目", "Dự án mới"),
+      label: chatT("新建项目", "Dự án mới", "New project"),
       icon: "plus",
       onSelect: () => setQuickAccessOpen(true),
     },
@@ -544,7 +544,7 @@ export default function App() {
     const project = chat.projects.find((p) => p.id === id);
     if (project && !canChatInProject(project, chat.user)) {
       chat.setError(
-        chatT(`你还不是「${project.name}」的成员，不能在这个项目里对话。请项目 Owner 把你加入项目，或先用「个人对话」。`, `Bạn chưa là thành viên của “${project.name}” nên không thể trò chuyện trong dự án này. Nhờ chủ dự án thêm bạn hoặc dùng cuộc trò chuyện cá nhân trước.`),
+        chatT(`你还不是「${project.name}」的成员，不能在这个项目里对话。请项目 Owner 把你加入项目，或先用「个人对话」。`, `Bạn chưa là thành viên của “${project.name}” nên không thể trò chuyện trong dự án này. Nhờ chủ dự án thêm bạn hoặc dùng cuộc trò chuyện cá nhân trước.`, `You are not yet a member of “${project.name}” and cannot chat in this project. Ask the project owner to add you, or use Personal chat first.`),
       );
       return;
     }
@@ -935,14 +935,14 @@ export default function App() {
   async function upload(files) {
     if (!files.length) return;
     if (files.length + attachments.length > 8) {
-      chat.setError(chatT("每轮最多上传 8 个文件。", "Mỗi lượt chỉ được tải lên tối đa 8 tệp."));
+      chat.setError(chatT("每轮最多上传 8 个文件。", "Mỗi lượt chỉ được tải lên tối đa 8 tệp.", "Upload up to 8 files per turn."));
       return;
     }
     setUploading(true);
     try {
       const results = [];
       for (const file of files) {
-        if (file.size > 10 * 1024 * 1024) throw Error(chatT("单个附件不能超过 10 MB", "Mỗi tệp đính kèm không được vượt quá 10 MB"));
+        if (file.size > 10 * 1024 * 1024) throw Error(chatT("单个附件不能超过 10 MB", "Mỗi tệp đính kèm không được vượt quá 10 MB", "Each attachment must be no larger than 10 MB."));
         // Show the picture as soon as it is pasted or dropped. A filename
         // chip alone leaves people unable to tell which screenshot is queued.
         const previewURL =
@@ -952,7 +952,7 @@ export default function App() {
         const slot = previewURL
           ? {
               id: localId("pending"),
-              name: file.name || chatT("粘贴的图片", "Ảnh đã dán"),
+              name: file.name || chatT("粘贴的图片", "Ảnh đã dán", "Pasted image"),
               mimeType: file.type,
               size: file.size,
               previewURL,
@@ -965,7 +965,7 @@ export default function App() {
               const reader = new FileReader();
               reader.onload = () => resolve(reader.result);
               reader.onerror = () =>
-                reject(Error(chatT("文件读取失败，请重新选择。", "Đọc tệp thất bại, vui lòng chọn lại.")));
+                reject(Error(chatT("文件读取失败，请重新选择。", "Đọc tệp thất bại, vui lòng chọn lại.", "Failed to read the file. Select it again.")));
               reader.readAsDataURL(file);
             });
             results.push({
@@ -1007,7 +1007,7 @@ export default function App() {
   // rides along as a reference chip, without a token in the text.
   function addElementReference(ref) {
     if (references.length >= 12) {
-      chat.setError(chatT("每轮最多引用 12 个对象。", "Mỗi lượt chỉ được tham chiếu tối đa 12 đối tượng."));
+      chat.setError(chatT("每轮最多引用 12 个对象。", "Mỗi lượt chỉ được tham chiếu tối đa 12 đối tượng.", "Reference up to 12 items per turn."));
       return;
     }
     setReferences((old) => [...old, ref]);
@@ -1143,10 +1143,10 @@ export default function App() {
           if (innerWidth < 850) setSidebar(false);
         }}
       >
-        <span>{s.displayTitle || s.title || chatT("新对话", "Cuộc trò chuyện mới")}</span>
+        <span>{s.displayTitle || s.title || chatT("新对话", "Cuộc trò chuyện mới", "New chat")}</span>
         {scheduledSession(s) ? (
-          <span className="session-project-tag session-source-tag" title={chatT("定时任务产生的会话", "Cuộc trò chuyện do tác vụ theo lịch tạo")}>
-            {chatT("定时", "Theo lịch")}
+          <span className="session-project-tag session-source-tag" title={chatT("定时任务产生的会话", "Cuộc trò chuyện do tác vụ theo lịch tạo", "Conversation created by a scheduled task")}>
+            {chatT("定时", "Theo lịch", "Scheduled")}
           </span>
         ) : null}
         {options.projectName ? (
@@ -1156,7 +1156,7 @@ export default function App() {
           <span
             className="session-run"
             data-run-state={runState.state}
-            title={chatT(`运行状态：${runState.label}`, `Trạng thái lượt chạy: ${runState.label}`)}
+            title={chatT(`运行状态：${runState.label}`, `Trạng thái lượt chạy: ${runState.label}`, `Run status: ${runState.label}`)}
           >
             {runState.label}
           </span>
@@ -1186,7 +1186,7 @@ export default function App() {
         >
           <button role="menuitem" onClick={() => togglePin(s.id)}>
             <HarnessIcon name="pin" size={15} />
-            {pinned.includes(s.id) ? chatT("取消置顶", "Bỏ ghim") : chatT("置顶", "Ghim")}
+            {pinned.includes(s.id) ? chatT("取消置顶", "Bỏ ghim", "Unpin") : chatT("置顶", "Ghim", "Pin")}
           </button>
           <button
             role="menuitem"
@@ -1196,7 +1196,7 @@ export default function App() {
             }}
           >
             <HarnessIcon name="edit" size={15} />
-            {chatT("重命名", "Đổi tên")}
+            {chatT("重命名", "Đổi tên", "Rename")}
           </button>
           {!s.shared ? (
             <>
@@ -1208,7 +1208,7 @@ export default function App() {
                 }}
               >
                 <HarnessIcon name="history" size={15} />
-                {archived ? chatT("恢复会话", "Khôi phục cuộc trò chuyện") : chatT("归档", "Lưu trữ")}
+                {archived ? chatT("恢复会话", "Khôi phục cuộc trò chuyện", "Restore conversation") : chatT("归档", "Lưu trữ", "Archive")}
               </button>
               <button
                 role="menuitem"
@@ -1219,7 +1219,7 @@ export default function App() {
                 }}
               >
                 <HarnessIcon name="trash" size={15} />
-                {chatT("删除", "Xóa")}
+                {chatT("删除", "Xóa", "Delete")}
               </button>
             </>
           ) : null}
@@ -1252,7 +1252,7 @@ export default function App() {
         <button
           className="brand-home"
           onClick={startNewChat}
-          aria-label={chatT("LoopForge 首页", "Trang chủ LoopForge")}
+          aria-label={chatT("LoopForge 首页", "Trang chủ LoopForge", "LoopForge home")}
           inert={!sidebar}
           aria-hidden={!sidebar || undefined}
         >
@@ -1264,7 +1264,7 @@ export default function App() {
         <IconButton
           className="sidebar-toggle"
           data-hover-ink-control=""
-          label={sidebar ? chatT("隐藏会话侧边栏", "Ẩn thanh bên cuộc trò chuyện") : chatT("显示会话侧边栏", "Hiện thanh bên cuộc trò chuyện")}
+          label={sidebar ? chatT("隐藏会话侧边栏", "Ẩn thanh bên cuộc trò chuyện", "Hide conversation sidebar") : chatT("显示会话侧边栏", "Hiện thanh bên cuộc trò chuyện", "Show conversation sidebar")}
           aria-expanded={sidebar}
           aria-controls="conversation-navigation"
           onClick={() => setSidebar(!sidebar)}
@@ -1318,7 +1318,7 @@ export default function App() {
               </button>
               {!chat.readOnly ? (
                 <IconButton
-                  label={chatT("重命名会话", "Đổi tên cuộc trò chuyện")}
+                  label={chatT("重命名会话", "Đổi tên cuộc trò chuyện", "Rename conversation")}
                   onClick={() =>
                     setDialog({
                       type: "rename",
@@ -1333,7 +1333,7 @@ export default function App() {
               {pinnedExecutor ? (
                 <span
                   className="conversation-engine"
-                  title={chatT(`本对话使用 ${pinnedExecutor.label}，对话开始后不能切换 CLI；换 CLI 请新建对话`, `Cuộc trò chuyện dùng ${pinnedExecutor.label}; không thể đổi CLI sau khi bắt đầu. Tạo cuộc trò chuyện mới để đổi CLI.`)}
+                  title={chatT(`本对话使用 ${pinnedExecutor.label}，对话开始后不能切换 CLI；换 CLI 请新建对话`, `Cuộc trò chuyện dùng ${pinnedExecutor.label}; không thể đổi CLI sau khi bắt đầu. Tạo cuộc trò chuyện mới để đổi CLI.`, `This conversation uses ${pinnedExecutor.label}. The CLI cannot be changed after the conversation starts; create a new chat to switch CLI.`)}
                 >
                   <ModelProviderIcon
                     brand={engineBrand(pinnedExecutor.id)}
@@ -1342,7 +1342,7 @@ export default function App() {
                   {pinnedExecutor.label}
                 </span>
               ) : null}
-              {chat.local ? <span className="preview-badge">{chatT("示例", "Ví dụ")}</span> : null}
+              {chat.local ? <span className="preview-badge">{chatT("示例", "Ví dụ", "Example")}</span> : null}
             </>
           ) : null}
         </div>
@@ -1358,8 +1358,8 @@ export default function App() {
                     ref={headerProjectPicker}
                     type="button"
                     className="conversation-project"
-                    title={chatT(`当前项目：${projectName}，点击切换项目`, `Dự án hiện tại: ${projectName}, nhấp để chuyển dự án`)}
-                    aria-label={chatT(`当前项目：${projectName}，切换项目`, `Dự án hiện tại: ${projectName}, chuyển dự án`)}
+                    title={chatT(`当前项目：${projectName}，点击切换项目`, `Dự án hiện tại: ${projectName}, nhấp để chuyển dự án`, `Current project: ${projectName}. Click to switch projects.`)}
+                    aria-label={chatT(`当前项目：${projectName}，切换项目`, `Dự án hiện tại: ${projectName}, chuyển dự án`, `Current project: ${projectName}. Switch project.`)}
                     aria-haspopup="listbox"
                     aria-expanded={menu?.type === "header-project"}
                     onClick={() =>
@@ -1376,14 +1376,14 @@ export default function App() {
                   </button>
                   <SelectMenu
                     open={menu?.type === "header-project"}
-                    label={chatT("切换项目", "Chuyển dự án")}
+                    label={chatT("切换项目", "Chuyển dự án", "Switch project")}
                     value={chat.projectId}
                     options={projectOptions}
                     onSelect={chooseProject}
                     onClose={closeMenu}
                     anchorRef={headerProjectPicker}
                     searchable
-                    emptyText={chatT("没有匹配的项目", "Không có dự án phù hợp")}
+                    emptyText={chatT("没有匹配的项目", "Không có dự án phù hợp", "No matching projects")}
                     actions={projectActions}
                   />
                 </div>
@@ -1396,8 +1396,8 @@ export default function App() {
             <button
               type="button"
               className={`panel-toggle changes-toggle ${panel && panelView === "changes" ? "active" : ""}`}
-              title={chatT("查看本次会话的代码改动", "Xem thay đổi mã trong cuộc trò chuyện này")}
-              aria-label={chatT(`查看改动，共 ${workspaceChanges.files.length} 个文件`, `Xem thay đổi, tổng ${workspaceChanges.files.length} tệp`)}
+              title={chatT("查看本次会话的代码改动", "Xem thay đổi mã trong cuộc trò chuyện này", "View code changes in this conversation")}
+              aria-label={chatT(`查看改动，共 ${workspaceChanges.files.length} 个文件`, `Xem thay đổi, tổng ${workspaceChanges.files.length} tệp`, `View changes, ${workspaceChanges.files.length} files in total`)}
               aria-expanded={panel && panelView === "changes"}
               aria-controls="conversation-artifacts"
               onClick={() => {
@@ -1410,7 +1410,7 @@ export default function App() {
               }}
             >
               <HarnessIcon name="edit" size={15} />
-              <span className="changes-toggle-label">{chatT("改动", "Thay đổi")}</span>
+              <span className="changes-toggle-label">{chatT("改动", "Thay đổi", "Changes")}</span>
               {workspaceChanges.files.length ? (
                 <span className="changes-toggle-count">
                   {workspaceChanges.files.length > 99
@@ -1424,11 +1424,11 @@ export default function App() {
             type="button"
             className={`panel-toggle ${panel ? "active" : ""}`}
             data-hover-ink-control=""
-            aria-label={chatT("查看会话产物", "Xem sản phẩm đầu ra của cuộc trò chuyện")}
+            aria-label={chatT("查看会话产物", "Xem sản phẩm đầu ra của cuộc trò chuyện", "View conversation artifacts")}
             aria-expanded={panel}
             aria-controls="conversation-artifacts"
             aria-describedby={!panel && artifactUnread ? "artifact-unread-description" : undefined}
-            title={chatT("查看会话产物", "Xem sản phẩm đầu ra của cuộc trò chuyện")}
+            title={chatT("查看会话产物", "Xem sản phẩm đầu ra của cuộc trò chuyện", "View conversation artifacts")}
             onClick={() => {
               setArtifactUnread(0);
               if (panel && panelView === "artifacts") {
@@ -1448,7 +1448,7 @@ export default function App() {
               ) : null}
             </span>
             {!panel && artifactUnread ? (
-              <span className="sr-only" id="artifact-unread-description">{chatT(`${artifactUnread} 个新产物`, `${artifactUnread} sản phẩm đầu ra mới`)}</span>
+              <span className="sr-only" id="artifact-unread-description">{chatT(`${artifactUnread} 个新产物`, `${artifactUnread} sản phẩm đầu ra mới`, `${artifactUnread} new artifacts`)}</span>
             ) : null}
           </button> : null}
         </div>
@@ -1457,17 +1457,17 @@ export default function App() {
         <aside
           id="conversation-navigation"
           className="conversation-sidebar"
-          aria-label={chatT("会话导航", "Điều hướng cuộc trò chuyện")}
+          aria-label={chatT("会话导航", "Điều hướng cuộc trò chuyện", "Conversation navigation")}
           inert={!sidebar}
           aria-hidden={!sidebar || undefined}
         >
           <div className="sidebar-create-row">
-            <button className="new-chat-button" onClick={startNewChat} title={chatT("新对话 · Ctrl/⌘ ⇧ O", "Cuộc trò chuyện mới · Ctrl/⌘ ⇧ O")}>
+            <button className="new-chat-button" onClick={startNewChat} title={chatT("新对话 · Ctrl/⌘ ⇧ O", "Cuộc trò chuyện mới · Ctrl/⌘ ⇧ O", "New chat · Ctrl/⌘ ⇧ O")}>
               <HarnessIcon name="edit" size={17} />
-              <span>{chatT("新对话", "Cuộc trò chuyện mới")}</span>
+              <span>{chatT("新对话", "Cuộc trò chuyện mới", "New chat")}</span>
             </button>
             <IconButton
-              label={chatT("搜索会话", "Tìm cuộc trò chuyện")}
+              label={chatT("搜索会话", "Tìm cuộc trò chuyện", "Search conversations")}
               onClick={() => {
                 setDialog({ type: "search" });
                 setQuery("");
@@ -1477,7 +1477,7 @@ export default function App() {
             </IconButton>
             <div className="menu-anchor">
               <IconButton
-                label={chatT("筛选会话", "Lọc cuộc trò chuyện")}
+                label={chatT("筛选会话", "Lọc cuộc trò chuyện", "Filter conversations")}
                 aria-haspopup="menu"
                 aria-expanded={menu?.type === "filter"}
                 onClick={() =>
@@ -1487,7 +1487,7 @@ export default function App() {
                 <HarnessIcon name="filter" size={14} />
               </IconButton>
               {menu?.type === "filter" ? (
-                <Menu label={chatT("筛选会话", "Lọc cuộc trò chuyện")} className="sidebar-filter-menu" onClose={closeMenu}>
+                <Menu label={chatT("筛选会话", "Lọc cuộc trò chuyện", "Filter conversations")} className="sidebar-filter-menu" onClose={closeMenu}>
                   <button
                     role="menuitemradio"
                     aria-checked={!archived && !mineOnly}
@@ -1497,7 +1497,7 @@ export default function App() {
                       closeMenu();
                     }}
                   >
-                    {chatT("最近的会话", "Cuộc trò chuyện gần đây")}
+                    {chatT("最近的会话", "Cuộc trò chuyện gần đây", "Recent conversations")}
                     {!archived && !mineOnly ? <HarnessIcon name="check" size={14} /> : null}
                   </button>
                   <button
@@ -1509,7 +1509,7 @@ export default function App() {
                       closeMenu();
                     }}
                   >
-                    {chatT("已归档", "Đã lưu trữ")}
+                    {chatT("已归档", "Đã lưu trữ", "Archived")}
                     {archived ? <HarnessIcon name="check" size={14} /> : null}
                   </button>
                   <button
@@ -1521,7 +1521,7 @@ export default function App() {
                       closeMenu();
                     }}
                   >
-                    {chatT("仅我参与的对话", "Chỉ cuộc trò chuyện tôi tham gia")}
+                    {chatT("仅我参与的对话", "Chỉ cuộc trò chuyện tôi tham gia", "Only conversations I participate in")}
                     {mineOnly ? <HarnessIcon name="check" size={14} /> : null}
                   </button>
                 </Menu>
@@ -1529,11 +1529,11 @@ export default function App() {
             </div>
           </div>
           <div className="session-list">
-            {archived ? <div className="section-label">{chatT("已归档", "Đã lưu trữ")}</div> : null}
+            {archived ? <div className="section-label">{chatT("已归档", "Đã lưu trữ", "Archived")}</div> : null}
             {!archived && sidebarSections.pinnedSessions.length ? (
               <SidebarSection
                 className="sidebar-pinned"
-                title={chatT("置顶", "Ghim")}
+                title={chatT("置顶", "Ghim", "Pin")}
                 icon="pin"
                 count={sidebarSections.pinnedSessions.length}
                 expanded={!!query || pinnedOpen}
@@ -1593,7 +1593,7 @@ export default function App() {
                             }))
                           }
                         >
-                          {chatT(`展开其余 ${hidden} 条`, `Mở rộng ${hidden} mục còn lại`)}
+                          {chatT(`展开其余 ${hidden} 条`, `Mở rộng ${hidden} mục còn lại`, `Show ${hidden} more`)}
                         </button>
                       ) : null}
                       {showAll && group.sessions.length > PROJECT_PREVIEW_LIMIT ? (
@@ -1607,7 +1607,7 @@ export default function App() {
                             }))
                           }
                         >
-                          {chatT("收起", "Thu gọn")}
+                          {chatT("收起", "Thu gọn", "Collapse")}
                         </button>
                       ) : null}
                     </SidebarSection>
@@ -1621,11 +1621,11 @@ export default function App() {
                 <p className="end-label">
                   {chat.ready
                     ? archived
-                      ? chatT("还没有归档会话", "Chưa có cuộc trò chuyện đã lưu trữ")
+                      ? chatT("还没有归档会话", "Chưa có cuộc trò chuyện đã lưu trữ", "No archived conversations yet")
                       : mineOnly
-                        ? chatT("还没有你参与的会话", "Chưa có cuộc trò chuyện bạn tham gia")
-                        : chatT("还没有会话", "Chưa có cuộc trò chuyện")
-                    : chatT("正在连接…", "Đang kết nối…")}
+                        ? chatT("还没有你参与的会话", "Chưa có cuộc trò chuyện bạn tham gia", "No conversations you participate in yet")
+                        : chatT("还没有会话", "Chưa có cuộc trò chuyện", "No conversations yet")
+                    : chatT("正在连接…", "Đang kết nối…", "Connecting…")}
                 </p>
               </div>
             ) : null}
@@ -1715,7 +1715,7 @@ export default function App() {
                             {!chat.readOnly ? (
                               <>
                                 <IconButton
-                                  label={chatT("编辑消息", "Chỉnh sửa tin nhắn")}
+                                  label={chatT("编辑消息", "Chỉnh sửa tin nhắn", "Edit message")}
                                   disabled={chat.busy}
                                   onClick={() =>
                                     setDialog({
@@ -1729,7 +1729,7 @@ export default function App() {
                                   <HarnessIcon name="edit" size={14} />
                                 </IconButton>
                                 <IconButton
-                                  label={chatT("从此处创建分支", "Tạo nhánh từ đây")}
+                                  label={chatT("从此处创建分支", "Tạo nhánh từ đây", "Branch from here")}
                                   disabled={chat.busy}
                                   onClick={() =>
                                     setDialog({
@@ -1746,7 +1746,7 @@ export default function App() {
                             ) : null}
                             <CopyButton
                               value={message.content}
-                              label={chatT("复制消息", "Sao chép tin nhắn")}
+                              label={chatT("复制消息", "Sao chép tin nhắn", "Copy message")}
                             />
                           </div>
                         </>
@@ -1793,7 +1793,7 @@ export default function App() {
                               chat.generation,
                               chat.live.activity,
                             )}
-                            label={chatT("复制回复", "Sao chép phản hồi")}
+                            label={chatT("复制回复", "Sao chép phản hồi", "Copy reply")}
                           />
                           <MessageInfo message={message} sessionExecutor={chat.session?.executor} />
                           {!chat.local && !chat.readOnly && message.generationId && !message.failure ? <GenerationDiagnostics sessionId={chat.session.id} generationId={message.generationId} compact /> : null}
@@ -1838,13 +1838,13 @@ export default function App() {
                     kind: "run",
                     id: run.id,
                     runId: run.id,
-                    name: run.workflowSnapshot?.name || chatT("SOP 运行", "Lượt chạy SOP"),
+                    name: run.workflowSnapshot?.name || chatT("SOP 运行", "Lượt chạy SOP", "SOP run"),
                     nodeId,
                   })
                 }
                 onAsk={(item) => {
                   setText(
-                    chatT(`运行 ${item.runId} 的「${item.nodeName}」节点${item.kind === "failed" ? "失败了" : "在等待人工确认"}，帮我分析具体卡在哪里、原因是什么、需要谁做什么。`, `Bước “${item.nodeName}” của lượt chạy ${item.runId} ${item.kind === "failed" ? "đã thất bại" : "đang chờ con người xác nhận"}. Hãy phân tích điểm bị kẹt, nguyên nhân và ai cần làm gì.`),
+                    chatT(`运行 ${item.runId} 的「${item.nodeName}」节点${item.kind === "failed" ? "失败了" : "在等待人工确认"}，帮我分析具体卡在哪里、原因是什么、需要谁做什么。`, `Bước “${item.nodeName}” của lượt chạy ${item.runId} ${item.kind === "failed" ? "đã thất bại" : "đang chờ con người xác nhận"}. Hãy phân tích điểm bị kẹt, nguyên nhân và ai cần làm gì.`, `Step “${item.nodeName}” in run ${item.runId} ${item.kind === "failed" ? "failed" : "is waiting for human confirmation"}. Analyze where it is blocked, why, and who needs to do what.`),
                   );
                   document
                     // Keep focus independent of the localized accessible name.
@@ -1863,7 +1863,7 @@ export default function App() {
                 <span>{chatServerErrorText(chat.error)}</span>
                 <CredentialAction text={chat.error} />
                 <CLIInstallAction text={chat.error} onResult={chat.adoptCLIInstall} />
-                <IconButton label={chatT("关闭提示", "Đóng thông báo")} onClick={() => chat.setError("")}>
+                <IconButton label={chatT("关闭提示", "Đóng thông báo", "Dismiss notification")} onClick={() => chat.setError("")}>
                   <HarnessIcon name="close" size={15} />
                 </IconButton>
               </div>
@@ -1884,12 +1884,12 @@ export default function App() {
             {needsExecutor ? (
               <div className="credential-notice" role="status">
                 <HarnessIcon name="terminal" size={16} aria-hidden="true" />
-                <span>{chatT("添加一个执行器即可开始对话", "Thêm trình thực thi để bắt đầu trò chuyện")}</span>
+                <span>{chatT("添加一个执行器即可开始对话", "Thêm trình thực thi để bắt đầu trò chuyện", "Add an executor to start chatting")}</span>
                 <button
                   type="button"
                   onClick={() => openCredentialSettings("executors")}
                 >
-                  {chatT("新增执行器", "Thêm trình thực thi")}
+                  {chatT("新增执行器", "Thêm trình thực thi", "Add executor")}
                 </button>
               </div>
             ) : null}
@@ -1897,7 +1897,7 @@ export default function App() {
               <div className="readonly-notice" role="status">
                 <HarnessIcon name="eye" size={16} aria-hidden="true" />
                 <span>
-                  {chatT(`你不是「${projectName}」的成员，只能查看这个会话。加入项目后可以继续聊。`, `Bạn không phải thành viên của “${projectName}” nên chỉ có thể xem cuộc trò chuyện này. Tham gia dự án để tiếp tục trò chuyện.`)}
+                  {chatT(`你不是「${projectName}」的成员，只能查看这个会话。加入项目后可以继续聊。`, `Bạn không phải thành viên của “${projectName}” nên chỉ có thể xem cuộc trò chuyện này. Tham gia dự án để tiếp tục trò chuyện.`, `You are not a member of “${projectName}” and can only view this conversation. Join the project to continue chatting.`)}
                 </span>
               </div>
             ) : (
@@ -1917,8 +1917,8 @@ export default function App() {
                     <button
                       ref={projectPicker}
                       className={`context-pill project-picker${chat.projectId ? "" : " is-unset"}`}
-                      title={chatT("对话所属的项目：需求、仓库、角色和 SOP 都按项目区分", "Dự án của cuộc trò chuyện: yêu cầu, kho mã, vai trò và SOP được tách theo dự án")}
-                      aria-label={chatT("选择项目", "Chọn dự án")}
+                      title={chatT("对话所属的项目：需求、仓库、角色和 SOP 都按项目区分", "Dự án của cuộc trò chuyện: yêu cầu, kho mã, vai trò và SOP được tách theo dự án", "Conversation project: requirements, repositories, roles, and SOPs are scoped by project.")}
+                      aria-label={chatT("选择项目", "Chọn dự án", "Select project")}
                       aria-haspopup="listbox"
                       aria-expanded={menu?.type === "project"}
                       onClick={() =>
@@ -1932,21 +1932,21 @@ export default function App() {
                         {chat.projectId
                           ? projectName
                           : chat.activeId
-                            ? chatT("绑定项目", "Liên kết dự án")
-                            : chatT("选择项目", "Chọn dự án")}
+                            ? chatT("绑定项目", "Liên kết dự án", "Link project")
+                            : chatT("选择项目", "Chọn dự án", "Select project")}
                       </span>
                       <HarnessIcon name="chevron-down" size={12} />
                     </button>
                     <SelectMenu
                       open={menu?.type === "project"}
-                      label={chatT("项目", "Dự án")}
+                      label={chatT("项目", "Dự án", "Project")}
                       value={chat.projectId}
                       options={projectOptions}
                       onSelect={chooseProject}
                       onClose={closeMenu}
                       anchorRef={projectPicker}
                       searchable
-                      emptyText={chatT("没有匹配的项目", "Không có dự án phù hợp")}
+                      emptyText={chatT("没有匹配的项目", "Không có dự án phù hợp", "No matching projects")}
                       actions={projectActions}
                     />
                   </div>
@@ -1972,7 +1972,7 @@ export default function App() {
                         <span
                           key={a.id}
                           className="composer-attachment-thumb is-uploading"
-                          title={chatT(`正在上传 ${a.name}`, `Đang tải ${a.name} lên`)}
+                          title={chatT(`正在上传 ${a.name}`, `Đang tải ${a.name} lên`, `Uploading ${a.name}`)}
                         >
                           <span className="composer-attachment-preview">
                             <img src={a.previewURL} alt={a.name} />
@@ -1988,8 +1988,8 @@ export default function App() {
                             <button
                               type="button"
                               className="composer-attachment-preview"
-                              title={chatT(`${a.name} · 点击查看大图`, `${a.name} · Nhấp để xem ảnh lớn`)}
-                              aria-label={chatT(`查看图片 ${a.name}`, `Xem hình ảnh ${a.name}`)}
+                              title={chatT(`${a.name} · 点击查看大图`, `${a.name} · Nhấp để xem ảnh lớn`, `${a.name} · Click to enlarge`)}
+                              aria-label={chatT(`查看图片 ${a.name}`, `Xem hình ảnh ${a.name}`, `View image ${a.name}`)}
                               onClick={() =>
                                 setImagePreview({ src: url, name: a.name })
                               }
@@ -1999,8 +1999,8 @@ export default function App() {
                             <button
                               type="button"
                               className="composer-attachment-remove"
-                              aria-label={chatT(`移除 ${a.name}`, `Xóa ${a.name}`)}
-                              title={chatT(`移除 ${a.name}`, `Xóa ${a.name}`)}
+                              aria-label={chatT(`移除 ${a.name}`, `Xóa ${a.name}`, `Remove ${a.name}`)}
+                              title={chatT(`移除 ${a.name}`, `Xóa ${a.name}`, `Remove ${a.name}`)}
                               onClick={() => removeAttachment(a)}
                             >
                               <HarnessIcon name="close" size={11} />
@@ -2019,7 +2019,7 @@ export default function App() {
                               <small>{formatFileSize(a.size)}</small>
                             ) : null}
                             <button
-                              aria-label={chatT(`移除 ${a.name}`, `Xóa ${a.name}`)}
+                              aria-label={chatT(`移除 ${a.name}`, `Xóa ${a.name}`, `Remove ${a.name}`)}
                               onClick={() => removeAttachment(a)}
                             >
                               <HarnessIcon name="close" size={13} />
@@ -2050,9 +2050,9 @@ export default function App() {
                     }}
                     textareaProps={{
                       "data-chat-composer": "true",
-                      "aria-label": chatT("消息", "Tin nhắn"),
+                      "aria-label": chatT("消息", "Tin nhắn", "Message"),
                       rows: 2,
-                      placeholder: chat.activeId ? chatT("告诉我接下来想做点什么", "Hãy cho tôi biết bạn muốn làm gì tiếp theo") : chatT("聊聊你的想法，或交给我一件事", "Chia sẻ ý tưởng hoặc giao cho tôi một việc"),
+                      placeholder: chat.activeId ? chatT("告诉我接下来想做点什么", "Hãy cho tôi biết bạn muốn làm gì tiếp theo", "Tell me what you want to do next") : chatT("聊聊你的想法，或交给我一件事", "Chia sẻ ý tưởng hoặc giao cho tôi một việc", "Share your ideas or give me a task"),
                       onInput: (e) => {
                         e.target.style.height = "auto";
                         e.target.style.height = Math.min(e.target.scrollHeight, 220) + "px";
@@ -2078,7 +2078,7 @@ export default function App() {
                   <footer className="composer-toolbar">
                     <div className="menu-anchor">
                       <IconButton
-                        label={chatT("添加", "Thêm")}
+                        label={chatT("添加", "Thêm", "Add")}
                         disabled={uploading}
                         aria-haspopup="menu"
                         aria-expanded={menu?.type === "add"}
@@ -2090,7 +2090,7 @@ export default function App() {
                       </IconButton>
                       {menu?.type === "add" ? (
                         <Menu
-                          label={chatT("添加到消息", "Thêm vào tin nhắn")}
+                          label={chatT("添加到消息", "Thêm vào tin nhắn", "Add to message")}
                           className="above"
                           onClose={closeMenu}
                         >
@@ -2102,21 +2102,21 @@ export default function App() {
                             }}
                           >
                             <HarnessIcon name="paperclip" size={15} />
-                            {chatT("上传图片或文件", "Tải hình ảnh hoặc tệp lên")}
+                            {chatT("上传图片或文件", "Tải hình ảnh hoặc tệp lên", "Upload images or files")}
                           </button>
                           <button role="menuitem" onClick={() => {
                             referenceInput.current?.openReferences();
                             closeMenu();
                           }}>
                             <HarnessIcon name="connector" size={15} />
-                            {chatT("引用项目资产", "Tham chiếu tài nguyên dự án")}
+                            {chatT("引用项目资产", "Tham chiếu tài nguyên dự án", "Reference project assets")}
                           </button>
                           <button role="menuitem" onClick={() => {
                             closeMenu();
                             setDialog({ type: "advanced" });
                           }}>
                             <HarnessIcon name="settings" size={15} />
-                            {chatT("高级设置", "Cài đặt nâng cao")}
+                            {chatT("高级设置", "Cài đặt nâng cao", "Advanced settings")}
                           </button>
                         </Menu>
                       ) : null}
@@ -2166,7 +2166,7 @@ export default function App() {
                       }}
                     />
                     <PermissionPicker
-                      label={chatT("思考强度", "Mức độ suy luận")}
+                      label={chatT("思考强度", "Mức độ suy luận", "Reasoning effort")}
                       disabled={composerLoading || !hasComposerExecutor}
                       options={effortOptions(selectedModel)}
                       value={chat.effort}
@@ -2183,13 +2183,13 @@ export default function App() {
                     />
                     <span className="toolbar-spacer" />
                     {uploading ? (
-                      <span className="upload-status">{chatT("上传中…", "Đang tải lên…")}</span>
+                      <span className="upload-status">{chatT("上传中…", "Đang tải lên…", "Uploading…")}</span>
                     ) : null}
                     {chat.busy ? (
                       <button
                         className="send-button stop"
-                        aria-label={chatT("停止生成", "Dừng tạo phản hồi")}
-                        title={chatT("停止并保留已经生成的内容；排队的消息会暂停发送", "Dừng và giữ nội dung đã tạo; tạm dừng gửi tin nhắn đang xếp hàng")}
+                        aria-label={chatT("停止生成", "Dừng tạo phản hồi", "Stop generating")}
+                        title={chatT("停止并保留已经生成的内容；排队的消息会暂停发送", "Dừng và giữ nội dung đã tạo; tạm dừng gửi tin nhắn đang xếp hàng", "Stop and keep the generated content; queued messages will pause.")}
                         disabled={
                           chat.submitting || chat.stopping || chat.generation?.status !== "running"
                         }
@@ -2201,8 +2201,8 @@ export default function App() {
                     {!chat.busy || text.trim() || attachments.length ? (
                       <button
                         className="send-button"
-                        aria-label={chat.busy ? chatT("排队发送", "Xếp hàng gửi") : chatT("发送消息", "Gửi tin nhắn")}
-                        title={chat.busy ? chatT("当前回复结束后自动发送", "Tự động gửi sau khi phản hồi hiện tại kết thúc") : undefined}
+                        aria-label={chat.busy ? chatT("排队发送", "Xếp hàng gửi", "Queue message") : chatT("发送消息", "Gửi tin nhắn", "Send message")}
+                        title={chat.busy ? chatT("当前回复结束后自动发送", "Tự động gửi sau khi phản hồi hiện tại kết thúc", "Send automatically after the current reply finishes") : undefined}
                         disabled={
                           !chat.ready ||
                           !hasComposerExecutor ||
@@ -2225,7 +2225,7 @@ export default function App() {
           </div>
         </div>
         {!chat.activeId && !chat.readOnly ? (
-          <section className="home-starters" aria-label={chatT("可以这样开始", "Có thể bắt đầu như sau")}>
+          <section className="home-starters" aria-label={chatT("可以这样开始", "Có thể bắt đầu như sau", "Ways to get started")}>
             <div className="home-starter-grid">
               {homeStarters.map((starter, index) => (
                 <button
@@ -2299,12 +2299,12 @@ export default function App() {
         <Dialog
           title={
             {
-              search: chatT("搜索会话", "Tìm cuộc trò chuyện"),
-              rename: chatT("重命名会话", "Đổi tên cuộc trò chuyện"),
-              delete: chatT("删除会话", "Xóa cuộc trò chuyện"),
-              edit: dialog.fork ? chatT("创建分支", "Tạo nhánh") : chatT("编辑消息", "Chỉnh sửa tin nhắn"),
-              settings: chatT("设置", "Cài đặt"),
-              advanced: chatT("高级设置", "Cài đặt nâng cao"),
+              search: chatT("搜索会话", "Tìm cuộc trò chuyện", "Search conversations"),
+              rename: chatT("重命名会话", "Đổi tên cuộc trò chuyện", "Rename conversation"),
+              delete: chatT("删除会话", "Xóa cuộc trò chuyện", "Delete conversation"),
+              edit: dialog.fork ? chatT("创建分支", "Tạo nhánh", "Create branch") : chatT("编辑消息", "Chỉnh sửa tin nhắn", "Edit message"),
+              settings: chatT("设置", "Cài đặt", "Settings"),
+              advanced: chatT("高级设置", "Cài đặt nâng cao", "Advanced settings"),
             }[dialog.type]
           }
           onClose={closeDialog}
@@ -2312,7 +2312,7 @@ export default function App() {
             ["rename", "edit", "delete"].includes(dialog.type) ? (
               <>
                 <button className="quiet-button" onClick={closeDialog}>
-                  {chatT("取消", "Hủy")}
+                  {chatT("取消", "Hủy", "Cancel")}
                 </button>
                 <button
                   className={
@@ -2348,16 +2348,16 @@ export default function App() {
                   disabled={dialog.type !== "delete" && !dialog.value?.trim()}
                 >
                   {dialog.type === "delete"
-                    ? chatT("删除", "Xóa")
+                    ? chatT("删除", "Xóa", "Delete")
                     : dialog.type === "rename"
-                      ? chatT("保存", "Lưu")
+                      ? chatT("保存", "Lưu", "Save")
                       : dialog.fork
-                        ? chatT("创建并继续", "Tạo và tiếp tục")
-                        : chatT("保存并重新生成", "Lưu và tạo lại phản hồi")}
+                        ? chatT("创建并继续", "Tạo và tiếp tục", "Create and continue")
+                        : chatT("保存并重新生成", "Lưu và tạo lại phản hồi", "Save and regenerate")}
                 </button>
               </>
             ) : dialog.type === "advanced" ? (
-              <button className="primary-button" onClick={closeDialog}>{chatT("完成", "Hoàn tất")}</button>
+              <button className="primary-button" onClick={closeDialog}>{chatT("完成", "Hoàn tất", "Done")}</button>
             ) : null
           }
         >
@@ -2367,8 +2367,8 @@ export default function App() {
                 <HarnessIcon name="search" size={17} />
                 <input
                   autoFocus
-                  aria-label={chatT("搜索会话名称", "Tìm tên cuộc trò chuyện")}
-                  placeholder={chatT("搜索会话名称或项目", "Tìm tên cuộc trò chuyện hoặc dự án")}
+                  aria-label={chatT("搜索会话名称", "Tìm tên cuộc trò chuyện", "Search conversation names")}
+                  placeholder={chatT("搜索会话名称或项目", "Tìm tên cuộc trò chuyện hoặc dự án", "Search conversations or projects")}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
@@ -2377,7 +2377,7 @@ export default function App() {
                 {searchGroups.map((group) => (
                   <section
                     key={group.projectId}
-                    aria-label={chatT(`${group.name}的搜索结果`, `Kết quả tìm kiếm ${group.name}`)}
+                    aria-label={chatT(`${group.name}的搜索结果`, `Kết quả tìm kiếm ${group.name}`, `Search results for ${group.name}`)}
                   >
                     <div className="date-label">{group.name}</div>
                     {group.sessions.map((s) => (
@@ -2394,7 +2394,7 @@ export default function App() {
                           {s.displayTitle || s.title}
                           <small>
                             {sessionProjectName(s.projectId, chat.projects)}
-                            {s.archived ? chatT(" · 已归档", " · Đã lưu trữ") : ""}
+                            {s.archived ? chatT(" · 已归档", " · Đã lưu trữ", " · Archived") : ""}
                           </small>
                         </span>
                       </button>
@@ -2402,13 +2402,13 @@ export default function App() {
                   </section>
                 ))}
                 {!searchGroups.length ? (
-                  <p className="end-label">{chatT("没有匹配的会话", "Không có cuộc trò chuyện phù hợp")}</p>
+                  <p className="end-label">{chatT("没有匹配的会话", "Không có cuộc trò chuyện phù hợp", "No matching conversations")}</p>
                 ) : null}
               </div>
             </>
           ) : dialog.type === "rename" ? (
             <label className="field">
-              {chatT("会话名称", "Tên cuộc trò chuyện")}
+              {chatT("会话名称", "Tên cuộc trò chuyện", "Conversation name")}
               <input
                 autoFocus
                 value={dialog.value}
@@ -2427,7 +2427,7 @@ export default function App() {
             </label>
           ) : dialog.type === "delete" ? (
             <p>
-              {chatT(`删除“${dialog.session.title}”的聊天记录？本对话里还没提交 MR 的需求单会一并删除，已提交 MR 的需求和已保存的 SOP 会保留。`, `Xóa lịch sử trò chuyện “${dialog.session.title}”? Yêu cầu chưa gửi MR trong cuộc trò chuyện này cũng bị xóa; yêu cầu đã gửi MR và SOP đã lưu được giữ lại.`)}
+              {chatT(`删除“${dialog.session.title}”的聊天记录？本对话里还没提交 MR 的需求单会一并删除，已提交 MR 的需求和已保存的 SOP 会保留。`, `Xóa lịch sử trò chuyện “${dialog.session.title}”? Yêu cầu chưa gửi MR trong cuộc trò chuyện này cũng bị xóa; yêu cầu đã gửi MR và SOP đã lưu được giữ lại.`, `Delete the chat history for “${dialog.session.title}”? Requirements in this conversation that have not been submitted for an MR will also be deleted. Requirements already submitted for an MR and saved SOPs will be kept.`)}
             </p>
           ) : dialog.type === "edit" ? (
             <>
@@ -2441,31 +2441,31 @@ export default function App() {
               />
               <p className="muted">
                 {dialog.fork
-                  ? chatT("创建独立分支，保留原会话。", "Tạo nhánh độc lập, giữ cuộc trò chuyện gốc.")
-                  : chatT("这条消息之后的对话会重新生成，已执行的平台操作不会因此撤回。", "Đoạn trò chuyện sau tin nhắn này sẽ được tạo lại; các thao tác nền tảng đã thực hiện không bị hoàn tác.")}
+                  ? chatT("创建独立分支，保留原会话。", "Tạo nhánh độc lập, giữ cuộc trò chuyện gốc.", "Create an independent branch and keep the original conversation.")
+                  : chatT("这条消息之后的对话会重新生成，已执行的平台操作不会因此撤回。", "Đoạn trò chuyện sau tin nhắn này sẽ được tạo lại; các thao tác nền tảng đã thực hiện không bị hoàn tác.", "The conversation after this message will be regenerated. Platform actions already performed will not be undone.")}
               </p>
             </>
           ) : dialog.type === "advanced" ? (
             <>
-              <p className="muted">{chatT("默认自动使用项目配置的环境，无需选择。以下设置只影响你的界面。", "Mặc định tự động dùng môi trường đã cấu hình của dự án, không cần chọn. Các cài đặt dưới đây chỉ ảnh hưởng giao diện của bạn.")}</p>
+              <p className="muted">{chatT("默认自动使用项目配置的环境，无需选择。以下设置只影响你的界面。", "Mặc định tự động dùng môi trường đã cấu hình của dự án, không cần chọn. Các cài đặt dưới đây chỉ ảnh hưởng giao diện của bạn.", "The project's configured environment is used automatically. These settings only affect your interface.")}</p>
               <label className="settings-row">
-                <span>{chatT("显示运行环境选择", "Hiển thị bộ chọn môi trường thực thi")}</span>
+                <span>{chatT("显示运行环境选择", "Hiển thị bộ chọn môi trường thực thi", "Show execution environment picker")}</span>
                 <HarnessSelect
-                  ariaLabel={chatT("高级环境选项", "Tùy chọn môi trường nâng cao")}
+                  ariaLabel={chatT("高级环境选项", "Tùy chọn môi trường nâng cao", "Advanced environment options")}
                   value={showEnvironmentPicker ? "show" : "hide"}
                   onChange={(e) => changeEnvironmentVisibility(e.target.value === "show")}
-                  options={[{ value: "hide", label: chatT("隐藏（默认）", "Ẩn (mặc định)") }, { value: "show", label: chatT("显示", "Hiển thị") }]}
+                  options={[{ value: "hide", label: chatT("隐藏（默认）", "Ẩn (mặc định)", "Hidden (default)") }, { value: "show", label: chatT("显示", "Hiển thị", "Show") }]}
                 />
               </label>
-              <p className="muted">{chatT("开启后，可在项目旁调整对话的运行环境。隐藏入口不会改变已选环境或已有工作区。", "Khi bật, bạn có thể điều chỉnh môi trường thực thi bên cạnh dự án. Ẩn tùy chọn không thay đổi môi trường đã chọn hoặc không gian làm việc hiện có.")}</p>
+              <p className="muted">{chatT("开启后，可在项目旁调整对话的运行环境。隐藏入口不会改变已选环境或已有工作区。", "Khi bật, bạn có thể điều chỉnh môi trường thực thi bên cạnh dự án. Ẩn tùy chọn không thay đổi môi trường đã chọn hoặc không gian làm việc hiện có.", "When enabled, adjust the conversation's execution environment next to the project picker. Hiding the control does not change the selected environment or existing workspace.")}</p>
             </>
           ) : dialog.type === "settings" ? (
             <>
               <label className="settings-row">
-                <span>{chatT("外观", "Giao diện")}</span>
+                <span>{chatT("外观", "Giao diện", "Appearance")}</span>
                 <HarnessSelect
                   value={theme}
-                  ariaLabel={chatT("外观", "Giao diện")}
+                  ariaLabel={chatT("外观", "Giao diện", "Appearance")}
                   onChange={(e) => setTheme(e.target.value)}
                   options={THEME_OPTIONS}
                 />
@@ -2474,14 +2474,14 @@ export default function App() {
                 className="settings-row"
                 onClick={() => navigate("settings")}
               >
-                <span>{chatT("个人配置与模型凭据", "Cài đặt cá nhân và thông tin xác thực mô hình")}</span>
+                <span>{chatT("个人配置与模型凭据", "Cài đặt cá nhân và thông tin xác thực mô hình", "Personal settings and model credentials")}</span>
                 <ChevronRightSmall />
               </button>
               <button
                 className="settings-row"
                 onClick={() => navigate("runners")}
               >
-                <span>{chatT("执行机器", "Máy thực thi")}</span>
+                <span>{chatT("执行机器", "Máy thực thi", "Execution machines")}</span>
                 <ChevronRightSmall />
               </button>
               <small className="muted">

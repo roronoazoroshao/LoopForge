@@ -194,6 +194,7 @@
           }
         }
         const button = el('button', 'hui-select-option');
+        if(option.hasAttribute?.('data-i18n-skip'))button.setAttribute?.('data-i18n-skip','');
         button.type = 'button';
         button.tabIndex = -1;
         button.setAttribute('role', 'option');
@@ -383,6 +384,10 @@
 
     function sync() {
       const current = select.options[Math.max(0, select.selectedIndex)];
+      if(value.setAttribute && value.removeAttribute){
+        if(current?.hasAttribute?.('data-i18n-skip'))value.setAttribute('data-i18n-skip','');
+        else value.removeAttribute('data-i18n-skip');
+      }
       value.textContent = current ? current.text : '';
       trigger.classList.toggle('is-filtered', select.selectedIndex > 0);
       trigger.disabled = !!select.disabled;

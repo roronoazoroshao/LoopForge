@@ -111,7 +111,11 @@ function workflowNeedsPublish(wf=state.workflow){
 function renderFlowHeader(){
   const wf=state.workflow;
   const title=$('#flowCommandTitle');
-  if(title){title.textContent=wf?(wf.name||'未命名流程'):'选择或新建 SOP';title.title=wf?.name||''}
+  if(title){
+    if(wf)title.setAttribute?.('data-i18n-skip','');else title.removeAttribute?.('data-i18n-skip');
+    title.textContent=wf?(sopSeedWorkflowDisplayName(wf)||'未命名流程'):'选择或新建 SOP';
+    title.title=wf?sopSeedWorkflowDisplayName(wf):'';
+  }
   const copyName=$('#copyWorkflowName');if(copyName)copyName.hidden=!wf
   const meta=$('#workflowMeta');
   if(meta){
@@ -145,7 +149,7 @@ function renderWorkflowMeta(){
   // Generic templates and an unsaved AI draft are not in the project SOP list.
   // Keep the open workflow selected while it is being previewed.
   const options=wf&&!workflows.some(w=>w.id===wf.id)?[wf,...workflows]:workflows;
-  $('#workflowSelect').innerHTML=options.map(w=>`<option value="${escapeHTML(w.id)}" ${wf&&w.id===wf.id?'selected':''}>${escapeHTML(w.name)}</option>`).join('');
+  $('#workflowSelect').innerHTML=options.map(w=>`<option data-i18n-skip value="${escapeHTML(w.id)}" ${wf&&w.id===wf.id?'selected':''}>${escapeHTML(sopSeedWorkflowDisplayName(w))}</option>`).join('');
   if(!wf){
     $('#workflowName').value='';$('#workflowDescription').value='';$('#workflowOwner').value='';$('#workflowSandbox').innerHTML='';
     $('#workflowStatus').value='draft';$('#workflowTags').value='';$('#workflowMetricCategory').value='';$('#workflowSOPLane').value='';
@@ -209,11 +213,15 @@ function addNode(type,opts={}){
   state.workflow.nodes.push(node);
   dirty();openNodeDrawer(node.id);
 }
+function flowMessageNodeName(n,wf){
+  return sopSeedNodeDisplayName(n,wf);
+}
 // Removes a node with its edges and any reject routes pointing at it.
 function removeNode(id){
   const wf=state.workflow,n=wf?.nodes.find(x=>x.id===id);
   if(!n)return false;
   if(flowReadOnly()){toast(flowReadOnlyReason());return false}
+  const name=flowMessageNodeName(n,wf);
   flowHistory.record();
   wf.nodes=wf.nodes.filter(x=>x.id!==id);
   wf.edges=wf.edges.filter(e=>e.source!==id&&e.target!==id);
@@ -222,7 +230,7 @@ function removeNode(id){
   if(state.selectedNode===id)state.selectedNode=null;
   if(state.renamingNode===id)state.renamingNode=null;
   dirty();renderCanvas();renderProperties();
-  flowToast(`已删除「${n.name}」`,{undo:true});
+  flowToast(window.lfT(`已删除「${name}」`,`Deleted “${name}”`,`Đã xóa “${name}”`),{undo:true,localized:true});
   return true;
 }
 function deleteSelected(){if(state.selectedNode)removeNode(state.selectedNode)}
@@ -290,7 +298,7 @@ function nodeMeta(n){
   if(n.type==='agent'){
     const a=workflowAgent(n.agentId),generic=catalogGeneric(state.workflow);
     const e=(state.data.executors||[]).find(x=>x.id===(a?.executorId||n.executorId));
-    const subtitle=a?.name||(n.agentId?(generic?n.agentId:'角色不可用'):'未绑定角色');
+    const subtitle=a?sopSeedRoleDisplayName(a,state.workflow):(n.agentId?(generic?n.agentId:'角色不可用'):'未绑定角色');
     const tags=[];
     if(!n.agentId)tags.push({text:'未绑定角色',warn:true});
     else if(!a)tags.push({text:generic?'通用模板角色':'角色不可用',warn:!generic});
@@ -310,19 +318,20 @@ function nodeMeta(n){
     const wf=sopWorkflowChoices().find(w=>w.id===n.sopWorkflowId)||(state.data.workflows||[]).find(w=>w.id===n.sopWorkflowId);
     const arts=(n.artifactOutputs||[]).map(a=>a.name).filter(Boolean);
     const tags=!n.sopWorkflowId?[{text:'未选择流程',warn:true}]:!wf?[{text:'流程不可用',warn:true}]:[{text:arts.length?`交给下一步：${arts.join('、')}`:'产物交给下一步'}];
-    return {kind:'sop',subtitle:wf?.name||(n.sopWorkflowId?'流程不可用':'未选择流程'),tags};
+    return {kind:'sop',subtitle:wf?sopSeedWorkflowDisplayName(wf):(n.sopWorkflowId?window.lfT('流程不可用','SOP unavailable','SOP không khả dụng'):window.lfT('未选择流程','No SOP selected','Chưa chọn SOP')),tags};
   }
   return {kind:'approval',subtitle:'人工门禁',tags:[{text:'等待人工确认'}]};
 }
 function flowNodeHTML(n,run,ro){
   const m=nodeMeta(n),kind=m.kind,status=run?.nodes?.[n.id]?.status||'';
   const agent=kind==='agent'?workflowAgent(n.agentId):null;
-  const tile=agent?escapeHTML(flowPalette.initial(agent.name)):flowPalette.icon(FLOW_NODE_TYPES[kind].icon,16);
-  const title=state.renamingNode===n.id?`<input class="fd-rename" value="${escapeHTML(n.name)}" maxlength="120" aria-label="重命名步骤">`:escapeHTML(n.name);
+  const tile=agent?escapeHTML(flowPalette.initial(sopSeedRoleDisplayName(agent,state.workflow))):flowPalette.icon(FLOW_NODE_TYPES[kind].icon,16);
+  const displayedName=sopSeedNodeDisplayName(n,state.workflow);
+  const title=state.renamingNode===n.id?`<input class="fd-rename" value="${escapeHTML(displayedName)}" maxlength="120" aria-label="重命名步骤">`:escapeHTML(displayedName);
   const cls=['flow-node','fd-node','t-'+kind,state.selectedNode===n.id?'sel':'',state.connectFrom===n.id?'connecting':'',status?'s-'+status:'',kind==='preview'?'preview-build':''].filter(Boolean).join(' ');
   const tags=m.tags.map(t=>`<span class="fd-tag${t.warn?' warn':''}${t.mono?' mono':''}" title="${escapeHTML(t.text)}">${escapeHTML(t.text)}</span>`).join('');
   const outs=`<div class="fd-out ok">成功<span class="fd-port out" data-outlet="success" title="拖到下一步"></span></div>`+(kind==='preview'?'':`<div class="fd-out rj">失败打回<span class="fd-port out" data-outlet="reject" title="拖到失败时要打回的步骤"></span></div>`);
-  return `<div class="${cls}" data-id="${escapeHTML(n.id)}" style="left:${n.position.x}px;top:${n.position.y}px;--tint:${flowNodeTint(n)}"><span class="fd-port in" title="连到这里"></span><div class="fd-nh"><span class="fd-tile">${tile}</span><div class="fd-nt"><div class="node-title">${title}</div><div class="node-subtitle">${escapeHTML(m.subtitle)}</div></div>${status?`<span class="fd-status s-${escapeHTML(status)}">${statusText(status)||escapeHTML(status)}</span>`:''}${ro?'':`<button type="button" class="fd-more" data-node-menu aria-label="更多操作">${flowPalette.icon('more')}</button>`}</div><div class="fd-nbody">${tags}</div><div class="fd-outs">${outs}</div></div>`;
+  return `<div class="${cls}" data-id="${escapeHTML(n.id)}" style="left:${n.position.x}px;top:${n.position.y}px;--tint:${flowNodeTint(n)}"><span class="fd-port in" title="连到这里"></span><div class="fd-nh"><span class="fd-tile">${tile}</span><div class="fd-nt"><div class="node-title" data-i18n-skip>${title}</div><div class="node-subtitle"${agent||kind==='sop'?' data-i18n-skip':''}>${escapeHTML(m.subtitle)}</div></div>${status?`<span class="fd-status s-${escapeHTML(status)}">${statusText(status)||escapeHTML(status)}</span>`:''}${ro?'':`<button type="button" class="fd-more" data-node-menu aria-label="更多操作">${flowPalette.icon('more')}</button>`}</div><div class="fd-nbody">${tags}</div><div class="fd-outs">${outs}</div></div>`;
 }
 function renderCanvas(){
   const nodes=$('#nodes');if(!nodes)return;
@@ -379,7 +388,7 @@ function bindNodeRename(input){
     if(state.renamingNode!==id)return;
     state.renamingNode=null;
     const n=state.workflow?.nodes.find(x=>x.id===id),name=input.value.trim();
-    if(commit&&n&&name&&name!==n.name){flowHistory.record();n.name=name;dirty()}
+    if(commit&&n&&name&&name!==sopSeedNodeDisplayName(n,state.workflow)&&name!==n.name){flowHistory.record();n.name=name;dirty()}
     renderCanvas();if(state.selectedNode===id)renderProperties();
   };
   input.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();done(true)}else if(e.key==='Escape'){e.preventDefault();done(false)}});
@@ -390,12 +399,41 @@ function bindNodeRename(input){
 function flowDiagnostics(){
   if(!state.workflow)return [];
   const nodes=state.workflow.nodes||[],edges=state.workflow.edges||[],incoming=new Map(nodes.map(n=>[n.id,0])),items=[];edges.forEach(e=>incoming.has(e.target)&&incoming.set(e.target,incoming.get(e.target)+1));
-  const starts=nodes.filter(n=>incoming.get(n.id)===0);items.push({level:!nodes.length?'error':starts.length===1?'ok':'warn',title:'流程入口',detail:!nodes.length?'至少添加一个节点':starts.length===1?`从「${starts[0].name}」开始`:`检测到 ${starts.length} 个入口；这些节点会并行启动`});
-  items.push({level:state.data.sandboxes?.some(s=>s.id===state.workflow.sandboxProfileId)?'ok':'error',title:'运行沙箱',detail:state.workflow.sandboxProfileId?`整条流程使用 ${state.workflow.sandboxProfileId}`:'尚未选择 Workflow 运行沙箱'});
-  nodes.forEach(n=>{if(isPreviewBuildNode(n.id)){const inDeg=edges.filter(e=>e.target===n.id).length;items.push({level:inDeg?'ok':'warn',title:n.name,detail:inDeg?`插在流程中间：${workflowPreviewModel(state.workflow)} 构建静态站点，运行成功后归档预览`:'还没有前序依赖，会作为流程入口直接运行；请从上游节点连线到此'});return}if(n.type==='agent'){const missing=[];const agent=workflowAgent(n.agentId);const generic=catalogGeneric(state.workflow);if(!n.agentId)missing.push('角色');else if(!agent)missing.push(generic?'通用模板角色未加载':'角色不属于当前项目或未共享');else if(!generic&&!(agent.executorId||n.executorId))missing.push('角色未选模型');if(!(n.artifactOutputs||[]).length&&!(agent?.artifactOutputs||[]).length)missing.push('角色产物契约');items.push({level:missing.length?'warn':'ok',title:n.name,detail:missing.length?`尚未配置：${missing.join('、')}`:generic?'已绑定通用模板角色；任务书与门禁在角色定义中':'已绑定角色；任务书与门禁在角色定义中'})}if(n.type==='sop'){const missing=[];const wf=sopWorkflowChoices(state.workflow.id).find(w=>w.id===n.sopWorkflowId)||(state.data.workflows||[]).find(w=>w.id===n.sopWorkflowId);if(!n.sopWorkflowId)missing.push('要跑的 SOP');else if(!wf)missing.push('引用的 SOP 不存在');if(n.sopWorkflowId===state.workflow.id)missing.push('不能引用自己');items.push({level:missing.length?'error':'ok',title:n.name,detail:missing.length?`尚未配置：${missing.join('、')}`:`引用「${wf.name}」，产物交给下一步`})}if(n.rejectTo&&!nodes.some(x=>x.id===n.rejectTo))items.push({level:'error',title:n.name,detail:'失败打回目标不存在'})});
-  if(nodes.length>1&&edges.length===0)items.push({level:'warn',title:'成功路径',detail:'多个节点之间没有依赖关系，将同时启动'});if(!items.some(x=>x.level==='error'))items.push({level:'ok',title:'结构校验',detail:'未发现阻止保存或试运行的结构错误'});return items;
+  const displayName=n=>flowMessageNodeName(n,state.workflow);
+  const starts=nodes.filter(n=>incoming.get(n.id)===0),entry=starts.length===1?displayName(starts[0]):'';
+  items.push({level:!nodes.length?'error':starts.length===1?'ok':'warn',title:window.lfT('流程入口','Entry point','Điểm bắt đầu'),detail:!nodes.length?window.lfT('至少添加一个节点','Add at least one step','Thêm ít nhất một bước'):starts.length===1?window.lfT(`从「${entry}」开始`,`Start from “${entry}”`,`Bắt đầu từ “${entry}”`):window.lfT(`检测到 ${starts.length} 个入口；这些节点会并行启动`,`${starts.length} entry points detected; these steps will start in parallel`,`Phát hiện ${starts.length} điểm bắt đầu; các bước này sẽ khởi chạy song song`)});
+  const sandbox=state.workflow.sandboxProfileId;
+  items.push({level:state.data.sandboxes?.some(s=>s.id===sandbox)?'ok':'error',title:window.lfT('运行沙箱','Run Sandbox','Sandbox thực thi'),detail:sandbox?window.lfT(`整条流程使用 ${sandbox}`,`The entire SOP uses ${sandbox}`,`Toàn bộ SOP sử dụng ${sandbox}`):window.lfT('尚未选择 Workflow 运行沙箱','No Workflow run Sandbox selected','Chưa chọn sandbox thực thi workflow')});
+  const missingDetail=missing=>window.lfT(`尚未配置：${missing.join('、')}`,`Not configured: ${missing.join(', ')}`,`Chưa cấu hình: ${missing.join(', ')}`);
+  nodes.forEach(n=>{
+    const title=displayName(n);
+    if(isPreviewBuildNode(n.id)){
+      const inDeg=edges.filter(e=>e.target===n.id).length,model=inDeg?workflowPreviewModel(state.workflow):'';
+      items.push({level:inDeg?'ok':'warn',title,detail:inDeg?window.lfT(`插在流程中间：${model} 构建静态站点，运行成功后归档预览`,`In the middle of the SOP: ${model} builds the static site and archives the preview on success`,`Ở giữa SOP: ${model} xây dựng trang web tĩnh và lưu bản xem trước khi thành công`):window.lfT('还没有前序依赖，会作为流程入口直接运行；请从上游节点连线到此','No upstream dependencies; runs as an entry point. Connect from an upstream step','Không có phụ thuộc phía trước; chạy như điểm bắt đầu. Kết nối từ bước trước')});return;
+    }
+    if(n.type==='agent'){
+      const missing=[],agent=workflowAgent(n.agentId),generic=catalogGeneric(state.workflow);
+      if(!n.agentId)missing.push(window.lfT('角色','Role','Vai trò'));
+      else if(!agent)missing.push(generic?window.lfT('通用模板角色未加载','General template Role not loaded','Chưa tải vai trò mẫu chung'):window.lfT('角色不属于当前项目或未共享',"Role isn't in this project or not shared",'Vai trò không thuộc dự án này hoặc không được chia sẻ'));
+      else if(!generic&&!(agent.executorId||n.executorId))missing.push(window.lfT('角色未选模型','Role has no model selected','Vai trò chưa chọn mô hình'));
+      if(!(n.artifactOutputs||[]).length&&!(agent?.artifactOutputs||[]).length)missing.push(window.lfT('角色产物契约','Role output contract','Hợp đồng đầu ra vai trò'));
+      items.push({level:missing.length?'warn':'ok',title,detail:missing.length?missingDetail(missing):generic?window.lfT('已绑定通用模板角色；任务书与门禁在角色定义中','Bound to a general template Role; brief and gates live in the Role definition','Đã liên kết vai trò mẫu chung; mô tả và điểm kiểm soát nằm trong định nghĩa vai trò'):window.lfT('已绑定角色；任务书与门禁在角色定义中','Role bound; brief and gates live in the Role definition','Đã liên kết vai trò; mô tả và điểm kiểm soát nằm trong định nghĩa vai trò')});
+    }
+    if(n.type==='sop'){
+      const missing=[],wf=sopWorkflowChoices(state.workflow.id).find(w=>w.id===n.sopWorkflowId)||(state.data.workflows||[]).find(w=>w.id===n.sopWorkflowId);
+      if(!n.sopWorkflowId)missing.push(window.lfT('要跑的 SOP','SOP to run','SOP cần chạy'));
+      else if(!wf)missing.push(window.lfT('引用的 SOP 不存在',"Referenced SOP doesn't exist",'SOP được tham chiếu không tồn tại'));
+      if(n.sopWorkflowId===state.workflow.id)missing.push(window.lfT('不能引用自己',"Can't reference itself",'Không thể tự tham chiếu'));
+      const name=wf?sopSeedWorkflowDisplayName(wf):'';
+      items.push({level:missing.length?'error':'ok',title,detail:missing.length?missingDetail(missing):window.lfT(`引用「${name}」，产物交给下一步`,`References “${name}”; outputs pass to the next step`,`Tham chiếu “${name}”; chuyển đầu ra cho bước tiếp theo`)});
+    }
+    if(n.rejectTo&&!nodes.some(x=>x.id===n.rejectTo))items.push({level:'error',title,detail:window.lfT('失败打回目标不存在',"Send-back target on failure doesn't exist",'Đích trả về khi thất bại không tồn tại')});
+  });
+  if(nodes.length>1&&edges.length===0)items.push({level:'warn',title:window.lfT('成功路径','Success path','Đường thành công'),detail:window.lfT('多个节点之间没有依赖关系，将同时启动','Steps with no dependencies between them will start together','Các bước không phụ thuộc lẫn nhau sẽ khởi chạy cùng lúc')});
+  if(!items.some(x=>x.level==='error'))items.push({level:'ok',title:window.lfT('结构校验','Structure check','Kiểm tra cấu trúc'),detail:window.lfT('未发现阻止保存或试运行的结构错误','No structural errors blocking save or test run','Không có lỗi cấu trúc chặn lưu hoặc chạy thử')});return items;
 }
-function setFlowView(mode){$$('.canvas-view-toggle button').forEach(b=>b.classList.toggle('active',b.dataset.flowView===mode));$('#canvas').hidden=mode!=='canvas';$('#flowCheckPanel').hidden=mode!=='check';$('#flowStageWrap')?.classList.toggle('check-mode',mode==='check');if(mode==='check')$('#flowCheckPanel').innerHTML=`<div class="page-heading" style="margin-bottom:14px"><div><h1 style="font-size:17px">配置检查</h1><p>运行前检查入口、CLI、产物契约和返工路径。</p></div></div><div class="flow-check-grid">${flowDiagnostics().map(x=>`<div class="flow-check-item ${x.level}"><b>${escapeHTML(x.title)}</b><p>${escapeHTML(x.detail)}</p></div>`).join('')}</div>`;else flowViewport.renderMinimap()}
+// Diagnostic fields are explicitly localized before interpolation; do not let the DOM translator rewrite user names or technical IDs.
+function setFlowView(mode){$$('.canvas-view-toggle button').forEach(b=>b.classList.toggle('active',b.dataset.flowView===mode));$('#canvas').hidden=mode!=='canvas';$('#flowCheckPanel').hidden=mode!=='check';$('#flowStageWrap')?.classList.toggle('check-mode',mode==='check');if(mode==='check')$('#flowCheckPanel').innerHTML=`<div class="page-heading" style="margin-bottom:14px"><div><h1 style="font-size:17px">配置检查</h1><p>运行前检查入口、CLI、产物契约和返工路径。</p></div></div><div class="flow-check-grid">${flowDiagnostics().map(x=>`<div class="flow-check-item ${x.level}"><b data-i18n-skip>${escapeHTML(x.title)}</b><p data-i18n-skip>${escapeHTML(x.detail)}</p></div>`).join('')}</div>`;else flowViewport.renderMinimap()}
 function setThemePreference(preference){if(!['light','dark','system'].includes(preference))return;try{localStorage.setItem(THEME_KEY,preference)}catch{}applyTheme(preference)}
 // The profile card is visibility:hidden while closed, so callers re-run this with snap when it opens.
 function renderThemeSegment({snap=false}={}){const preference=typeof activeThemePreference==='string'?activeThemePreference:readThemePreference();document.querySelectorAll('.upp-theme-seg').forEach(seg=>{seg.querySelectorAll('[data-theme-pref]').forEach(button=>{const on=button.dataset.themePref===preference;button.classList.toggle('active',on);if(button.getAttribute('aria-checked')!==String(on))button.setAttribute('aria-checked',String(on));button.tabIndex=on?0:-1});const tabs=window.AgentFlowSlidingTabs;if(!tabs)return;const indicator=seg.querySelector(':scope > [data-sliding-indicator]');if(snap&&indicator)indicator.style.transition='none';tabs.mount(seg,{activeSelector:'.active',auto:true,compact:true,cacheKey:'upp-theme-seg'}).refresh();if(snap&&indicator){indicator.getBoundingClientRect();requestAnimationFrame(()=>{indicator.style.transition=''})}})}
@@ -452,7 +490,12 @@ function completeFlowConnect(target){
   if(outlet!=='reject')return connect(src.id,target.id);
   const prev=state.workflow.nodes.find(x=>x.id===src.rejectTo);
   if(!setRejectTo(src.id,target.id)){renderCanvas();return false}
-  flowToast(prev&&prev.id!==target.id?`「${src.name}」的打回目标已从「${prev.name}」改为「${target.name}」`:`「${src.name}」失败时打回到「${target.name}」`,{undo:true});
+  const from=sopSeedNodeDisplayName(src,state.workflow),to=sopSeedNodeDisplayName(target,state.workflow);
+  const old=sopSeedNodeDisplayName(prev,state.workflow);
+  const message=prev&&prev.id!==target.id
+    ?window.lfT(`「${from}」的打回目标已从「${old}」改为「${to}」`,`Changed the rework target of “${from}” from “${old}” to “${to}”`,`Đã đổi bước làm lại của “${from}” từ “${old}” sang “${to}”`)
+    :window.lfT(`「${from}」失败时打回到「${to}」`,`Send “${from}” back to “${to}” on failure`,`Trả “${from}” về “${to}” khi thất bại`);
+  flowToast(message,{undo:true,localized:true});
   return true;
 }
 function cancelFlowConnect(){
@@ -468,7 +511,8 @@ function connect(source,target){
   state.workflow.edges.push({id:uid('edge'),source,target,when:'success'});
   dirty();renderCanvas();renderProperties();
   const a=state.workflow.nodes.find(n=>n.id===source),b=state.workflow.nodes.find(n=>n.id===target);
-  flowToast(`已连接「${a?.name||source}」→「${b?.name||target}」`,{undo:true});
+  const from=sopSeedNodeDisplayName(a,state.workflow)||source,to=sopSeedNodeDisplayName(b,state.workflow)||target;
+  flowToast(window.lfT(`已连接「${from}」→「${to}」`,`Connected “${from}” → “${to}”`,`Đã kết nối “${from}” → “${to}”`),{undo:true,localized:true});
   return true;
 }
 // Sets the single reject route of a node; an empty target clears it.
@@ -540,12 +584,17 @@ function renderEdges(){
     wf.edges.forEach(e=>{
       const a=byId.get(e.source),b=byId.get(e.target);if(!a||!b)return;
       const p=flowPortPoint(a,'success'),q=flowPortPoint(b,'in'),d=flowCurve(p,q);
-      html+=`<g class="fd-e" data-edge="${escapeHTML(e.id)}"><path class="fd-e-hit" d="${d}"/><path class="edge fd-e-path" d="${d}"/>${del((p.x+q.x)/2,(p.y+q.y)/2)}<title>${escapeHTML(a.name)} → ${escapeHTML(b.name)} · 点击删除</title></g>`;
+      const from=flowMessageNodeName(a,wf),to=flowMessageNodeName(b,wf);
+      const tip=window.lfT(`${from} → ${to} · 点击删除`,`${from} → ${to} · Click to delete`,`${from} → ${to} · Nhấp để xóa`);
+      html+=`<g class="fd-e" data-edge="${escapeHTML(e.id)}"><path class="fd-e-hit" d="${d}"/><path class="edge fd-e-path" d="${d}"/>${del((p.x+q.x)/2,(p.y+q.y)/2)}<title data-i18n-skip>${escapeHTML(tip)}</title></g>`;
     });
     wf.nodes.forEach(n=>{
       const t=n.rejectTo&&byId.get(n.rejectTo);if(!t)return;
       const {d,mx,my}=flowRejectPath(n,t);
-      html+=`<g class="fd-e rj" data-reject-from="${escapeHTML(n.id)}"><path class="fd-e-hit" d="${d}"/><path class="edge fd-e-path reject-edge" d="${d}"/><g class="fd-e-label" transform="translate(${mx} ${my})"><rect x="-30" y="-10" width="60" height="20" rx="10"/><text text-anchor="middle" y="3.5">失败打回</text></g>${del(mx+42,my)}<title>${escapeHTML(n.name)} 失败打回到 ${escapeHTML(t.name)} · 点击取消</title></g>`;
+      const label=window.lfT('失败打回','Send back on failure','Trả về khi thất bại'),half=window.lfLang?.()==='zh'?30:66;
+      const from=flowMessageNodeName(n,wf),to=flowMessageNodeName(t,wf);
+      const tip=window.lfT(`${from} 失败打回到 ${to} · 点击取消`,`${from} sends back on failure to ${to} · Click to cancel`,`${from} trả về khi thất bại tới ${to} · Nhấp để hủy`);
+      html+=`<g class="fd-e rj" data-reject-from="${escapeHTML(n.id)}"><path class="fd-e-hit" d="${d}"/><path class="edge fd-e-path reject-edge" d="${d}"/><g class="fd-e-label" transform="translate(${mx} ${my})"><rect x="${-half}" y="-10" width="${half*2}" height="20" rx="10"/><text text-anchor="middle" y="3.5">${escapeHTML(label)}</text></g>${del(mx+half+12,my)}<title data-i18n-skip>${escapeHTML(tip)}</title></g>`;
     });
     const src=state.connectFrom&&byId.get(state.connectFrom);
     if(src&&state.connectCursor){
@@ -585,8 +634,10 @@ function openNodeMenu(id,anchor){
 function closeNodeMenu(){const menu=$('#flowNodeMenu');if(!menu)return false;menu.remove();return true}
 function flowToast(message,opts={}){
   const box=$('#flowToast');
-  if(!box||!$('#flowView')?.classList.contains('active')){toast(message);return}
-  $('#flowToastMsg').textContent=message;
+  if(!box||!$('#flowView')?.classList.contains('active')){toast(message,'info',2600,!!opts.localized);return}
+  const msg=$('#flowToastMsg');
+  if(opts.localized)msg.setAttribute('data-i18n-skip','');else msg.removeAttribute('data-i18n-skip');
+  msg.textContent=message;
   const withUndo=!!opts.undo&&flowHistory.canUndo(),at=flowHistory.current();
   box.classList.toggle('noact',!withUndo);
   $('#flowToastAction').onclick=()=>{box.classList.remove('on');if(flowHistory.current()!==at)return flowToast('之后又有修改，请用工具条或 ⌘Z 撤销');if(flowHistory.undo())flowToast('已撤销')};
@@ -978,18 +1029,27 @@ function sectionHead(title,hint,count,unit){
 }
 function agentBindCard(n){
   const agent=workflowAgent(n.agentId);
+  const roleLabel=window.lfT('这个步骤用哪个角色','Role for this step','Vai trò cho bước này');
   const exec=(state.data.executors||[]).find(x=>x.id===(agent?.executorId||n.executorId));
   const generic=catalogGeneric(state.workflow);
   const projectId=state.workflow?.projectId||state.projectFilter||'',projects=state.data.projects||[];
   const invalid=n.agentId&&!agent?'<option value="" selected disabled>当前绑定角色不可用，请重新选择</option>':'';
   const available=workflowAgents(),owned=available.filter(x=>!generic&&x.projectId===projectId),shared=available.filter(x=>!generic&&x.projectId!==projectId);
-  const options=items=>items.map(x=>{const owner=projects.find(p=>p.id===x.projectId)?.name||x.projectId;return `<option value="${escapeHTML(x.id)}" ${x.id===n.agentId?'selected':''}>${escapeHTML(x.name)}${!generic&&x.projectId!==projectId?` · 来自 ${escapeHTML(owner)}`:''}</option>`}).join('');
+  const options=items=>items.map(x=>{const owner=projects.find(p=>p.id===x.projectId)?.name||x.projectId;return `<option data-i18n-skip value="${escapeHTML(x.id)}" ${x.id===n.agentId?'selected':''}>${escapeHTML(sopSeedRoleDisplayName(x,state.workflow))}${!generic&&x.projectId!==projectId?` · ${window.lfT('来自','from','từ')} ${escapeHTML(owner)}`:''}</option>`}).join('');
   const grouped=generic
-    ?(available.length?`<optgroup label="通用模板角色 · ${available.length} 个">${options(available)}</optgroup>`:'')
-    :(owned.length?`<optgroup label="本项目角色 · ${owned.length} 个">${options(owned)}</optgroup>`:'')+(shared.length?`<optgroup label="共享角色 · ${shared.length} 个">${options(shared)}</optgroup>`:'');
+    ?(available.length?`<optgroup label="${window.lfT('通用模板角色','Starter-template roles','Vai trò của mẫu chung')} · ${available.length} ${window.lfT('个角色','roles','vai trò')}">${options(available)}</optgroup>`:'')
+    :(owned.length?`<optgroup label="${window.lfT('本项目角色','Project roles','Vai trò của dự án')} · ${owned.length} ${window.lfT('个角色','roles','vai trò')}">${options(owned)}</optgroup>`:'')+(shared.length?`<optgroup label="${window.lfT('共享角色','Shared roles','Vai trò dùng chung')} · ${shared.length} ${window.lfT('个角色','roles','vai trò')}">${options(shared)}</optgroup>`:'');
   const opts=(invalid+grouped)||(generic?'<option value="">该模板还没有打包角色</option>':'<option value="">当前项目暂无可用角色</option>');
-  const hint=generic?'这些角色打包在通用模板里，和当前项目目录无关。改任务书只影响平台模板，所有项目下次运行生效。':`本项目 ${owned.length} 个 · 共享 ${shared.length} 个；其他项目私有角色已隐藏。`;
-  if(!agent)return `<div class="fd-field"><label>这个步骤用哪个角色</label><select class="select" data-p="agentId">${opts}</select><p class="prop-hint">${hint}</p><p class="prop-hint">先选一个已定义的角色。画布只编排顺序和打回，不改编排角色内部的任务。</p></div>`;
+  const hint=generic
+    ?window.lfT(
+      '这些角色打包在通用模板里，和当前项目目录无关。改任务书只影响平台模板，所有项目下次运行生效。',
+      'These roles are bundled with the public template, not the current project. Editing a role affects the shared template for future runs in every project.',
+      'Những vai trò này thuộc mẫu chung, không thuộc dự án hiện tại. Chỉnh sửa vai trò trong mẫu sẽ ảnh hưởng đến các lượt chạy sau này của mọi dự án.')
+    :window.lfT(
+      `本项目 ${owned.length} 个 · 共享 ${shared.length} 个；其他项目私有角色已隐藏。`,
+      `This project: ${owned.length} · Shared: ${shared.length}; private roles in other projects are hidden.`,
+      `Dự án này: ${owned.length} · Dùng chung: ${shared.length}; đã ẩn vai trò riêng của dự án khác.`);
+  if(!agent)return `<div class="fd-field"><label for="flowAgentSelect">${roleLabel}</label><select id="flowAgentSelect" aria-label="${roleLabel}" class="select" data-p="agentId">${opts}</select><p class="prop-hint">${hint}</p><p class="prop-hint">先选一个已定义的角色。画布只编排顺序和打回，不改编排角色内部的任务。</p></div>`;
   const arts=effectiveNodeArtifacts(n,agent),gates=roleGates(agent);
   const duty=String(agent.description||'').trim(),taskHint=duty?(duty.length>48?`${duty.slice(0,48)}…`:duty):'还没写职责，可在角色定义里补';
   const source=(state.workflow?.tags||[]).find(tag=>tag.startsWith('generic-source:'))?.slice('generic-source:'.length);
@@ -999,13 +1059,13 @@ function agentBindCard(n){
   const inheritsExecutor=!n.executorId&&(!agent.executorId||legacyTemplate)&&
     !String(agent.model||'').trim()&&!String(agent.effort||'').trim();
   const model=inheritsExecutor?'跟随责任人':agent.model||exec?.model||exec?.name||'未选模型';
-  return `<div class="fd-field"><label>这个步骤用哪个角色</label><select class="select" data-p="agentId">${opts}</select><p class="prop-hint">${hint}</p></div>
-    <div class="fd-role"><div class="fd-role-h"><span class="fd-tile" style="--tint:${flowPalette.roleTint(agent.id)}">${escapeHTML(flowPalette.initial(agent.name))}</span><span class="fd-role-t"><b>${escapeHTML(agent.name)}</b><small>${escapeHTML(taskHint)}</small></span>${boundRoleLink(agent)}</div><div class="fd-stats"><div title="${escapeHTML(model)}"><b class="txt">${escapeHTML(model)}</b><small>模型</small></div><div><b>${arts.length}</b><small>产物</small></div><div><b>${gates.length}</b><small>门禁</small></div><div><b>${agent.loop?.enabled?`${agent.loop.maxIterations||1} 轮`:'单轮'}</b><small>Loop</small></div></div></div>`;
+  return `<div class="fd-field"><label for="flowAgentSelect">${roleLabel}</label><select id="flowAgentSelect" aria-label="${roleLabel}" class="select" data-p="agentId">${opts}</select><p class="prop-hint">${hint}</p></div>
+    <div class="fd-role"><div class="fd-role-h"><span class="fd-tile" style="--tint:${flowPalette.roleTint(agent.id)}">${escapeHTML(flowPalette.initial(sopSeedRoleDisplayName(agent,state.workflow)))}</span><span class="fd-role-t"><b data-i18n-skip>${escapeHTML(sopSeedRoleDisplayName(agent,state.workflow))}</b><small${duty?' data-i18n-skip':''}>${escapeHTML(taskHint)}</small></span>${boundRoleLink(agent)}</div><div class="fd-stats"><div title="${escapeHTML(model)}"><b class="txt">${escapeHTML(model)}</b><small>模型</small></div><div><b>${arts.length}</b><small>产物</small></div><div><b>${gates.length}</b><small>门禁</small></div><div><b>${agent.loop?.enabled?`${agent.loop.maxIterations||1} 轮`:'单轮'}</b><small>Loop</small></div></div></div>`;
 }
 function flowDrawerHead(n,kind,label){
   const agent=kind==='agent'?workflowAgent(n.agentId):null;
-  const tile=agent?escapeHTML(flowPalette.initial(agent.name)):flowPalette.icon(FLOW_NODE_TYPES[kind].icon,16);
-  const title=kind==='preview'?`<h3>${escapeHTML(n.name)}</h3>`:`<input class="fd-dh-name" data-p="name" value="${escapeHTML(n.name)}" maxlength="120" aria-label="步骤名称" spellcheck="false">`;
+  const tile=agent?escapeHTML(flowPalette.initial(sopSeedRoleDisplayName(agent,state.workflow))):flowPalette.icon(FLOW_NODE_TYPES[kind].icon,16);
+  const title=kind==='preview'?`<h3 data-i18n-skip>${escapeHTML(sopSeedNodeDisplayName(n,state.workflow))}</h3>`:`<input class="fd-dh-name" data-p="name" value="${escapeHTML(sopSeedNodeDisplayName(n,state.workflow))}" maxlength="120" aria-label="步骤名称" spellcheck="false">`;
   return `<div class="fd-dh"><span class="fd-tile" style="--tint:${flowNodeTint(n)}">${tile}</span><div class="fd-dh-t">${title}<small title="${escapeHTML(n.id)}">${label} · ${escapeHTML(n.id)}</small></div><button type="button" class="fd-icon-btn danger" id="deletePropertyNode" aria-label="删除步骤" data-tip="${kind==='preview'?'移除预览节点':'删除 Del'}">${flowPalette.icon('trash')}</button><button type="button" class="fd-icon-btn" id="closeNodeDrawer" aria-label="关闭" data-tip="关闭 Esc">${flowPalette.icon('x')}</button></div>`;
 }
 function flowFold(id,title,sub,body,defaultOpen){
@@ -1059,7 +1119,8 @@ function renderProperties(){
   else{
     ensureNodeDefaults(n);
     const sopChoices=sopWorkflowChoices(state.workflow.id);
-    const sopSelect=n.type==='sop'?`<div class="fd-field"><label>要跑的 SOP</label><select class="select" data-p="sopWorkflowId"><option value="">选择一条已有流程</option>${sopChoices.map(w=>`<option value="${escapeHTML(w.id)}" ${w.id===n.sopWorkflowId?'selected':''}>${escapeHTML(w.name)}</option>`).join('')}</select><p class="prop-hint">${escapeHTML((sopChoices.find(w=>w.id===n.sopWorkflowId)||{}).description||'这条 SOP 会作为子流程跑完，声明的产物交给下一步。')}</p></div><div class="fd-field"><label>交给下一步的产物</label><p class="prop-hint">子 SOP 成功后，下列文件会出现在本节点，供下一步读取。留空则收下子流程交出的全部产物。</p><div id="artifactContractRows">${artifactRowsHTML(n)}</div><button type="button" class="fd-btn ghost sm" id="addSOPHandoff">${flowPalette.icon('plus',13)}<span>增加下游产物</span></button></div>`:'';
+    const selectedSOP=sopChoices.find(w=>w.id===n.sopWorkflowId);
+    const sopSelect=n.type==='sop'?`<div class="fd-field"><label>要跑的 SOP</label><select class="select" data-p="sopWorkflowId"><option value="">选择一条已有流程</option>${sopChoices.map(w=>`<option data-i18n-skip value="${escapeHTML(w.id)}" ${w.id===n.sopWorkflowId?'selected':''}>${escapeHTML(sopSeedWorkflowDisplayName(w))}</option>`).join('')}</select><p class="prop-hint"${selectedSOP?.description?' data-i18n-skip':''}>${escapeHTML(selectedSOP?.description?sopCatalogDescription(selectedSOP):'这条 SOP 会作为子流程跑完，声明的产物交给下一步。')}</p></div><div class="fd-field"><label>交给下一步的产物</label><p class="prop-hint">子 SOP 成功后，下列文件会出现在本节点，供下一步读取。留空则收下子流程交出的全部产物。</p><div id="artifactContractRows">${artifactRowsHTML(n)}</div><button type="button" class="fd-btn ghost sm" id="addSOPHandoff">${flowPalette.icon('plus',13)}<span>增加下游产物</span></button></div>`:'';
     const scriptLines=(n.script||'').trim()?n.script.trim().split('\n').length:0;
     const scriptCountText=scriptLines?`已编写 ${scriptLines} 行 (${n.scriptLanguage==='python'?'Python':'Shell'})`:'未配置 (点击编写)';
     const scriptPreview=scriptLines?`<div class="script-snippet-preview" id="previewScriptNodeEditor" title="点击在代码编辑器中修改"><code>${escapeHTML(n.script.slice(0, 120))}${n.script.length>120?'…':''}</code></div>`:'';
@@ -1068,7 +1129,7 @@ function renderProperties(){
     const main=`<section class="fd-sec"><div class="fd-sec-h"><span class="fd-sec-t">主配置</span></div><div class="fd-sec-b">${n.type==='agent'?agentBindCard(n):''}${sopSelect}${scriptPane}${approvalPane}</div></section>`;
     const gates=n.type==='agent'?flowFold('gates','校验顺序',`${effectiveNodeArtifacts(n,workflowAgent(n.agentId)).length} 产物 · ${roleGates(workflowAgent(n.agentId)).length} 门禁`,nodeGatePane(n),false):'';
     const wantReject=state.flowWantReject??(n.onFailure==='reject');
-    const targets=state.workflow.nodes.filter(x=>x.id!==n.id).map(x=>`<option value="${escapeHTML(x.id)}" ${x.id===n.rejectTo?'selected':''}>${escapeHTML(x.name)}</option>`).join('');
+    const targets=state.workflow.nodes.filter(x=>x.id!==n.id).map(x=>`<option data-i18n-skip value="${escapeHTML(x.id)}" ${x.id===n.rejectTo?'selected':''}>${escapeHTML(sopSeedNodeDisplayName(x,state.workflow))}</option>`).join('');
     const fail=`<section class="fd-sec"><div class="fd-sec-h"><span class="fd-sec-t">失败后</span></div><div class="fd-sec-b"><div class="fd-seg fd-seg-full" role="radiogroup" aria-label="失败后"><button type="button" role="radio" data-fail="fail" class="${wantReject?'':'active'}" aria-checked="${!wantReject}">${flowPalette.icon('stop',13)}<span>停下来</span></button><button type="button" role="radio" data-fail="reject" class="${wantReject?'active':''}" aria-checked="${wantReject}">${flowPalette.icon('rotate',13)}<span>打回重做</span></button></div>${wantReject?`<div class="fd-field"><label>打回到</label><select id="rejectTarget" class="select"><option value="">请选择步骤</option>${targets}</select><p class="prop-hint">重置目标步骤及其下游后重跑。也可以从节点的「失败打回」出口直接拖线。</p></div>`:'<p class="prop-hint">重试用尽后标记失败；运行页可以人工通过该节点继续下游。</p>'}</div></section>`;
     const metric=n.type==='sop'?'<p class="prop-hint">子 SOP 容器不重复计入阶段耗时；请在子流程的实际执行节点上标注统计阶段。</p>':`<div class="fd-field"><label>效能统计阶段</label><select class="select" data-p="metricStage"><option value="" ${!n.metricStage?'selected':''}>未标注（旧流程兼容推断）</option><option value="clarification" ${n.metricStage==='clarification'?'selected':''}>需求澄清</option><option value="development" ${n.metricStage==='development'?'selected':''}>研发</option><option value="testing" ${n.metricStage==='testing'?'selected':''}>测试</option><option value="none" ${n.metricStage==='none'?'selected':''}>不计入阶段耗时</option></select><p class="prop-hint">保存后的新 Run 会冻结此标记；历史 Run 不会被新配置改写。</p></div>`;
     const adv=flowFold('adv','高级','重试 · 返工 · 统计',`<div class="fd-row2"><div class="fd-field"><label>单轮最多试几次</label><input class="input" type="number" min="1" max="9" data-p="maxAttempts" value="${n.maxAttempts||1}"></div><div class="fd-field"><label>最多返工几轮</label><input class="input" type="number" min="1" max="20" data-p="maxReworks" value="${n.maxReworks||3}"></div></div><div class="fd-field"><label>返工策略</label><select class="select" data-p="retryStrategy"><option value="targeted_fix" ${n.retryStrategy!=='full_redo'?'selected':''}>只修失败项</option><option value="full_redo" ${n.retryStrategy==='full_redo'?'selected':''}>整步重做</option></select></div>${n.type==='script'?`<label class="fd-check"><input type="checkbox" data-p="runOnWorkspaceRebuild" ${n.runOnWorkspaceRebuild?'checked':''}><span>工作区重建时先执行（脚本需可重复执行）</span></label>`:''}${metric}`,false);

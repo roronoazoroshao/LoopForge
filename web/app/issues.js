@@ -484,7 +484,7 @@ function openIssue(issue=null){
   state.selectedIssue=issue?.id||null;
   const f=$('#issueForm'),projects=state.data.projects||[];
   f.elements.projectId.innerHTML=projects.map(p=>`<option value="${p.id}" data-i18n-skip>${escapeHTML(p.name)}</option>`).join('');
-  f.elements.workflowId.innerHTML=`<option value="">使用来源默认流程</option>`+runnableWorkflowOptions().map(w=>`<option value="${w.id}" data-i18n-skip>${escapeHTML(w.name)}</option>`).join('');
+  f.elements.workflowId.innerHTML=`<option value="">使用来源默认流程</option>`+runnableWorkflowOptions().map(w=>`<option value="${w.id}" data-i18n-skip>${escapeHTML(sopSeedWorkflowDisplayName(w))}</option>`).join('');
   const v=issue||{id:'',projectId:state.projectFilter||projects[0]?.id||'',title:'',description:'',priority:'medium',status:'backlog',workflowId:'',repositoryId:'',repositoryIds:[],baseBranch:''};
   ['id','projectId','title','description','priority','status','workflowId','baseBranch','tapdId'].forEach(k=>f.elements[k].value=v[k]||'');
   f.elements.baseBranch.value=storedIssueWorkBranch(v);
@@ -598,7 +598,7 @@ function fillImportTAPDWorkflow(){
   const opts=runnableWorkflowOptions();
   const selected=defaultSOPForIssue({projectId:state.projectFilter,source:'tapd',kind:'requirement'});
   const chosen=opts.some(w=>w.id===selected)?selected:(opts[0]?.id||'');
-  select.innerHTML=opts.map(w=>`<option value="${escapeHTML(w.id)}" ${w.id===chosen?'selected':''}>${escapeHTML(w.name)}</option>`).join('')||'<option value="">暂无可选 SOP</option>';
+  select.innerHTML=opts.map(w=>`<option value="${escapeHTML(w.id)}" ${w.id===chosen?'selected':''} data-i18n-skip>${escapeHTML(sopSeedWorkflowDisplayName(w))}</option>`).join('')||'<option value="">暂无可选 SOP</option>';
 }
 function fillImportTAPDRepository(){
   const host=$('#importTAPDRepository');

@@ -1,20 +1,22 @@
 function agentVI(){return typeof window!=='undefined'&&window.lfLang?.()==='vi'}
 function agentCopy(zh,vi){return agentVI()?vi:zh}
+function agentTr(zh,en,vi){
+  return typeof window.lfT==='function'?window.lfT(zh,en,vi):agentCopy(zh,vi);
+}
 // The public seed's display name is platform copy; other names belong to users.
 function agentPublicRoleDisplayName(a){
   if(!a?.projectId&&a?.id==='baseline-align-resolver'&&a?.name==='基线对齐执行员'){
     return window.lfT('基线对齐执行员','Baseline alignment executor','Tác tử đồng bộ baseline');
   }
-  return a?.name||'';
+  return typeof sopSeedRoleDisplayName==='function'?sopSeedRoleDisplayName(a):(a?.name||'');
 }
 // The editor may display the public seed in Vietnamese while the stored name
 // remains Chinese. Only an actual input edit authorizes replacing that name.
 function agentNameForSave(f,creating){
   const entered=f.elements.name?.value?.trim()||'';
-  if(!creating&&agentVI()&&!state.agentSeedNameEdited&&
-     state.agentSeedNameOriginal==='基线对齐执行员'&&
-     f.elements.id?.value==='baseline-align-resolver'&&
-     entered===agentPublicRoleDisplayName({id:'baseline-align-resolver',name:state.agentSeedNameOriginal,projectId:''})){
+  if(!creating&&!state.agentSeedNameEdited&&state.agentSeedNameOriginal&&
+     entered===agentPublicRoleDisplayName({id:f.elements.id?.value,
+       name:state.agentSeedNameOriginal,projectId:state.agentSeedProjectId||''})){
     return state.agentSeedNameOriginal;
   }
   return entered;
@@ -39,7 +41,7 @@ function renderAgents(){
   const empty=state.agentScope==='shared'?'还没有共享给当前项目的角色。':'当前项目还没有角色。可以新建，或从共享角色复制后改。';
   closeAgentRowMenu();
   state.agentUsage=used;
-  const rows=agents.map(a=>{const exec=(state.data.executors||[]).find(x=>x.id===a.executorId);const model=a.model||exec?.model||exec?.name||'';const uses=used.get(a.id)||0;return`<div class="agent-row" role="button" tabindex="0" data-agent-id="${escapeHTML(a.id)}" title="${escapeHTML(`${a.id} · v${a.version||1}`)}"><div class="agent-row-who"><div><b${agentVI()?' data-i18n-skip':''}>${escapeHTML(agentPublicRoleDisplayName(a))}</b>${agentRowTag(a)}<small${agentVI()?' data-i18n-skip':''}>${escapeHTML(a.description||agentCopy('未填写职责','Chưa mô tả trách nhiệm'))}</small></div></div><div class="agent-row-model${model?'':' none'}"${agentVI()?' data-i18n-skip':''}>${escapeHTML(model||agentCopy('未选模型','Chưa chọn mô hình'))}</div><div class="agent-row-config agent-col-config">${agentConfigSummary(a)}</div><div class="agent-row-uses agent-col-uses${uses?'':' zero'}">${uses?agentCopy(`${uses} 个节点`,`${uses} bước`):agentCopy('未使用','Chưa dùng')}</div><div class="agent-row-more"><button type="button" class="agent-more-btn" data-agent-more="${escapeHTML(a.id)}" aria-label="更多操作" aria-haspopup="menu" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button></div></div>`}).join('');
+  const rows=agents.map(a=>{const exec=(state.data.executors||[]).find(x=>x.id===a.executorId);const model=a.model||exec?.model||exec?.name||'';const uses=used.get(a.id)||0;return`<div class="agent-row" role="button" tabindex="0" data-agent-id="${escapeHTML(a.id)}" title="${escapeHTML(`${a.id} · v${a.version||1}`)}"><div class="agent-row-who"><div><b data-i18n-skip>${escapeHTML(agentPublicRoleDisplayName(a))}</b>${agentRowTag(a)}<small data-i18n-skip>${escapeHTML(a.description||window.lfT('未填写职责','No role description','Chưa mô tả trách nhiệm'))}</small></div></div><div class="agent-row-model${model?'':' none'}" data-i18n-skip>${escapeHTML(model||window.lfT('未选模型','No model','Chưa chọn mô hình'))}</div><div class="agent-row-config agent-col-config">${agentConfigSummary(a)}</div><div class="agent-row-uses agent-col-uses${uses?'':' zero'}">${uses?agentCopy(`${uses} 个节点`,`${uses} bước`):agentCopy('未使用','Chưa dùng')}</div><div class="agent-row-more"><button type="button" class="agent-more-btn" data-agent-more="${escapeHTML(a.id)}" aria-label="更多操作" aria-haspopup="menu" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button></div></div>`}).join('');
   const head='<div class="agent-row agent-row-head" aria-hidden="true"><div>角色</div><div>模型</div><div class="agent-col-config">配置</div><div class="agent-col-uses">引用</div><div></div></div>';
   list.innerHTML=rows?head+rows:(query&&scopedAgents().length?'<div class="catalog-empty"><span>AI</span><b>没有匹配的角色。</b><p>调整搜索，或新建一个角色。</p></div>':`<div class="catalog-empty"><span>AI</span><b>${empty}</b><p>调整搜索，或新建一个角色。</p></div>`);
   list.querySelectorAll('[data-agent-more]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();openAgentRowMenu(btn,state.data.agents.find(a=>a.id===btn.dataset.agentMore))});
@@ -52,7 +54,8 @@ function renderAgents(){
 }
 function agentRowTag(a){
   if(catalogOwned(a.projectId))return a.shared?`<span class="agent-row-tag shared">${agentCopy('已共享','Đã chia sẻ')}</span>`:'';
-  return `<span class="agent-row-tag"${agentVI()?' data-i18n-skip':''}>${!a.projectId?agentCopy('平台','Nền tảng'):agentCopy(`来自 ${escapeHTML((state.data.projects||[]).find(p=>p.id===a.projectId)?.name||a.projectId)}`,`Từ dự án ${escapeHTML((state.data.projects||[]).find(p=>p.id===a.projectId)?.name||a.projectId)}`)}</span>`;
+  const owner=(state.data.projects||[]).find(p=>p.id===a.projectId)?.name||a.projectId;
+  return `<span class="agent-row-tag" data-i18n-skip>${!a.projectId?agentTr('平台','Platform','Nền tảng'):`${agentTr('来自','From','Từ dự án')} ${escapeHTML(owner)}`}</span>`;
 }
 function agentConfigSummary(a){
   const parts=[];
@@ -286,7 +289,8 @@ function agentEffectiveModel(f){
 }
 function selectAgent(a,rerender=true){
   state.selectedAgent=a.id;state.agentDraft=null;
-  state.agentSeedNameOriginal=(!a.projectId&&a.id==='baseline-align-resolver'&&a.name==='基线对齐执行员')?a.name:null;
+  state.agentSeedNameOriginal=agentPublicRoleDisplayName(a)!==a.name?a.name:null;
+  state.agentSeedProjectId=a.projectId||'';
   state.agentSeedNameEdited=false;
   const f=$('#agentForm');
   ['id','name','description'].forEach(k=>{if(f.elements[k])f.elements[k].value=k==='name'?agentPublicRoleDisplayName(a):(a[k]||'')});
@@ -315,9 +319,10 @@ function selectAgent(a,rerender=true){
   renderAgentPresets();renderAgentTaskBook(a);renderAgentGovernance(a);renderAgentAssetsPanel(a);renderAgentSummary();
   $('#agentVersion').textContent=`v${a.version||1}`;
   const idShow=$('#agentIdShow');if(idShow)idShow.value=a.id||'';
-  const agentTitle=$('#agentWizardTitle');if(agentVI())agentTitle.setAttribute('data-i18n-skip','');else agentTitle.removeAttribute?.('data-i18n-skip');
+  const agentTitle=$('#agentWizardTitle'),language=window.lfLang?.();
+  if(language!=='zh')agentTitle.setAttribute('data-i18n-skip','');else agentTitle.removeAttribute?.('data-i18n-skip');
   const displayName=agentPublicRoleDisplayName(a);
-  agentTitle.textContent=agentWizardForeign(a)?agentCopy(`查看 ${displayName}`,`Xem vai trò “${displayName}”`):(a.id?agentCopy(`编辑 ${displayName}`,`Sửa vai trò “${displayName}”`):agentCopy('新建角色','Tạo vai trò'));
+  agentTitle.textContent=agentWizardForeign(a)?window.lfT(`查看 ${displayName}`,`View role “${displayName}”`,`Xem vai trò “${displayName}”`):(a.id?window.lfT(`编辑 ${displayName}`,`Edit role “${displayName}”`,`Sửa vai trò “${displayName}”`):window.lfT('新建角色','New role','Tạo vai trò'));
   syncAgentOwnershipUI(a);
   if(rerender)renderAgents();
 }
@@ -474,7 +479,7 @@ function renderAgentCreateReview(){
   const preset=agentPresets.find(x=>x.id===state.agentCreatePreset);
   const cli=f.elements.executorId?.selectedOptions?.[0]?.textContent||f.elements.executorId?.value||'';
   const effort=(f.elements.effort?.value||'').trim();
-  const rows=[['名称',f.elements.name.value.trim()],['标识',f.elements.id.value.trim()],['起点',preset?.name||'空白'],['CLI · 模型',`${cli} · ${agentEffectiveModel(f)||'未选模型'}${effort?` · ${effort}`:''}`],['职责',f.elements.description.value.trim()||(window.lfLang?.()==='vi'?'Chưa nhập trách nhiệm':'未填写职责')]];
+  const rows=[['名称',f.elements.name.value.trim()],['标识',f.elements.id.value.trim()],['起点',preset?.name||'空白'],['CLI · 模型',`${cli} · ${agentEffectiveModel(f)||'未选模型'}${effort?` · ${effort}`:''}`],['职责',f.elements.description.value.trim()||window.lfT('未填写职责','No responsibility entered','Chưa nhập trách nhiệm')]];
   host.innerHTML=rows.map(([k,v])=>`<div><dt>${k}</dt><dd${['名称','标识','职责'].includes(k)?' data-i18n-skip':''}>${escapeHTML(v)}</dd></div>`).join('');
 }
 function syncAgentModalChrome(){

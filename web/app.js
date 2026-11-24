@@ -691,6 +691,78 @@ function catalogVisible(projectId,shared){return catalogOwned(projectId)||catalo
 function isPlatformAdmin(){return !!(state.currentUser&&!state.currentUser.isGuest&&state.currentUser.isPlatformAdmin)}
 function canEditGeneric(wf){return catalogGeneric(wf)&&isPlatformAdmin()}
 function catalogGeneric(item){return !!item?.generic}
+// The backend persists Chinese seed names. Only localize display for verified
+// template provenance, canonical stage/role IDs and unchanged seed names.
+const SOP_SEED_TEMPLATE_IDS=['generic-backend-delivery','generic-frontend-delivery',
+  'issue-fix-production','generic-product-delivery'];
+const SOP_SEED_WORKFLOW_COPY={
+  'generic-backend-delivery':['通用后端交付 SOP','Generic backend delivery SOP','SOP bàn giao backend chung'],
+  'generic-frontend-delivery':['通用前端交付 SOP','Generic frontend delivery SOP','SOP bàn giao frontend chung'],
+  'issue-fix-production':['通用缺陷修复 SOP','Generic bug-fix SOP','SOP sửa lỗi chung'],
+  'generic-product-delivery':['通用产品方案 SOP','Generic product proposal SOP','SOP đề xuất sản phẩm chung'],
+};
+// When a project adopts a public template, the server retains its original
+// Chinese copy name and adds generic-source:<id>. Translate that generated name
+// only while it still matches the untouched default; an explicit rename wins.
+const SOP_SEED_CLONE_COPY={
+  'generic-backend-delivery':['后端交付 SOP','Backend delivery SOP','SOP bàn giao backend'],
+  'generic-frontend-delivery':['前端交付 SOP','Frontend delivery SOP','SOP bàn giao frontend'],
+  'issue-fix-production':['缺陷修复 SOP','Bug-fix SOP','SOP sửa lỗi'],
+  'generic-product-delivery':['产品方案 SOP','Product proposal SOP','SOP đề xuất sản phẩm'],
+};
+function sopSeedWorkflowDisplayName(wf){
+  const source=sopSeedTemplateId(wf);
+  const copy=wf?.generic?SOP_SEED_WORKFLOW_COPY[source]:SOP_SEED_CLONE_COPY[source];
+  return copy&&wf.name===copy[0]?window.lfT(...copy):wf?.name||'';
+}
+const SOP_SEED_STAGE_COPY={
+  clarify:['需求定型','Requirement scoping','Chốt yêu cầu'],
+  design:['方案设计','Solution design','Thiết kế giải pháp'],
+  implement:['开发实现','Implementation','Triển khai'],
+  review:['独立评审','Independent review','Rà soát độc lập'],
+  test:['测试验证','Testing and verification','Kiểm thử và xác minh'],
+  accept:['人工验收','Human acceptance','Nghiệm thu thủ công'],
+  deliver:['交付汇总','Delivery summary','Tổng hợp bàn giao'],
+  mr:['发起 MR','Create Merge Request','Tạo Merge Request'],
+};
+// Previously shipped templates may retain their older Chinese step text.
+// Accept aliases only alongside a verified seed ID and workflow provenance.
+const SOP_SEED_LEGACY_STAGE_NAMES={implement:['实施'],review:['独立审查']};
+function sopSeedNameMatches(stage,name){
+  return name===SOP_SEED_STAGE_COPY[stage]?.[0]||(SOP_SEED_LEGACY_STAGE_NAMES[stage]||[]).includes(name);
+}
+function sopSeedTemplateId(wf){
+  if(!wf)return '';
+  if(wf.generic&&SOP_SEED_TEMPLATE_IDS.includes(wf.id))return wf.id;
+  const tag=(wf.tags||[]).find(t=>typeof t==='string'&&t.startsWith('generic-source:'));
+  const id=tag?.slice('generic-source:'.length);
+  return SOP_SEED_TEMPLATE_IDS.includes(id)?id:'';
+}
+function sopSeedNodeDisplayName(n,wf=state.workflow){
+  if(wf?.preview?.enabled&&n?.id==='af-preview-build'&&n.type==='agent'&&n.agentId==='af-preview-builder'&&n.name==='构建静态站点')return window.lfT('构建静态站点','Build static site','Xây dựng trang web tĩnh');
+  const copy=SOP_SEED_STAGE_COPY[n?.id];
+  if(!copy||!sopSeedTemplateId(wf)||!sopSeedNameMatches(n.id,n.name)||
+     n.type!==(n.id==='accept'?'approval':'agent'))return n?.name||'';
+  return window.lfT(n.name,copy[1],copy[2]);
+}
+function sopSeedRoleDisplayName(a,wf=null){
+  if(!a)return '';
+  const source=wf?sopSeedTemplateId(wf):'';
+  const ids=wf?(source?[source]:[]):SOP_SEED_TEMPLATE_IDS;
+  for(const id of ids){
+    for(const [stage,copy] of Object.entries(SOP_SEED_STAGE_COPY)){
+      if(stage==='accept'||!sopSeedNameMatches(stage,a.name))continue;
+      const seedId=id+'-'+stage,roleId=String(a.id||'');
+      // Project-cloned roles can use the unchanged ID, a project suffix or a
+      // collision suffix; changed user-authored names always take precedence.
+      if(roleId!==seedId&&!(a.projectId&&roleId.startsWith(seedId+'-')))continue;
+      if(wf&&wf.projectId&&a.projectId!==wf.projectId)continue;
+      if(wf&&wf.generic&&a.projectId)continue;
+      return window.lfT(a.name,copy[1],copy[2]);
+    }
+  }
+  return a.name||'';
+}
 // Generic roles live in generic_templates, but the first project that
 // adopted a template often reused the same role id. Looking the wizard
 // subject up in the project catalog then marks that role as foreign and
@@ -788,6 +860,9 @@ async function refreshGenericWorkflowRoles(){
   if(await hydrateGenericWorkflowRoles()){
     renderCanvas();
     renderProperties();
+    // The palette is an independent renderer: the API response updates roles,
+    // but MutationObserver cannot create rows that were never rendered.
+    if(typeof flowPalette!=='undefined')flowPalette.render();
   }
 }
 function scopedAgents(){const all=state.data?.agents||[];return state.agentScope==='shared'?all.filter(a=>catalogShared(a.projectId,a.shared)):all.filter(a=>catalogOwned(a.projectId))}
@@ -1906,8 +1981,14 @@ async function applyAgentRoute(){
     openAgentWizard(agent,routePart(2)==='gov'?3:1,{loaded:true});
   }catch(error){if(agentRouteId()===id)toast(error.message,'err')}
 }
-// Only SOPs visible in the active project can be restored from the URL or localStorage.
-function openableWorkflow(id){return id?catalogWorkflows().find(w=>w.id===id)||null:null}
+// Restore project-visible workflows and public built-in templates. The template
+// switcher already allows opening generic SOPs; direct links and reloads must
+// follow the same access rule without exposing other projects' private SOPs.
+function openableWorkflow(id){
+  if(!id)return null;
+  return catalogWorkflows().find(w=>w.id===id)||
+    (state.data?.workflows||[]).find(w=>w.id===id&&catalogGeneric(w))||null;
+}
 function savedWorkflowId(){
   const id=state.workflow?.id||'';
   return id&&(state.data?.workflows||[]).some(w=>w.id===id)?id:'';

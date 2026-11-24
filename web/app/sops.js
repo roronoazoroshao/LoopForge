@@ -146,23 +146,23 @@ function sopStatusBadge(w){
   return sopBadge('草稿','neutral','edit');
 }
 function sopCardHead(left,hint,right){return `<div class="sop-card-head"><div>${left}<span class="sop-card-hint">${escapeHTML(hint||'')}</span></div>${right}</div>`}
-function sopCardTitle(w){return `<div class="sop-card-title"><span class="sop-card-tile">${huiIcon('workflow')}</span><h3 title="${escapeHTML(w.name)}">${escapeHTML(w.name)}</h3></div>`}
+function sopCardTitle(w){const display=escapeHTML(sopDisplayName(w));return `<div class="sop-card-title"><span class="sop-card-tile">${huiIcon('workflow')}</span><h3 data-i18n-skip title="${display}">${display}</h3></div>`}
 function sopCardPrimary(attr,id,label,icon='',title=''){return `<button type="button" class="sop-card-primary" ${attr}="${escapeHTML(id)}" data-hover-ink-control${title?` title="${escapeHTML(title)}"`:''}>${icon?huiIcon(icon):''}${escapeHTML(label)}</button>`}
 function sopCardMoreButton(w){return `<button type="button" class="sop-card-more" data-sop-menu="${escapeHTML(w.id)}" data-hover-ink-control aria-haspopup="menu" aria-expanded="false" aria-label="更多操作" title="更多操作">${huiIcon('more-horizontal')}</button>`}
 function sopRunKpis(m,liveCount){return `<div class="sop-kpis"><span><b>${m.totalRuns||0}</b>${sopUICopy('运行','lượt chạy')}</span><span><b>${m.succeededRuns||0}</b>${sopUICopy('成功','thành công')}</span><span${m.failedRuns>0?' class="is-bad"':''}><b>${m.failedRuns||0}</b>${sopUICopy('失败','thất bại')}</span><span><b>${liveCount}</b>${sopUICopy('进行中','đang chạy')}</span></div>`}
 function sopRunCardBody(w,m,liveCount){
   const health=metricHealth(m,liveCount);
-  return `${sopCardHead(sopHealthBadge(health),m.totalRuns?sopUICopy(`${percent(m.successRate)} 成功率`,`Tỷ lệ thành công ${percent(m.successRate)}`):health.hint,sopStatusBadge(w))}${sopCardTitle(w)}<p>${escapeHTML(w.description||'暂无流程说明')}</p>${sopRunRequirementChips(w)}${sopRunKpis(m,liveCount)}`;
+  return `${sopCardHead(sopHealthBadge(health),m.totalRuns?sopUICopy(`${percent(m.successRate)} 成功率`,`Tỷ lệ thành công ${percent(m.successRate)}`):health.hint,sopStatusBadge(w))}${sopCardTitle(w)}<p data-i18n-skip>${escapeHTML(w.description?sopCatalogDescription(w):lfT('暂无流程说明','No SOP description','Chưa có mô tả SOP'))}</p>${sopRunRequirementChips(w)}${sopRunKpis(m,liveCount)}`;
 }
 function projectSOPCard(w,m={},liveCount=0){
   const recent=formatTimestamp(m.lastRunAt);
   const meta=sopUICopy(`${w.owner||'未分配负责人'} · v${w.version||1} · ${recent?`最近 ${recent}`:'尚未运行'}`,`${w.owner||'Chưa có người phụ trách'} · v${w.version||1} · ${recent?`Gần nhất: ${recent}`:'Chưa chạy'}`);
-  return `<article class="sop-card" data-sop="${escapeHTML(w.id)}" tabindex="0" role="button" aria-label="打开流程设计器：${escapeHTML(w.name)}">${sopRunCardBody(w,m,liveCount)}<div class="sop-card-foot"><span class="sop-card-meta" title="${escapeHTML(meta)}">${escapeHTML(meta)}</span>${sopCardPrimary('data-open-sop',w.id,'打开')}${sopCardMoreButton(w)}</div></article>`;
+  return `<article class="sop-card" data-sop="${escapeHTML(w.id)}" tabindex="0" role="button" data-i18n-aria-skip aria-label="${escapeHTML(window.lfT(`打开流程设计器：${sopDisplayName(w)}`,`Open SOP designer: ${sopDisplayName(w)}`,`Mở trình thiết kế SOP: ${sopDisplayName(w)}`))}">${sopRunCardBody(w,m,liveCount)}<div class="sop-card-foot"><span class="sop-card-meta" title="${escapeHTML(meta)}">${escapeHTML(meta)}</span>${sopCardPrimary('data-open-sop',w.id,'打开')}${sopCardMoreButton(w)}</div></article>`;
 }
 function sharedSOPCard(w,m={},liveCount=0){
   const from=!w.projectId?sopUICopy('平台','Nền tảng'):sopUICopy(`来自 ${(state.data.projects||[]).find(p=>p.id===w.projectId)?.name||w.projectId}`,`Từ ${(state.data.projects||[]).find(p=>p.id===w.projectId)?.name||w.projectId}`);
   const meta=`${w.owner?`${w.owner} · `:''}v${w.version||1}`;
-  return `<article class="sop-card" data-sop="${escapeHTML(w.id)}" tabindex="0" role="button" aria-label="打开流程设计器：${escapeHTML(w.name)}">${sopRunCardBody(w,m,liveCount)}<div class="sop-card-foot"><span class="sop-card-meta" title="${escapeHTML(`${from} · ${meta}`)}"><span class="sop-card-tag">${escapeHTML(from)}</span>${escapeHTML(meta)}</span>${sopCardPrimary('data-clone-workflow',w.id,'复制到本项目','copy')}</div></article>`;
+  return `<article class="sop-card" data-sop="${escapeHTML(w.id)}" tabindex="0" role="button" data-i18n-aria-skip aria-label="${escapeHTML(window.lfT(`打开流程设计器：${sopDisplayName(w)}`,`Open SOP designer: ${sopDisplayName(w)}`,`Mở trình thiết kế SOP: ${sopDisplayName(w)}`))}">${sopRunCardBody(w,m,liveCount)}<div class="sop-card-foot"><span class="sop-card-meta" title="${escapeHTML(`${from} · ${meta}`)}"><span class="sop-card-tag">${escapeHTML(from)}</span>${escapeHTML(meta)}</span>${sopCardPrimary('data-clone-workflow',w.id,'复制到本项目','copy')}</div></article>`;
 }
 // Only the four immutable descriptions shipped with the opt-in public catalog are
 // UI copy. A platform admin may edit a generic template, so never translate a
@@ -192,8 +192,15 @@ const SOP_SEED_DESCRIPTION_COPY={
 function sopCatalogDescription(w){
   const description=w?.description;
   if(!description)return lfT('平台提供的通用流程模板','A general workflow template provided by the platform','Mẫu quy trình chung do nền tảng cung cấp');
-  const seed=SOP_SEED_DESCRIPTION_COPY[w.id];
+  const tag=(w.tags||[]).find(t=>typeof t==='string'&&t.startsWith('generic-source:'));
+  const templateId=catalogGeneric(w)?w.id:tag?.slice('generic-source:'.length);
+  const seed=SOP_SEED_DESCRIPTION_COPY[templateId];
+  // Copied, unchanged platform descriptions are default UI copy. User edits are data.
   return seed&&description===seed[0]?lfT(...seed):description;
+}
+function sopDisplayName(w){
+  // This file is also loaded in isolation by the catalogue/description harness.
+  return typeof sopSeedWorkflowDisplayName==='function'?sopSeedWorkflowDisplayName(w):(w?.name||'');
 }
 function genericProjectCopy(w){return (state.data?.workflows||[]).find(x=>!catalogGeneric(x)&&x.projectId===state.projectFilter&&(x.tags||[]).includes(`generic-source:${w.id}`))}
 function genericSOPCard(w){
@@ -203,7 +210,7 @@ function genericSOPCard(w){
     ?sopCardPrimary('data-open-sop',copy.id,'查看项目副本','eye')
     :sopCardPrimary('data-adopt-generic',w.id,'复制到本项目','copy','复制后归本项目所有、可自由修改，不再跟随平台更新');
   const tags=(w.tags||[]).filter(t=>!t.startsWith('generic-source:')).join(' · ')||'通用模板';
-  return `<article class="sop-card generic" data-generic-id="${escapeHTML(w.id)}" tabindex="0" role="button" aria-label="使用通用模板：${escapeHTML(w.name)}">${sopCardHead(sopStatusBadge(w),'平台维护 · 与项目无关',sopBadge(`v${w.version||1}`,'neutral',''))}${sopCardTitle(w)}<p data-i18n-skip>${escapeHTML(sopCatalogDescription(w))}</p>${sopRunRequirementChips(w)}${genericRequirementChips(w)}<div class="sop-kpis"><span><b>${nodes.length}</b>节点</span><span><b>${agentCount}</b>角色节点</span><span><b>${gates}</b>人工门禁</span><span><b>v${w.version||1}</b>版本</span></div><div class="sop-card-foot"><span class="sop-card-meta" title="${escapeHTML(`${w.owner||'平台'} · ${tags}`)}"><span class="sop-card-tag">${escapeHTML(w.owner||'平台')}</span>${escapeHTML(tags)}</span>${primary}${sopCardMoreButton(w)}</div></article>`;
+  return `<article class="sop-card generic" data-generic-id="${escapeHTML(w.id)}" tabindex="0" role="button" aria-label="${escapeHTML(lfT('使用通用模板','Use starter template','Sử dụng mẫu SOP')+': '+sopDisplayName(w))}">${sopCardHead(sopStatusBadge(w),'平台维护 · 与项目无关',sopBadge(`v${w.version||1}`,'neutral',''))}${sopCardTitle(w)}<p data-i18n-skip>${escapeHTML(sopCatalogDescription(w))}</p>${sopRunRequirementChips(w)}${genericRequirementChips(w)}<div class="sop-kpis"><span><b>${nodes.length}</b>节点</span><span><b>${agentCount}</b>角色节点</span><span><b>${gates}</b>人工门禁</span><span><b>v${w.version||1}</b>版本</span></div><div class="sop-card-foot"><span class="sop-card-meta" title="${escapeHTML(`${w.owner||'平台'} · ${tags}`)}"><span class="sop-card-tag">${escapeHTML(w.owner||'平台')}</span>${escapeHTML(tags)}</span>${primary}${sopCardMoreButton(w)}</div></article>`;
 }
 function sopCatalogCard(w,metrics,live){
   if(catalogGeneric(w))return genericSOPCard(w);
@@ -465,11 +472,22 @@ async function openGenericTemplateModal(id){
   const w=(state.data?.workflows||[]).find(x=>x.id===id&&catalogGeneric(x));
   if(!w)return toast('通用模板不存在或已下架');
   state.genericTemplateId=id;
-  const title=$('#genericTemplateTitle');if(sopVI())title.setAttribute?.('data-i18n-skip','');else title.removeAttribute?.('data-i18n-skip');
-  title.textContent=sopUICopy(`使用「${w.name}」`,`Sử dụng “${w.name}”`);
-  $('#genericTemplateIntro').textContent=w.description||'平台提供的通用流程模板，复制后归本项目所有。';
+  const name=sopDisplayName(w),title=$('#genericTemplateTitle');
+  title.setAttribute?.('data-i18n-skip','');
+  title.textContent=lfT(`使用「${name}」`,`Use “${name}”`,`Sử dụng “${name}”`);
+  const intro=$('#genericTemplateIntro');
+  intro.setAttribute?.('data-i18n-skip','');
+  intro.textContent=sopCatalogDescription(w);
   const nodes=w.nodes||[],agentCount=nodes.filter(n=>n.type==='agent').length,gates=nodes.filter(n=>n.type==='approval').length;
-  $('#genericTemplateStructure').innerHTML=`<span>${sopUICopy(`${nodes.length} 个节点`,`${nodes.length} bước`)}</span><span>${sopUICopy(`${agentCount} 个角色节点`,`${agentCount} bước vai trò`)}</span><span>${sopUICopy(`${gates} 个人工门禁`,`${gates} bước phê duyệt thủ công`)}</span>${nodes.some(n=>n.id==='mr')?'<span class="highlight">含「发起 PR」节点</span>':''}<span>复制=归本项目、可自由修改、不再跟随平台更新</span><span>直接运行=始终使用平台最新版</span>`;
+  const structure=$('#genericTemplateStructure');
+  structure.setAttribute?.('data-i18n-skip','');
+  structure.innerHTML=`
+    <span>${lfT(`${nodes.length} 个节点`,`${nodes.length} steps`,`${nodes.length} bước`)}</span>
+    <span>${lfT(`${agentCount} 个角色节点`,`${agentCount} agent steps`,`${agentCount} bước Agent`)}</span>
+    <span>${lfT(`${gates} 个人工门禁`,`${gates} human approval gates`,`${gates} bước phê duyệt thủ công`)}</span>
+    ${nodes.some(n=>n.id==='mr')?`<span class="highlight">${lfT('含「发起 MR」节点','Includes a “Create Merge Request” step','Có bước “Tạo Merge Request”')}</span>`:''}
+    <span>${lfT('复制=归本项目、可自由修改、不再跟随平台更新','Copy = editable in this project; future platform template updates do not apply','Sao chép = thuộc dự án này, có thể chỉnh sửa và không tự nhận bản cập nhật của mẫu chung')}</span>
+    <span>${lfT('直接运行=始终使用平台最新版','Run directly = always use the latest platform template','Chạy trực tiếp = luôn dùng phiên bản mẫu mới nhất của nền tảng')}</span>`;
   const request=++genericRequirementRequest,modal=$('#genericTemplateModal');
   const needsExecutor=agentCount>0||w.preview?.enabled;
   renderGenericRequirementRows(w,needsExecutor?null:[],true);
