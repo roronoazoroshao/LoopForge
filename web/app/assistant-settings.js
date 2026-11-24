@@ -606,14 +606,21 @@ function renderAssistantSettings(draftOverride){
   refreshCliBtn.addEventListener('click',async()=>{
    refreshCliBtn.disabled=true;
    refreshCliBtn.textContent='刷新中…';
-   const snapshot=captureAssistantPrefsRenderModel(form);
    try{
     if(typeof AgentFlowAssistantModels!=='undefined'&&AgentFlowAssistantModels?.load){
      await AgentFlowAssistantModels.load({refresh:true});
     }
+    // A late response must not replace a different form or a save in progress.
+    if(assistantPrefsForm()!==form||assistantPrefsUI.saving)return;
     toast('已刷新 CLI 与模型列表');
+    // Keep pending secret edits in the existing password input, never in rendered HTML.
+    if(form.approvalReviewApiKey?.value||form.approvalReviewApiKeyClear?.value==='1')return;
+    renderAssistantSettings(captureAssistantPrefsRenderModel(form));
    }catch{}
-   renderAssistantSettings(snapshot);
+   finally{
+    refreshCliBtn.disabled=false;
+    refreshCliBtn.textContent='刷新列表';
+   }
   });
  }
 

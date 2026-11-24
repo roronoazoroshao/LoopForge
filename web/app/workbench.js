@@ -1117,7 +1117,11 @@ function notifyCredentialsChanged(){
   $('#chatNextFrame')?.contentWindow?.postMessage({type:'agentflow-credentials-changed'},location.origin);
   if(typeof window!=='undefined'){
     window.AgentFlowAssistantModels?.load?.({refresh:true})?.then(()=>{
-      if(typeof renderAssistantSettings==='function'&&typeof document!=='undefined'&&document.querySelector('#assistantView.active'))renderAssistantSettings();
+      if(typeof renderAssistantSettings==='function'&&typeof document!=='undefined'&&document.querySelector('#assistantView.active')){
+        // A background credential refresh must not discard an in-progress settings edit.
+        const form=assistantPrefsForm();
+        if(!assistantPrefsUI.saving&&(!form||!assistantPrefsDirty(form)))renderAssistantSettings();
+      }
     }).catch(()=>{});
   }
 }
