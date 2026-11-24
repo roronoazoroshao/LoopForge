@@ -32,10 +32,10 @@
       ]
     },
     {
-      "id": "test-automation-engineer",
-      "name": "Test Automation Engineer",
+      "id": "qa-lead",
+      "name": "QA Lead",
       "type": "agent",
-      "agentId": "lf-role-test-automation-engineer",
+      "agentId": "lf-role-qa-lead",
       "maxAttempts": 2,
       "metricStage": "testing",
       "position": {
@@ -44,8 +44,8 @@
       },
       "artifactOutputs": [
         {
-          "name": "Kiểm thử tự động",
-          "path": "lf-test-report.md",
+          "name": "Chiến lược nghiệm thu",
+          "path": "lf-qa-plan.md",
           "mediaType": "text/markdown",
           "required": true
         }
@@ -53,9 +53,9 @@
     },
     {
       "id": "approve-plan",
-      "name": "Phê duyệt kế hoạch",
+      "name": "Phê duyệt phạm vi trước thay đổi",
       "type": "approval",
-      "taskPrompt": "Kiểm tra artifacts đúng revision, findings và bằng chứng thực tế. Chỉ chấp thuận khi tiêu chí đạt, không có blocker và quyền đúng phạm vi; nếu không, reject kèm finding. Không chấp thuận tự động.",
+      "taskPrompt": "Người phê duyệt kiểm tra yêu cầu, phương án, quyền, rủi ro, tiêu chí nghiệm thu và rollback; reject nếu thiếu. Không tự triển khai production hoặc thay đổi dữ liệu thật.",
       "maxAttempts": 1,
       "maxReworks": 2,
       "rejectTo": "engineering-lead",
@@ -105,10 +105,10 @@
       ]
     },
     {
-      "id": "qa-lead",
-      "name": "QA Lead",
+      "id": "test-automation-engineer",
+      "name": "Test Automation Engineer",
       "type": "agent",
-      "agentId": "lf-role-qa-lead",
+      "agentId": "lf-role-test-automation-engineer",
       "maxAttempts": 2,
       "metricStage": "testing",
       "position": {
@@ -117,8 +117,8 @@
       },
       "artifactOutputs": [
         {
-          "name": "Chiến lược nghiệm thu",
-          "path": "lf-qa-plan.md",
+          "name": "Kiểm thử tự động",
+          "path": "lf-test-report.md",
           "mediaType": "text/markdown",
           "required": true
         }
@@ -142,12 +142,12 @@
     {
       "id": "e-1",
       "source": "engineering-lead",
-      "target": "test-automation-engineer",
+      "target": "qa-lead",
       "when": "success"
     },
     {
       "id": "e-2",
-      "source": "test-automation-engineer",
+      "source": "qa-lead",
       "target": "approve-plan",
       "when": "success"
     },
@@ -166,12 +166,12 @@
     {
       "id": "e-5",
       "source": "senior-code-reviewer",
-      "target": "qa-lead",
+      "target": "test-automation-engineer",
       "when": "success"
     },
     {
       "id": "e-6",
-      "source": "qa-lead",
+      "source": "test-automation-engineer",
       "target": "accept",
       "when": "success"
     }

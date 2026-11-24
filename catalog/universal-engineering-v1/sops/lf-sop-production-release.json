@@ -12,6 +12,39 @@
   ],
   "nodes": [
     {
+      "id": "engineering-lead-plan",
+      "name": "Engineering Lead",
+      "type": "agent",
+      "agentId": "lf-role-engineering-lead",
+      "maxAttempts": 2,
+      "metricStage": "clarification",
+      "position": {
+        "x": 100,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Kế hoạch kỹ thuật và phân rã",
+          "path": "lf-engineering-plan.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "approve-plan",
+      "name": "Phê duyệt phạm vi trước thay đổi",
+      "type": "approval",
+      "taskPrompt": "Người phê duyệt kiểm tra yêu cầu, phương án, quyền, rủi ro, tiêu chí nghiệm thu và rollback; reject nếu thiếu. Không tự triển khai production hoặc thay đổi dữ liệu thật.",
+      "maxAttempts": 1,
+      "maxReworks": 2,
+      "rejectTo": "engineering-lead-plan",
+      "position": {
+        "x": 345,
+        "y": 150
+      }
+    },
+    {
       "id": "devops-engineer",
       "name": "DevOps Engineer",
       "type": "agent",
@@ -19,7 +52,7 @@
       "maxAttempts": 2,
       "metricStage": "development",
       "position": {
-        "x": 100,
+        "x": 590,
         "y": 150
       },
       "artifactOutputs": [
@@ -39,7 +72,7 @@
       "maxAttempts": 2,
       "metricStage": "development",
       "position": {
-        "x": 345,
+        "x": 835,
         "y": 150
       },
       "artifactOutputs": [
@@ -59,7 +92,7 @@
       "maxAttempts": 2,
       "metricStage": "testing",
       "position": {
-        "x": 590,
+        "x": 1080,
         "y": 150
       },
       "artifactOutputs": [
@@ -79,7 +112,7 @@
       "maxAttempts": 2,
       "metricStage": "development",
       "position": {
-        "x": 835,
+        "x": 1325,
         "y": 150
       },
       "artifactOutputs": [
@@ -100,7 +133,7 @@
       "maxReworks": 2,
       "rejectTo": "devops-engineer",
       "position": {
-        "x": 1080,
+        "x": 1570,
         "y": 150
       }
     }
@@ -108,24 +141,36 @@
   "edges": [
     {
       "id": "e-1",
+      "source": "engineering-lead-plan",
+      "target": "approve-plan",
+      "when": "success"
+    },
+    {
+      "id": "e-2",
+      "source": "approve-plan",
+      "target": "devops-engineer",
+      "when": "success"
+    },
+    {
+      "id": "e-3",
       "source": "devops-engineer",
       "target": "sre-engineer",
       "when": "success"
     },
     {
-      "id": "e-2",
+      "id": "e-4",
       "source": "sre-engineer",
       "target": "security-auditor",
       "when": "success"
     },
     {
-      "id": "e-3",
+      "id": "e-5",
       "source": "security-auditor",
       "target": "release-manager",
       "when": "success"
     },
     {
-      "id": "e-4",
+      "id": "e-6",
       "source": "release-manager",
       "target": "accept",
       "when": "success"

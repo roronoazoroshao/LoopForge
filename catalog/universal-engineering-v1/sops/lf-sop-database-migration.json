@@ -32,6 +32,19 @@
       ]
     },
     {
+      "id": "approve-plan",
+      "name": "Phê duyệt phạm vi trước thay đổi",
+      "type": "approval",
+      "taskPrompt": "Người phê duyệt kiểm tra yêu cầu, phương án, quyền, rủi ro, tiêu chí nghiệm thu và rollback; reject nếu thiếu. Không tự triển khai production hoặc thay đổi dữ liệu thật.",
+      "maxAttempts": 1,
+      "maxReworks": 2,
+      "rejectTo": "database-architect",
+      "position": {
+        "x": 345,
+        "y": 150
+      }
+    },
+    {
       "id": "security-engineer",
       "name": "Security Engineer",
       "type": "agent",
@@ -39,7 +52,7 @@
       "maxAttempts": 2,
       "metricStage": "development",
       "position": {
-        "x": 345,
+        "x": 590,
         "y": 150
       },
       "artifactOutputs": [
@@ -59,7 +72,7 @@
       "maxAttempts": 2,
       "metricStage": "development",
       "position": {
-        "x": 590,
+        "x": 835,
         "y": 150
       },
       "artifactOutputs": [
@@ -79,7 +92,7 @@
       "maxAttempts": 2,
       "metricStage": "testing",
       "position": {
-        "x": 835,
+        "x": 1080,
         "y": 150
       },
       "artifactOutputs": [
@@ -99,7 +112,7 @@
       "maxAttempts": 2,
       "metricStage": "testing",
       "position": {
-        "x": 1080,
+        "x": 1325,
         "y": 150
       },
       "artifactOutputs": [
@@ -120,7 +133,7 @@
       "maxReworks": 2,
       "rejectTo": "database-architect",
       "position": {
-        "x": 1325,
+        "x": 1570,
         "y": 150
       }
     }
@@ -129,29 +142,35 @@
     {
       "id": "e-1",
       "source": "database-architect",
-      "target": "security-engineer",
+      "target": "approve-plan",
       "when": "success"
     },
     {
       "id": "e-2",
+      "source": "approve-plan",
+      "target": "security-engineer",
+      "when": "success"
+    },
+    {
+      "id": "e-3",
       "source": "security-engineer",
       "target": "backend-engineer",
       "when": "success"
     },
     {
-      "id": "e-3",
+      "id": "e-4",
       "source": "backend-engineer",
       "target": "test-automation-engineer",
       "when": "success"
     },
     {
-      "id": "e-4",
+      "id": "e-5",
       "source": "test-automation-engineer",
       "target": "security-auditor",
       "when": "success"
     },
     {
-      "id": "e-5",
+      "id": "e-6",
       "source": "security-auditor",
       "target": "accept",
       "when": "success"
