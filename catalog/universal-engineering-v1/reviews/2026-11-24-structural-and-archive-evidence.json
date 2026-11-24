@@ -1,0 +1,27 @@
+{
+  "sourceRevision": "97d8d9399d8289b1b20e30c4a5aa3632f1c4cd92",
+  "structural": {
+    "method": "V8 evaluation of actual validator and data reconstructed from GitHub compare, resource matrix fetched separately",
+    "checksPassed": 10,
+    "checksFailed": 0,
+    "internalResources": 104,
+    "marketplaceTargets": 50,
+    "skillsWithMatchingSkillFile": 16,
+    "reviewRows": 154,
+    "caseSpecifications": 308,
+    "mutationCapableSOPsMissingPriorApproval": 0,
+    "additionalStructuralFindings": []
+  },
+  "archive": {
+    "environment": "Python 3.13.5, local isolated container",
+    "red": "test module import failed: audit_zip module absent",
+    "green": "Ran 13 tests; OK; exit 0",
+    "fixturesOnly": true,
+    "actualPackages": 0,
+    "scriptGitBlob": "53072d76f6c1658187f4fc8c9e9cc1877e311479",
+    "testGitBlob": "295e0f953896ae3cdc217eaf8129f9876ee07377"
+  },
+  "independentReviews": 0,
+  "liveBehavioralRuns": 0,
+  "limitations": "Structural and archive integrity checks only; no live Agent, marketplace package bytes, staging, CI or independent council approval."
+}
