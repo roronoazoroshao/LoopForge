@@ -252,15 +252,19 @@
     return resp.json();
   }
   // Share the in-flight request and retain the last catalog on a refresh failure.
-  function load() {
-    if (!loading) {
-      loading = fetchCatalog().then(data => {
-        if (Array.isArray(data?.models)) {
+  function load(options) {
+    const refresh = !!(options && options.refresh);
+    const path = refresh ? '/api/assistant/models?refresh=1' : '/api/assistant/models';
+    if (!loading || refresh) {
+      const request = fetchCatalog(path).then(data => {
+        // A superseded response must never replace a newer credential catalog.
+        if (loading === request && Array.isArray(data?.models)) {
           const models = data.models.filter(m => concreteModelId(m.id));
           catalog = {default: data.default || DEFAULT_MODEL, models, engines: data.engines || [], preferences: data.preferences};
         }
         return catalog;
-      }).catch(() => catalog).finally(() => { loading = null; });
+      }).catch(() => catalog).finally(() => { if (loading === request) loading = null; });
+      loading = request;
     }
     return loading;
   }
@@ -271,6 +275,7 @@
     bindFeaturePicker,
     concreteModelId,
     engineOf,
+    familyOf,
     featureExecutors,
     featurePickerHTML,
     fetchCatalog,

@@ -61,7 +61,7 @@ export function DraftCard({
     [uncertain, setUncertain] = useState(false),
     [error, setError] = useState("");
   const draft = artifact.draft;
-  const declined = ["declined", "muted", "expired"].includes(draft.decision);
+  const declined = ["declined", "muted", "expired", "rejected"].includes(draft.decision);
   const answerable =
     !!draft.proposal &&
     !draft.inherited &&
@@ -166,7 +166,9 @@ export function DraftCard({
                 ? chatT("未采纳，本会话不再建议", "Không chấp nhận, không đề xuất lại trong cuộc trò chuyện này")
                 : draft.decision === "expired"
                   ? chatT("已超时", "Đã hết thời gian")
-                  : chatT("未采纳", "Không chấp nhận")
+                  : draft.decision === "rejected"
+                    ? chatT("AI 已拒绝", "AI đã từ chối", "AI rejected")
+                    : chatT("未采纳", "Không chấp nhận", "Not accepted")
               : draft.saved
               ? chatT("已执行", "Đã thực thi")
               : draft.resolved
