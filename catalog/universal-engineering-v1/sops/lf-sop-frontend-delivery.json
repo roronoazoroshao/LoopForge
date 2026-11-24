@@ -1,0 +1,205 @@
+{
+  "id": "lf-sop-frontend-delivery",
+  "name": "Frontend Delivery",
+  "version": 1,
+  "revision": 1,
+  "status": "draft",
+  "description": "SOP Frontend Delivery. Dùng đúng role, kiểm chứng artifacts và human gate; không tự deploy/merge.",
+  "sandboxProfileId": "generic-docker",
+  "tags": [
+    "lf-universal-v1",
+    "sop"
+  ],
+  "nodes": [
+    {
+      "id": "business-analyst",
+      "name": "Business Analyst",
+      "type": "agent",
+      "agentId": "lf-role-business-analyst",
+      "maxAttempts": 2,
+      "metricStage": "clarification",
+      "position": {
+        "x": 100,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Yêu cầu và nghiệp vụ",
+          "path": "lf-requirements.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "ui-ux-designer",
+      "name": "UI/UX Designer",
+      "type": "agent",
+      "agentId": "lf-role-ui-ux-designer",
+      "maxAttempts": 2,
+      "metricStage": "development",
+      "position": {
+        "x": 345,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Thiết kế UI và hành trình người dùng",
+          "path": "lf-ui-design.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "approve-plan",
+      "name": "Phê duyệt kế hoạch",
+      "type": "approval",
+      "taskPrompt": "Kiểm tra artifacts đúng revision, findings và bằng chứng thực tế. Chỉ chấp thuận khi tiêu chí đạt, không có blocker và quyền đúng phạm vi; nếu không, reject kèm finding. Không chấp thuận tự động.",
+      "maxAttempts": 1,
+      "maxReworks": 2,
+      "rejectTo": "business-analyst",
+      "position": {
+        "x": 590,
+        "y": 150
+      }
+    },
+    {
+      "id": "frontend-engineer",
+      "name": "Frontend Engineer",
+      "type": "agent",
+      "agentId": "lf-role-frontend-engineer",
+      "maxAttempts": 2,
+      "metricStage": "development",
+      "position": {
+        "x": 835,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Hiện thực UI và tương tác",
+          "path": "lf-frontend-report.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "senior-code-reviewer",
+      "name": "Senior Code Reviewer",
+      "type": "agent",
+      "agentId": "lf-role-senior-code-reviewer",
+      "maxAttempts": 2,
+      "metricStage": "testing",
+      "position": {
+        "x": 1080,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Review mã độc lập",
+          "path": "lf-code-review.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "test-automation-engineer",
+      "name": "Test Automation Engineer",
+      "type": "agent",
+      "agentId": "lf-role-test-automation-engineer",
+      "maxAttempts": 2,
+      "metricStage": "testing",
+      "position": {
+        "x": 1325,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Kiểm thử tự động",
+          "path": "lf-test-report.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "accessibility-specialist",
+      "name": "Accessibility Specialist",
+      "type": "agent",
+      "agentId": "lf-role-accessibility-specialist",
+      "maxAttempts": 2,
+      "metricStage": "testing",
+      "position": {
+        "x": 1570,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Audit accessibility",
+          "path": "lf-accessibility-report.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "accept",
+      "name": "Nghiệm thu độc lập",
+      "type": "approval",
+      "taskPrompt": "Kiểm tra artifacts đúng revision, findings và bằng chứng thực tế. Chỉ chấp thuận khi tiêu chí đạt, không có blocker và quyền đúng phạm vi; nếu không, reject kèm finding. Không chấp thuận tự động.",
+      "maxAttempts": 1,
+      "maxReworks": 2,
+      "rejectTo": "frontend-engineer",
+      "position": {
+        "x": 1815,
+        "y": 150
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-1",
+      "source": "business-analyst",
+      "target": "ui-ux-designer",
+      "when": "success"
+    },
+    {
+      "id": "e-2",
+      "source": "ui-ux-designer",
+      "target": "approve-plan",
+      "when": "success"
+    },
+    {
+      "id": "e-3",
+      "source": "approve-plan",
+      "target": "frontend-engineer",
+      "when": "success"
+    },
+    {
+      "id": "e-4",
+      "source": "frontend-engineer",
+      "target": "senior-code-reviewer",
+      "when": "success"
+    },
+    {
+      "id": "e-5",
+      "source": "senior-code-reviewer",
+      "target": "test-automation-engineer",
+      "when": "success"
+    },
+    {
+      "id": "e-6",
+      "source": "test-automation-engineer",
+      "target": "accessibility-specialist",
+      "when": "success"
+    },
+    {
+      "id": "e-7",
+      "source": "accessibility-specialist",
+      "target": "accept",
+      "when": "success"
+    }
+  ]
+}

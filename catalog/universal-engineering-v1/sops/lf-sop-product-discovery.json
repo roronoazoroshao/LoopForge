@@ -1,0 +1,134 @@
+{
+  "id": "lf-sop-product-discovery",
+  "name": "Product Discovery",
+  "version": 1,
+  "revision": 1,
+  "status": "draft",
+  "description": "SOP Product Discovery. Dùng đúng role, kiểm chứng artifacts và human gate; không tự deploy/merge.",
+  "sandboxProfileId": "generic-docker",
+  "tags": [
+    "lf-universal-v1",
+    "sop"
+  ],
+  "nodes": [
+    {
+      "id": "product-owner",
+      "name": "Product Owner",
+      "type": "agent",
+      "agentId": "lf-role-product-owner",
+      "maxAttempts": 2,
+      "metricStage": "clarification",
+      "position": {
+        "x": 100,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Giá trị sản phẩm, phạm vi, ưu tiên",
+          "path": "lf-product-brief.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "ux-researcher",
+      "name": "UX Researcher",
+      "type": "agent",
+      "agentId": "lf-role-ux-researcher",
+      "maxAttempts": 2,
+      "metricStage": "clarification",
+      "position": {
+        "x": 345,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Nghiên cứu người dùng và giả thuyết",
+          "path": "lf-ux-research.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "business-analyst",
+      "name": "Business Analyst",
+      "type": "agent",
+      "agentId": "lf-role-business-analyst",
+      "maxAttempts": 2,
+      "metricStage": "clarification",
+      "position": {
+        "x": 590,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Yêu cầu và nghiệp vụ",
+          "path": "lf-requirements.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "adversarial-reviewer",
+      "name": "Adversarial Reviewer",
+      "type": "agent",
+      "agentId": "lf-role-adversarial-reviewer",
+      "maxAttempts": 2,
+      "metricStage": "testing",
+      "position": {
+        "x": 835,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Phản biện thiết kế và hành vi",
+          "path": "lf-critique.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "accept",
+      "name": "Nghiệm thu độc lập",
+      "type": "approval",
+      "taskPrompt": "Kiểm tra artifacts đúng revision, findings và bằng chứng thực tế. Chỉ chấp thuận khi tiêu chí đạt, không có blocker và quyền đúng phạm vi; nếu không, reject kèm finding. Không chấp thuận tự động.",
+      "maxAttempts": 1,
+      "maxReworks": 2,
+      "rejectTo": "product-owner",
+      "position": {
+        "x": 1080,
+        "y": 150
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-1",
+      "source": "product-owner",
+      "target": "ux-researcher",
+      "when": "success"
+    },
+    {
+      "id": "e-2",
+      "source": "ux-researcher",
+      "target": "business-analyst",
+      "when": "success"
+    },
+    {
+      "id": "e-3",
+      "source": "business-analyst",
+      "target": "adversarial-reviewer",
+      "when": "success"
+    },
+    {
+      "id": "e-4",
+      "source": "adversarial-reviewer",
+      "target": "accept",
+      "when": "success"
+    }
+  ]
+}

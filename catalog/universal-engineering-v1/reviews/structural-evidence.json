@@ -1,0 +1,47 @@
+{
+  "execution": "V8 in-memory validator",
+  "baseline": "33a21a24d4de013820f5b2d023ca0bd01a84ac90",
+  "checks": [
+    {
+      "name": "valid candidate",
+      "pass": true
+    },
+    {
+      "name": "missing role skill",
+      "pass": true
+    },
+    {
+      "name": "duplicate id",
+      "pass": true
+    },
+    {
+      "name": "unsafe artifact",
+      "pass": true
+    },
+    {
+      "name": "missing workflow role",
+      "pass": true
+    },
+    {
+      "name": "missing nested workflow",
+      "pass": true
+    },
+    {
+      "name": "invalid rejection",
+      "pass": true
+    },
+    {
+      "name": "premature certification",
+      "pass": true
+    },
+    {
+      "name": "privilege default",
+      "pass": true
+    },
+    {
+      "name": "published draft",
+      "pass": true
+    }
+  ],
+  "limitation": "Not actual Go/Node importer, browser, runtime, CI or independent review."
+}

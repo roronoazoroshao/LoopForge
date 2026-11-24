@@ -1,0 +1,522 @@
+[
+  {
+    "capability": "Brainstorming",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Writing Plans",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Spec-driven Development",
+    "status": "pending",
+    "candidate": {
+      "namespace": "user_db7ebc1c",
+      "slug": "sdd-driven-dev",
+      "url": "https://skillhub.cn/skills/user_db7ebc1c/sdd-driven-dev"
+    },
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Task Decomposition",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Critical Thinking",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "System Design",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Architecture Decision Records",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Domain-driven Design",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "API Design",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Database Design",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Clean Code",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Backend Development",
+    "status": "pending",
+    "candidate": {
+      "namespace": "clawhub_ivangdavila",
+      "slug": "backend",
+      "url": "https://skillhub.cn/skills/clawhub_ivangdavila/backend"
+    },
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Frontend Development",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Full-stack Integration",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Refactoring",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Test-driven Development",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Unit Testing",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Integration Testing",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Playwright E2E",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Property-based Testing",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Systematic Debugging",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Root Cause Analysis",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Regression Analysis",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Log Analysis",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Performance Profiling",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Threat Modeling",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Secure Code Review",
+    "status": "pending",
+    "candidate": {
+      "namespace": "user_6cc7d052",
+      "slug": "code-reviewer",
+      "url": "https://skillhub.cn/skills/user_6cc7d052/code-reviewer"
+    },
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Dependency Audit",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Secrets Management",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "LLM Application Security",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Frontend Design",
+    "status": "pending",
+    "candidate": {
+      "namespace": "clawhub_paudyyin",
+      "slug": "frontend-design",
+      "url": "https://skillhub.cn/skills/clawhub_paudyyin/frontend-design"
+    },
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "UX Research",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Design Systems",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Accessibility Audit",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Responsive Design",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Docker Engineering",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "CI/CD Engineering",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Infrastructure as Code",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Observability",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Incident Response",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Prompt Engineering",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Agent Orchestration",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "MCP Development",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "RAG Engineering",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "LLM Evaluation",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Requesting Code Review",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Receiving Code Review",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Verification Before Completion",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Technical Documentation",
+    "status": "pending",
+    "candidate": {
+      "namespace": "clawhub_jerry-guo-mys",
+      "slug": "docs-improver",
+      "url": "https://skillhub.cn/skills/clawhub_jerry-guo-mys/docs-improver"
+    },
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  },
+  {
+    "capability": "Release Readiness",
+    "status": "pending",
+    "candidate": null,
+    "version": null,
+    "license": null,
+    "sha256": null,
+    "review": null,
+    "installed": false
+  }
+]
