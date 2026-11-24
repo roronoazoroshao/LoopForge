@@ -6,9 +6,9 @@ import { usePanelPresence } from "./usePanelPresence";
 import "./permission-picker.css";
 
 const modes = [
-  { id: "confirm", icon: "gate", label: chatT("请求批准", "Yêu cầu phê duyệt"), detail: chatT("工作区文件和命令自动执行；平台写入由你确认，外部工具写入需要授权。", "Tệp và lệnh trong workspace tự thực thi; bạn xác nhận thao tác ghi nền tảng, thao tác ghi của công cụ bên ngoài cần cấp quyền.") },
-  { id: "assisted", icon: "confirmation-check", label: chatT("帮我批准", "Phê duyệt thay tôi"), detail: chatT("工作区文件和命令自动执行；git push 等外部写入命令由 AI 审查直接批准或拒绝；平台写入未通过审查时交给你确认。", "Tệp và lệnh trong workspace tự thực thi; AI rà soát rồi trực tiếp phê duyệt hoặc từ chối lệnh ghi bên ngoài như git push; thao tác ghi nền tảng không vượt qua rà soát được chuyển cho bạn xác nhận.") },
-  { id: "auto", icon: "priority-bolt", label: chatT("完全权限", "Toàn quyền truy cập"), tone: "danger", detail: chatT("工作区文件和命令自动执行；平台及外部操作使用当前账号权限直接执行。", "Tệp và lệnh trong workspace tự thực thi; thao tác nền tảng và bên ngoài thực thi trực tiếp với quyền của tài khoản hiện tại.") },
+  { id: "confirm", icon: "gate", label: chatT("请求批准", "Yêu cầu phê duyệt", "Request approval"), detail: chatT("工作区文件和命令自动执行；平台写入由你确认，外部工具写入需要授权。", "Tệp và lệnh trong workspace tự thực thi; bạn xác nhận thao tác ghi nền tảng, thao tác ghi của công cụ bên ngoài cần cấp quyền.", "Workspace files and commands run automatically; you confirm platform writes and authorize external tool writes.") },
+  { id: "assisted", icon: "confirmation-check", label: chatT("帮我批准", "Phê duyệt thay tôi", "Assisted"), detail: chatT("工作区文件和命令自动执行；AI 独立审查平台及外部操作并直接放行或拒绝，无需人工确认。", "Tệp và lệnh trong workspace tự thực thi; AI độc lập rà soát, trực tiếp phê duyệt hoặc từ chối thao tác nền tảng và bên ngoài, không cần xác nhận thủ công.", "Workspace files and commands run automatically; AI independently reviews platform and external actions and directly allows or rejects them without manual confirmation.") },
+  { id: "auto", icon: "priority-bolt", label: chatT("完全权限", "Toàn quyền truy cập", "Full access"), tone: "danger", detail: chatT("工作区文件和命令自动执行；平台及外部操作使用当前账号权限直接执行。", "Tệp và lệnh trong workspace tự thực thi; thao tác nền tảng và bên ngoài thực thi trực tiếp với quyền của tài khoản hiện tại.", "Workspace files and commands run automatically; platform and external actions run directly with the current account permissions.") },
 ];
 
 export function normalizeApprovalMode(value) {
@@ -16,7 +16,7 @@ export function normalizeApprovalMode(value) {
 }
 
 // `glyph` is a rendered brand mark. Options that only set `icon` keep the Harness icon.
-export default function PermissionPicker({ value, onSelect, open: requestedOpen, disabled = false, onOpenChange, label = chatT("操作确认方式", "Chế độ xác nhận thao tác"), icon, options = modes }) {
+export default function PermissionPicker({ value, onSelect, open: requestedOpen, disabled = false, onOpenChange, label = chatT("操作确认方式", "Chế độ xác nhận thao tác", "Action approval mode"), icon, options = modes }) {
   const open = requestedOpen && !disabled;
   const trigger = useRef(null);
   const panel = useRef(null);

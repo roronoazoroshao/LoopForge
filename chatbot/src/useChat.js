@@ -1364,7 +1364,7 @@ export function useChat() {
       let stored = await api(sessionPath(id));
       let reply = JSON.parse(stored.messages[messageIndex].content);
       let draft = reply.drafts[draftIndex];
-      if (draft.saved || draft.inherited) return null;
+      if (draft.saved || draft.inherited || draft.decision === "rejected") return null;
       if (generation?.status === "running")
         throw Error(chatT("请等待回复结束后再确认操作。", "Chờ phản hồi kết thúc trước khi xác nhận thao tác."));
       if (draft.proposal && !draft.decision) {
