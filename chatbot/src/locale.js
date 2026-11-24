@@ -17,6 +17,7 @@ const artifactSourceLabels = new Map([
   ["已发布", ["Đã phát hành", "Published"]],
   ["已保存", ["Đã lưu", "Saved"]],
   ["已执行", ["Đã thực thi", "Executed"]],
+  ["AI 已拒绝", ["AI đã từ chối", "AI rejected"]],
   ["已完成", ["Đã hoàn thành", "Completed"]],
   ["待确认", ["Chờ xác nhận", "Awaiting confirmation"]],
   ["交付物", ["Sản phẩm bàn giao", "Deliverable"]],

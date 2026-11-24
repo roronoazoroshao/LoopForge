@@ -189,9 +189,13 @@ function assistantPrefsDirty(form){
 function assistantPrefsSwitchRow(name,title,help,on){
  return `<label class="asst-switch-row"><span><b>${title}</b><small>${help}</small></span><input type="checkbox" role="switch" name="${name}" ${on?'checked':''}></label>`;
 }
+// Translate generated UI copy, never model IDs or user-provided names.
+function assistantReviewCopy(zh,en,vi){
+ return typeof window!=='undefined'&&typeof window.lfT==='function'?window.lfT(zh,en,vi):zh;
+}
 function assistantReviewCliLabel(cli,catalogData,unconfigured){
- const name=catalogData.allEngines.get(cli)?.name||cli||'选择 CLI';
- return unconfigured?`${name}（未配置凭证）`:name;
+ const name=catalogData.allEngines.get(cli)?.name||cli||assistantReviewCopy('选择 CLI','Select CLI','Chọn CLI');
+ return unconfigured?`${name}${assistantReviewCopy('（未配置凭证）',' (credentials not configured)',' (chưa cấu hình thông tin xác thực)')}`:name;
 }
 function assistantReviewCliMenuHTML(activeCli,catalogData){
  const engines=catalogData.engines;
@@ -200,11 +204,11 @@ function assistantReviewCliMenuHTML(activeCli,catalogData){
  }
  return engines.map(e=>{
   const count=(catalogData.modelsByEngine.get(e.id)||[]).length;
-  const meta=count?`${count} 个可用模型`:'可手动输入模型';
+  const meta=count?assistantReviewCopy(`${count} 个可用模型`,`${count} available models`,`${count} mô hình khả dụng`):'可手动输入模型';
   const selected=e.id===activeCli;
   return `<button type="button" class="asst-picker-option${selected?' is-selected':''}" role="menuitemradio" aria-checked="${selected}" data-pick-cli="${escapeHTML(e.id)}">
    ${assistantReviewEngineIconHTML(e.id,e.name)}
-   <span class="asst-picker-copy"><strong>${escapeHTML(e.name)}</strong><small>${escapeHTML(meta)}</small></span>
+   <span class="asst-picker-copy"><strong data-i18n-skip>${escapeHTML(e.name)}</strong><small>${escapeHTML(meta)}</small></span>
    ${selected?ASSISTANT_CHECK_SVG:''}
   </button>`;
  }).join('');
@@ -219,7 +223,7 @@ function assistantReviewModelMenuHTML(cli,selectedCanonical,catalogData){
   const search=escapeHTML(`${m.name} ${m.rawId} ${m.family}`.toLowerCase());
   return `<button type="button" class="asst-picker-option${selected?' is-selected':''}" role="menuitemradio" aria-checked="${selected}" data-pick-model="${escapeHTML(m.id)}" data-search="${search}">
    ${assistantReviewModelIconHTML(m.family,m.rawId)}
-   <span class="asst-picker-copy"><strong>${escapeHTML(m.name)}</strong>${sub?`<small>${escapeHTML(sub)}</small>`:''}</span>
+   <span class="asst-picker-copy"><strong data-i18n-skip>${escapeHTML(m.name)}</strong>${sub?`<small data-i18n-skip>${escapeHTML(sub)}</small>`:''}</span>
    ${selected?ASSISTANT_CHECK_SVG:''}
   </button>`;
  }).join('');
@@ -231,10 +235,10 @@ function assistantReviewModelTriggerHTML(cli,selectedCanonical,rawModel,catalogD
  const models=catalogData.modelsByEngine.get(cli)||[];
  const found=models.find(m=>m.id===selectedCanonical);
  if(found){
-  return `${assistantReviewModelIconHTML(found.family,found.rawId)}<span class="asst-picker-trigger-label">${escapeHTML(found.name)}</span>${ASSISTANT_CHEVRON_SVG}`;
+  return `${assistantReviewModelIconHTML(found.family,found.rawId)}<span class="asst-picker-trigger-label" data-i18n-skip>${escapeHTML(found.name)}</span>${ASSISTANT_CHEVRON_SVG}`;
  }
  if(rawModel){
-  return `${assistantReviewModelIconHTML('',rawModel)}<span class="asst-picker-trigger-label">${escapeHTML(rawModel)}</span>${ASSISTANT_CHEVRON_SVG}`;
+  return `${assistantReviewModelIconHTML('',rawModel)}<span class="asst-picker-trigger-label" data-i18n-skip>${escapeHTML(rawModel)}</span>${ASSISTANT_CHEVRON_SVG}`;
  }
  return `${assistantReviewModelIconHTML('other','AI')}<span class="asst-picker-trigger-label is-placeholder">选择或手动输入模型</span>${ASSISTANT_CHEVRON_SVG}`;
 }
@@ -257,7 +261,7 @@ function assistantReviewCliBoxHTML(mode,reviewModel,catalogData){
  const matched=canonical&&models.some(m=>m.id===canonical);
  const showCustomInput=!matched&&(!!effectiveRaw||!models.length);
  const cliLabel=assistantReviewCliLabel(activeCli,catalogData,hasUnconfiguredSaved);
- const countMeta=hasUnconfiguredSaved?'需重新选择':(models.length?`${models.length} 个模型`:'手动输入');
+ const countMeta=hasUnconfiguredSaved?'需重新选择':(models.length?assistantReviewCopy(`${models.length} 个模型`,`${models.length} models`,`${models.length} mô hình`):'手动输入');
  return `<div id="assistantPrefsReviewCliBox" class="asst-review-sub"${hidden}>
   ${head}
   <div class="asst-model-grid">
@@ -266,7 +270,7 @@ function assistantReviewCliBoxHTML(mode,reviewModel,catalogData){
     <div class="asst-picker-anchor">
      <button type="button" id="assistantPrefsReviewCliBtn" class="asst-picker-trigger" aria-haspopup="menu" aria-expanded="false" data-active-cli="${escapeHTML(activeCli)}">
       ${assistantReviewEngineIconHTML(activeCli,cliLabel)}
-      <span class="asst-picker-trigger-label">${escapeHTML(cliLabel)}</span>
+      <span class="asst-picker-trigger-label" data-i18n-skip>${escapeHTML(cliLabel)}</span>
       <span class="asst-picker-trigger-meta">${escapeHTML(countMeta)}</span>
       ${ASSISTANT_CHEVRON_SVG}
      </button>
@@ -294,13 +298,13 @@ function assistantReviewApiProbeListHTML(models,selectedModel){
   const search=escapeHTML(`${id} ${name}`.toLowerCase());
   return `<button type="button" class="asst-probe-option${selected?' is-selected':''}" data-api-model="${escapeHTML(id)}" data-search="${search}">
    ${assistantReviewModelIconHTML('',id)}
-   <span class="asst-probe-copy"><code>${escapeHTML(id)}</code>${name&&name!==id?`<small>${escapeHTML(name)}</small>`:''}</span>
+   <span class="asst-probe-copy"><code>${escapeHTML(id)}</code>${name&&name!==id?`<small data-i18n-skip>${escapeHTML(name)}</small>`:''}</span>
    ${selected?ASSISTANT_CHECK_SVG:''}
   </button>`;
  }).join('');
  return `<div class="asst-probe-head">
    <div class="asst-picker-search-wrap asst-probe-search">${ASSISTANT_SEARCH_SVG}<input type="search" id="assistantPrefsApiProbeSearch" class="asst-picker-search" placeholder="搜索可用模型" aria-label="搜索可用模型" autocomplete="off" spellcheck="false"></div>
-   <span class="asst-probe-count" id="assistantPrefsApiProbeCount">共 ${(models||[]).length} 个可用模型</span>
+   <span class="asst-probe-count" id="assistantPrefsApiProbeCount">${assistantReviewCopy(`共 ${(models||[]).length} 个可用模型`,`${(models||[]).length} available models`,`${(models||[]).length} mô hình khả dụng`)}</span>
    <button type="button" class="asst-link-btn" data-api-probe-close>收起</button>
   </div>
   <div class="asst-probe-list" role="listbox" aria-label="获取到的可用模型">${items}<p class="asst-picker-empty" id="assistantPrefsApiProbeNoMatch" hidden>没有匹配的模型</p></div>`;
@@ -494,9 +498,9 @@ function renderAssistantSettings(draftOverride){
   const models=catalogData.modelsByEngine.get(cli)||[];
   const unconfigured=!!cli&&!catalogData.engines.some(e=>e.id===cli);
   const cliLabel=assistantReviewCliLabel(cli,catalogData,unconfigured);
-  const countMeta=unconfigured?'需重新选择':(models.length?`${models.length} 个模型`:'手动输入');
+  const countMeta=unconfigured?'需重新选择':(models.length?assistantReviewCopy(`${models.length} 个模型`,`${models.length} models`,`${models.length} mô hình`):'手动输入');
   cliBtn.dataset.activeCli=cli;
-  cliBtn.innerHTML=`${assistantReviewEngineIconHTML(cli,cliLabel)}<span class="asst-picker-trigger-label">${escapeHTML(cliLabel)}</span><span class="asst-picker-trigger-meta">${escapeHTML(countMeta)}</span>${ASSISTANT_CHEVRON_SVG}`;
+  cliBtn.innerHTML=`${assistantReviewEngineIconHTML(cli,cliLabel)}<span class="asst-picker-trigger-label" data-i18n-skip>${escapeHTML(cliLabel)}</span><span class="asst-picker-trigger-meta">${escapeHTML(countMeta)}</span>${ASSISTANT_CHEVRON_SVG}`;
   if(cliMenu)cliMenu.innerHTML=assistantReviewCliMenuHTML(cli,catalogData);
 
   const rawModel=canonical?assistantReviewSplitModel(canonical,catalogData).rawModel:(customInput?.value?.trim()||'');
@@ -730,7 +734,7 @@ function renderAssistantSettings(draftOverride){
    const empty=apiProbePanel.querySelector('#assistantPrefsApiProbeNoMatch');
    if(empty)empty.hidden=visible>0;
    const countEl=apiProbePanel.querySelector('#assistantPrefsApiProbeCount');
-   if(countEl)countEl.textContent=q?`匹配 ${visible} / ${items.length} 个模型`:`共 ${items.length} 个可用模型`;
+   if(countEl)countEl.textContent=q?assistantReviewCopy(`匹配 ${visible} / ${items.length} 个模型`,`${visible} / ${items.length} matching models`,`${visible} / ${items.length} mô hình phù hợp`):assistantReviewCopy(`共 ${items.length} 个可用模型`,`${items.length} available models`,`${items.length} mô hình khả dụng`);
   });
  }
  if(apiModelInput){

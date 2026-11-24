@@ -150,3 +150,13 @@ assert.ok(officialOriginChangeErr && officialOriginChangeErr.message.includes('�
 
 ctx.state.currentUser = { id: 0, isGuest: true };
 assert.equal(mb.assistantPrefsSignedIn(), false);
+
+// Generated counts are localized; provider model identifiers and names remain untouched.
+for (const [language, expected] of [["en", "2 available models"], ["vi", "2 mô hình khả dụng"], ["zh", "共 2 个可用模型"]]) {
+  ctx.window = { lfT: (zh, en, vi) => ({ zh, en, vi })[language] };
+  const localized = mb.assistantReviewApiProbeListHTML([{ id: "model/自定义", name: "用户模型" }, { id: "other", name: "Other" }], "model/自定义");
+  assert.ok(localized.includes(expected), language);
+  assert.ok(localized.includes('data-api-model="model/自定义"'), language);
+  assert.ok(localized.includes("<small data-i18n-skip>用户模型</small>"), language);
+}
+delete ctx.window;
