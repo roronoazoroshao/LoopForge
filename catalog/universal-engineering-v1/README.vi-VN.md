@@ -20,3 +20,6 @@ Xem `skillhub/curation.vi-VN.md`, `reviews/resource-matrix.json` (154 resources/
 
 ## SkillHub-first gate
 The approved execution order is now enforced as a documented release gate. See [ranking workflow](skillhub/skillhub-first.vi-VN.md), [release status](reviews/release-gate-status.json). Existing resources are drafts; selection, package audit, live Agent execution, independent review and seed remain blocked until evidence exists.
+
+## Manual verification 2026-11-26
+Đã đọc snapshot 1.000 bản ghi SkillHub ngày 25/11 từ Best Skills by Linkly AI (CC BY 4.0); sàng lọc 42, ưu tiên 20. Xem `skillhub/manual-screening-2026-11-26.json`. Đã đọc đầy đủ 2 thư mục Skill upstream chính thức của Tencent và tái hiện lỗi validator TRACE qua Python; xem `reviews/upstream-skill-audit-2026-11-26.json`. Đây không phải chứng nhận marketplace ZIP hay review độc lập. Không tự động seed/publish.
