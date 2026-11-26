@@ -1,4 +1,4 @@
-import { chatT, chatLocale } from "./locale.js";
+import { chatT, chatLocale, approvalReviewStatusText } from "./locale.js";
 // Both the live stream and saved message metadata use this reducer. Tool updates
 // retain their original position; completion events never create duplicate rows.
 export function mergeActivity(previous = [], events = []) {
@@ -470,7 +470,7 @@ export function activityFace(step) {
   if (step.kind === "thinking")
     return { kind: "thinking", busy: chatT("正在思考", "Đang suy nghĩ"), done: chatT("已思考", "Đã suy nghĩ") };
   if (step.kind === "status")
-    return { kind: "status", busy: step.text, done: step.text };
+    return { kind: "status", busy: approvalReviewStatusText(step.text), done: approvalReviewStatusText(step.text) };
   const tool = (step.tool || "")
     .replace(/^mcp__agentflow_session__/, "")
     .replace(/^agentflow__/, "");
