@@ -1,0 +1,72 @@
+{
+  "source": {
+    "provider": "Best Skills by Linkly AI",
+    "repository": "https://github.com/LinklyAI/best-skills",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "snapshotDate": "2026-11-25",
+    "commit": "cfd51affb1532ad0afc97f57e9f777a40bc0140a",
+    "path": "data/2026-11-25/raw/skillhub.csv",
+    "blob": "1f3f464301e958f8146acf15f1b559e20ba13166",
+    "url": "https://github.com/LinklyAI/best-skills/blob/cfd51affb1532ad0afc97f57e9f777a40bc0140a/data/2026-11-25/raw/skillhub.csv",
+    "scope": "1000-row third-party snapshot; rank within source, not live official API or complete category",
+    "changes": "Filtered, computed category row positions, added manual suitability decisions and target mapping."
+  },
+  "counts": {
+    "rows": 1000,
+    "distinctNonemptyIdentities": 998,
+    "ambiguousIdentities": 1,
+    "screened": 42,
+    "primary": 20,
+    "reserve": 15,
+    "excluded": 7,
+    "ambiguous": 0,
+    "direct": 10,
+    "broad": 30,
+    "gap": 10,
+    "pinned": 0,
+    "installed": 0,
+    "certified": 0
+  },
+  "checks": [
+    {
+      "name": "1000 source rows",
+      "pass": true
+    },
+    {
+      "name": "50 unique targets",
+      "pass": true
+    },
+    {
+      "name": "42 unique candidate decisions",
+      "pass": true
+    },
+    {
+      "name": "every mapped lead exists",
+      "pass": true
+    },
+    {
+      "name": "no excluded lead used",
+      "pass": true
+    },
+    {
+      "name": "ambiguous identities not promoted",
+      "pass": true
+    },
+    {
+      "name": "no verified packages claimed",
+      "pass": true
+    },
+    {
+      "name": "category position bounded",
+      "pass": true
+    }
+  ],
+  "method": "Actual public CSV parsed and manual metadata screening in V8",
+  "notRun": [
+    "live API",
+    "package install",
+    "Agent behavior",
+    "independent review"
+  ]
+}

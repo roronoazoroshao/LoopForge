@@ -1,0 +1,25 @@
+{
+  "checks": [
+    {
+      "name": "refactoring role no contradictory read-only instruction",
+      "pass": true
+    },
+    {
+      "name": "bug QA reproduces before fix and regression runs afterward",
+      "pass": true
+    },
+    {
+      "name": "six revised SOPs have valid nodes, references, and forward edges",
+      "pass": true
+    }
+  ],
+  "rolePackParser": {
+    "state": "pass",
+    "parsed": 32,
+    "ready": 32,
+    "errors": [],
+    "duplicateRejected": true,
+    "missingSkillRejected": true
+  },
+  "context": "V8 static checks on fetched candidate and in-memory fixes; not runtime/API/independent review"
+}

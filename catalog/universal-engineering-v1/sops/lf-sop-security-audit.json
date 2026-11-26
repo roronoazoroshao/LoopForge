@@ -1,0 +1,153 @@
+{
+  "id": "lf-sop-security-audit",
+  "name": "Security Audit",
+  "version": 1,
+  "revision": 1,
+  "status": "draft",
+  "description": "SOP Security Audit. Dùng đúng role, kiểm chứng artifacts và human gate; không tự deploy/merge.",
+  "sandboxProfileId": "generic-docker",
+  "tags": [
+    "lf-universal-v1",
+    "sop"
+  ],
+  "nodes": [
+    {
+      "id": "engineering-lead-plan",
+      "name": "Engineering Lead",
+      "type": "agent",
+      "agentId": "lf-role-engineering-lead",
+      "maxAttempts": 2,
+      "metricStage": "clarification",
+      "position": {
+        "x": 100,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Kế hoạch kỹ thuật và phân rã",
+          "path": "lf-engineering-plan.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "approve-plan",
+      "name": "Phê duyệt phạm vi trước thay đổi",
+      "type": "approval",
+      "taskPrompt": "Người phê duyệt kiểm tra yêu cầu, phương án, quyền, rủi ro, tiêu chí nghiệm thu và rollback; reject nếu thiếu. Không tự triển khai production hoặc thay đổi dữ liệu thật.",
+      "maxAttempts": 1,
+      "maxReworks": 2,
+      "rejectTo": "engineering-lead-plan",
+      "position": {
+        "x": 345,
+        "y": 150
+      }
+    },
+    {
+      "id": "security-engineer",
+      "name": "Security Engineer",
+      "type": "agent",
+      "agentId": "lf-role-security-engineer",
+      "maxAttempts": 2,
+      "metricStage": "development",
+      "position": {
+        "x": 590,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Threat model và hardening",
+          "path": "lf-security-hardening.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "security-auditor",
+      "name": "Security Auditor",
+      "type": "agent",
+      "agentId": "lf-role-security-auditor",
+      "maxAttempts": 2,
+      "metricStage": "testing",
+      "position": {
+        "x": 835,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Audit độc lập",
+          "path": "lf-security-review.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "adversarial-reviewer",
+      "name": "Adversarial Reviewer",
+      "type": "agent",
+      "agentId": "lf-role-adversarial-reviewer",
+      "maxAttempts": 2,
+      "metricStage": "testing",
+      "position": {
+        "x": 1080,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Phản biện thiết kế và hành vi",
+          "path": "lf-critique.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "accept",
+      "name": "Nghiệm thu độc lập",
+      "type": "approval",
+      "taskPrompt": "Kiểm tra artifacts đúng revision, findings và bằng chứng thực tế. Chỉ chấp thuận khi tiêu chí đạt, không có blocker và quyền đúng phạm vi; nếu không, reject kèm finding. Không chấp thuận tự động.",
+      "maxAttempts": 1,
+      "maxReworks": 2,
+      "rejectTo": "security-engineer",
+      "position": {
+        "x": 1325,
+        "y": 150
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-1",
+      "source": "engineering-lead-plan",
+      "target": "approve-plan",
+      "when": "success"
+    },
+    {
+      "id": "e-2",
+      "source": "approve-plan",
+      "target": "security-engineer",
+      "when": "success"
+    },
+    {
+      "id": "e-3",
+      "source": "security-engineer",
+      "target": "security-auditor",
+      "when": "success"
+    },
+    {
+      "id": "e-4",
+      "source": "security-auditor",
+      "target": "adversarial-reviewer",
+      "when": "success"
+    },
+    {
+      "id": "e-5",
+      "source": "adversarial-reviewer",
+      "target": "accept",
+      "when": "success"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "policy": "skillhub-first",
+  "reviewedHead": "ef674a19973014beac17aea288fe01dec0f7bf02",
+  "stages": [
+    {
+      "order": 1,
+      "id": "skillhub-ranking",
+      "state": "partial",
+      "reason": "1,000-row 2026-11-25 third-party SkillHub download snapshot parsed, 42 manually screened, 20 prioritized, 10 direct/30 adjacent/10 gaps. Official live API score ranking not available; no final selected packages."
+    },
+    {
+      "order": 2,
+      "id": "skill-review",
+      "state": "partial",
+      "reason": "Full source review of two Tencent official GitHub skill directories completed; 7 actual Python TRACE validator tests, 3 policy failures. Neither marketplace ZIP verified; no approved package."
+    },
+    {
+      "order": 3,
+      "id": "role-design",
+      "state": "blocked",
+      "reason": "Existing 32 Roles remain draft; no external Skill binding until reviewed."
+    },
+    {
+      "order": 4,
+      "id": "sop-design",
+      "state": "blocked",
+      "reason": "Existing 24 SOPs are draft."
+    },
+    {
+      "order": 5,
+      "id": "pipeline-design",
+      "state": "blocked",
+      "reason": "Existing 8 workflows are draft."
+    },
+    {
+      "order": 6,
+      "id": "runtime-test",
+      "state": "blocked",
+      "reason": "No LoopForge instance/Runner access."
+    },
+    {
+      "order": 7,
+      "id": "independent-expert-review",
+      "state": "blocked",
+      "reason": "No independent review evidence."
+    },
+    {
+      "order": 8,
+      "id": "default-seed",
+      "state": "blocked",
+      "reason": "No manual SQL seed for uncertified data."
+    },
+    {
+      "order": 9,
+      "id": "merge-main",
+      "state": "blocked",
+      "reason": "No acceptance or CI evidence."
+    }
+  ],
+  "marketplace": {
+    "targets": 50,
+    "categoryRankVerified": 0,
+    "versionPinned": 0,
+    "downloaded": 0,
+    "installed": 0,
+    "certified": 0,
+    "thirdPartySnapshotRows": 1000,
+    "manualScreened": 42,
+    "primaryCandidates": 20,
+    "sourceDirectoryReviews": 2,
+    "marketplaceZipVerified": 0
+  },
+  "notes": "Status ledger is informational; human verification and actual evidence required. No self-certification."
+}

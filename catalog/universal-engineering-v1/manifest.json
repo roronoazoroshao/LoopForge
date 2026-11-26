@@ -1,0 +1,18 @@
+{
+  "format": "loopforge-universal-catalog-draft",
+  "version": "0.1.0",
+  "baseline": "33a21a24d4de013820f5b2d023ca0bd01a84ac90",
+  "status": "draft",
+  "certified": false,
+  "counts": {
+    "roles": 32,
+    "rules": 24,
+    "coreSkills": 16,
+    "sops": 24,
+    "pipelines": 8,
+    "skillhubTargets": 50,
+    "skillhubPinned": 0,
+    "skillhubInstalled": 0
+  },
+  "notes": "No automatic seed or live install; independent review, behavioral tests, source verification and CI pending."
+}

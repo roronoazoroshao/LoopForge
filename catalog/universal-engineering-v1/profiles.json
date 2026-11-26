@@ -1,0 +1,22 @@
+[
+  {
+    "id": "lite",
+    "maxRoles": 2,
+    "policy": "Low-risk reversible change; select scoped implementer and evidence gate."
+  },
+  {
+    "id": "standard",
+    "maxRoles": 5,
+    "policy": "Requirements, implementation, independent review and test."
+  },
+  {
+    "id": "advanced",
+    "maxRoles": 8,
+    "policy": "Architecture, cross-module contracts, security and integration verification."
+  },
+  {
+    "id": "critical",
+    "maxRoles": null,
+    "policy": "Independent review, human authorization before sensitive actions, explicit rollback; no automatic publish."
+  }
+]

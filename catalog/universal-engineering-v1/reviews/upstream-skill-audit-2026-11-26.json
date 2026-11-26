@@ -1,0 +1,273 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-26",
+  "reviewType": "manual source audit by current AI author, not independent council",
+  "upstream": {
+    "repository": "https://github.com/Tencent/skillhub",
+    "commit": "022aad9de39f75199bad0e2c3adf8be7791d68c8",
+    "license": "MIT (repository license)",
+    "licenseFile": {
+      "path": "LICENSE",
+      "blob": "dbbab6c2a989e436545a481e20553b17023d4832",
+      "size": 1411
+    },
+    "marketplaceZipMatch": "unverified"
+  },
+  "resources": [
+    {
+      "identity": "@user_290ac21c/find-skill-skillhub",
+      "upstreamVersion": "1.0.2",
+      "marketplaceVersionObserved": "1.0.2",
+      "filesReviewed": 16,
+      "files": [
+        {
+          "path": "skills/find-skill-skillhub/SKILL.md",
+          "blob": "5857dbc76cb7bec4098542461308e1f02517f25c",
+          "size": 3780
+        },
+        {
+          "path": "skills/find-skill-skillhub/_meta.json",
+          "blob": "b2b22b313d2fd583ce15c05bb0087263f7b99807",
+          "size": 112
+        },
+        {
+          "path": "skills/find-skill-skillhub/references/ai-agent.md",
+          "blob": "e5271e0a6c7de2331477ac6765eb9558fcc3c3cf",
+          "size": 835
+        },
+        {
+          "path": "skills/find-skill-skillhub/references/api.md",
+          "blob": "50489ae8aa4517fddc1c83d35db0b7be1afd13ab",
+          "size": 4352
+        },
+        {
+          "path": "skills/find-skill-skillhub/references/business-ops.md",
+          "blob": "ed8f3887efa29dd23118335a2becee93da74c0a7",
+          "size": 776
+        },
+        {
+          "path": "skills/find-skill-skillhub/references/categories.md",
+          "blob": "25574efb3871e0ca81b00b8cd226c91bf5e231c1",
+          "size": 1673
+        },
+        {
+          "path": "skills/find-skill-skillhub/references/content-creation.md",
+          "blob": "ed3425fc16ac9169edde0e07dfd2baec5923f4ca",
+          "size": 851
+        },
+        {
+          "path": "skills/find-skill-skillhub/references/data-analysis.md",
+          "blob": "f8acf7e0e7b862986d4b9d7cf5e693893be51aaf",
+          "size": 829
+        },
+        {
+          "path": "skills/find-skill-skillhub/references/design-media.md",
+          "blob": "98ed78e589016dd12e1ec704481d000f017ca160",
+          "size": 790
+        },
+        {
+          "path": "skills/find-skill-skillhub/references/dev-programming.md",
+          "blob": "5176639542784b8bb8a49fe61fd7ca603cf2cd51",
+          "size": 739
+        },
+        {
+          "path": "skills/find-skill-skillhub/references/education.md",
+          "blob": "da0d18dca3287494fdda20e145453a55ad50e61f",
+          "size": 784
+        },
+        {
+          "path": "skills/find-skill-skillhub/references/it-ops-security.md",
+          "blob": "5c652252f39671bb071a308d61947671bf7d6d89",
+          "size": 848
+        },
+        {
+          "path": "skills/find-skill-skillhub/references/knowledge-management.md",
+          "blob": "65eceb29c7e95cf4b29f991ce5b50cbbb9072f48",
+          "size": 884
+        },
+        {
+          "path": "skills/find-skill-skillhub/references/life-service.md",
+          "blob": "1cc388caa9578b53798c7c36eee3c3d3c13f9bbe",
+          "size": 813
+        },
+        {
+          "path": "skills/find-skill-skillhub/references/office-efficiency.md",
+          "blob": "6a4a57ece2ed0f0cecb491ea971e79b637489b82",
+          "size": 814
+        },
+        {
+          "path": "skills/find-skill-skillhub/references/professional.md",
+          "blob": "f5f7f5878a1699d8bcfabdfdd38ac64404bd175e",
+          "size": 764
+        }
+      ],
+      "disposition": "hold-as-is",
+      "findings": [
+        {
+          "severity": "high",
+          "path": "SKILL.md Step 5; references/api.md install CLI",
+          "finding": "Direct remote installer execution and direct agent directory writes, not suitable for safe LoopForge default.",
+          "required": "Use platform-native scoped install only after explicit version, hash, package review and approval; no remote shell pipeline."
+        },
+        {
+          "severity": "high",
+          "path": "SKILL.md Step 2/5; references/api.md",
+          "finding": "Slug-only deduplication and installation omit namespace and immutable version; same-slug publisher collision possible.",
+          "required": "Use namespace + slug + pinned version; refuse ambiguity."
+        },
+        {
+          "severity": "medium",
+          "path": "SKILL.md Step 4/5",
+          "finding": "Completion instruction reports install in one line without verifying source snapshot and audit evidence.",
+          "required": "Report package identity, revision, integrity and actual outcome."
+        }
+      ]
+    },
+    {
+      "identity": "Tencent upstream skillhub-trace-evaluator",
+      "upstreamVersion": "1.0.0",
+      "filesReviewed": 12,
+      "files": [
+        {
+          "path": "skills/skillhub-trace-evaluator/SKILL.md",
+          "blob": "b3c2afda694a4dcf766ac6366e6e6309abf12c0f",
+          "size": 2972
+        },
+        {
+          "path": "skills/skillhub-trace-evaluator/_meta.json",
+          "blob": "3f017dcf2faa871e112686b7765badebeab5b023",
+          "size": 117
+        },
+        {
+          "path": "skills/skillhub-trace-evaluator/examples/sample-report.invalid.json",
+          "blob": "2bd2da004a130d1d0ccb5117dbdf9be255fb4fdb",
+          "size": 2411
+        },
+        {
+          "path": "skills/skillhub-trace-evaluator/examples/sample-report.valid.json",
+          "blob": "c1aa0c5d1608f1f77b22ce6a926da41d475a266f",
+          "size": 5214
+        },
+        {
+          "path": "skills/skillhub-trace-evaluator/references/adaptability.md",
+          "blob": "1c845901ef4450d3956d9527e77297d829711a6f",
+          "size": 1041
+        },
+        {
+          "path": "skills/skillhub-trace-evaluator/references/convention.md",
+          "blob": "303dee6c2d94afe4592ec29a8b267b3187be224a",
+          "size": 1544
+        },
+        {
+          "path": "skills/skillhub-trace-evaluator/references/effectiveness.md",
+          "blob": "f8a3e565f9a1c3549c772269397dcd500b95866e",
+          "size": 1654
+        },
+        {
+          "path": "skills/skillhub-trace-evaluator/references/explore.md",
+          "blob": "9a011200bcd40f5148f75d5ba1d83afd55210e3e",
+          "size": 842
+        },
+        {
+          "path": "skills/skillhub-trace-evaluator/references/output-schema.md",
+          "blob": "412a44ccd67dc4afccb647135c7c91ef6289e37e",
+          "size": 3404
+        },
+        {
+          "path": "skills/skillhub-trace-evaluator/references/reliability.md",
+          "blob": "237752c54a892145c8926a12061d35665be12313",
+          "size": 1506
+        },
+        {
+          "path": "skills/skillhub-trace-evaluator/references/trust.md",
+          "blob": "976f679fb73a89d197bc91784ace5cb8f16e44fc",
+          "size": 1281
+        },
+        {
+          "path": "skills/skillhub-trace-evaluator/scripts/validate_trace_scores.py",
+          "blob": "4fd0cf477db6e0b876620de026812c807c214aa6",
+          "size": 6552
+        }
+      ],
+      "disposition": "hold-as-certification-gate",
+      "findings": [
+        {
+          "severity": "high",
+          "path": "scripts/validate_trace_scores.py validate_report",
+          "finding": "dimensions:null bypasses validation and exits zero; reproduced on exact source.",
+          "required": "Reject null and non-object dimensions."
+        },
+        {
+          "severity": "high",
+          "path": "scripts/validate_trace_scores.py _validate_scan_item; SKILL.md Step 3",
+          "finding": "Validator accepts scored skipped scan and non-skipped scan while local evaluator does not scan. These are policy mismatches, not claims of malicious package.",
+          "required": "Require status=skipped and absent score for local TRACE; separate verified security scan evidence."
+        },
+        {
+          "severity": "medium",
+          "path": "references/explore.md; references/output-schema.md",
+          "finding": "Sampling large files and schema checks cannot prove full-file inspection or actual behavior.",
+          "required": "Separate exhaustive package inspection, behavior evidence, provenance and independent review."
+        }
+      ],
+      "testExecution": {
+        "runtime": "Python 3.13.5",
+        "command": "python3 validate_trace_scores.py - (JSON fixtures on stdin)",
+        "verifiedGitBlob": "4fd0cf477db6e0b876620de026812c807c214aa6",
+        "cases": [
+          {
+            "name": "valid report",
+            "expectedLoopForgeExit": 0,
+            "actualExit": 0,
+            "matchesLoopForgePolicy": true,
+            "note": "conforming baseline"
+          },
+          {
+            "name": "null dimensions",
+            "expectedLoopForgeExit": 1,
+            "actualExit": 0,
+            "matchesLoopForgePolicy": false,
+            "note": "upstream validation bug: null bypasses dimension validation"
+          },
+          {
+            "name": "missing dimensions",
+            "expectedLoopForgeExit": 1,
+            "actualExit": 1,
+            "matchesLoopForgePolicy": true,
+            "note": "correct rejection"
+          },
+          {
+            "name": "empty dimensions",
+            "expectedLoopForgeExit": 1,
+            "actualExit": 1,
+            "matchesLoopForgePolicy": true,
+            "note": "correct rejection"
+          },
+          {
+            "name": "skipped scan with score",
+            "expectedLoopForgeExit": 1,
+            "actualExit": 0,
+            "matchesLoopForgePolicy": false,
+            "note": "policy mismatch: skipped scan can include score"
+          },
+          {
+            "name": "non-skipped scan without evidence",
+            "expectedLoopForgeExit": 1,
+            "actualExit": 0,
+            "matchesLoopForgePolicy": false,
+            "note": "policy mismatch: upstream allows platform-style score; not acceptable for local evaluator"
+          },
+          {
+            "name": "missing reliability item",
+            "expectedLoopForgeExit": 1,
+            "actualExit": 1,
+            "matchesLoopForgePolicy": true,
+            "note": "correct rejection"
+          }
+        ],
+        "scope": "Actual upstream script run in isolated local directory with synthetic inputs, no network. 4/7 match stricter LoopForge policy; 1 upstream defect and 2 policy mismatches reproduced."
+      }
+    }
+  ],
+  "limitations": "Read every file in the two pinned upstream skill directories, not the SkillHub ZIPs. Repository MIT is not evidence of marketplace package byte/license equality. No package installed. No independent council or live Agent run."
+}

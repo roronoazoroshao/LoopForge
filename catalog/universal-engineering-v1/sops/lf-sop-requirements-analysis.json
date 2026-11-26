@@ -1,0 +1,108 @@
+{
+  "id": "lf-sop-requirements-analysis",
+  "name": "Requirements Analysis",
+  "version": 1,
+  "revision": 1,
+  "status": "draft",
+  "description": "SOP Requirements Analysis. Dùng đúng role, kiểm chứng artifacts và human gate; không tự deploy/merge.",
+  "sandboxProfileId": "generic-docker",
+  "tags": [
+    "lf-universal-v1",
+    "sop"
+  ],
+  "nodes": [
+    {
+      "id": "business-analyst",
+      "name": "Business Analyst",
+      "type": "agent",
+      "agentId": "lf-role-business-analyst",
+      "maxAttempts": 2,
+      "metricStage": "clarification",
+      "position": {
+        "x": 100,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Yêu cầu và nghiệp vụ",
+          "path": "lf-requirements.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "product-owner",
+      "name": "Product Owner",
+      "type": "agent",
+      "agentId": "lf-role-product-owner",
+      "maxAttempts": 2,
+      "metricStage": "clarification",
+      "position": {
+        "x": 345,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Giá trị sản phẩm, phạm vi, ưu tiên",
+          "path": "lf-product-brief.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "qa-lead",
+      "name": "QA Lead",
+      "type": "agent",
+      "agentId": "lf-role-qa-lead",
+      "maxAttempts": 2,
+      "metricStage": "testing",
+      "position": {
+        "x": 590,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Chiến lược nghiệm thu",
+          "path": "lf-qa-plan.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "accept",
+      "name": "Nghiệm thu độc lập",
+      "type": "approval",
+      "taskPrompt": "Kiểm tra artifacts đúng revision, findings và bằng chứng thực tế. Chỉ chấp thuận khi tiêu chí đạt, không có blocker và quyền đúng phạm vi; nếu không, reject kèm finding. Không chấp thuận tự động.",
+      "maxAttempts": 1,
+      "maxReworks": 2,
+      "rejectTo": "business-analyst",
+      "position": {
+        "x": 835,
+        "y": 150
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-1",
+      "source": "business-analyst",
+      "target": "product-owner",
+      "when": "success"
+    },
+    {
+      "id": "e-2",
+      "source": "product-owner",
+      "target": "qa-lead",
+      "when": "success"
+    },
+    {
+      "id": "e-3",
+      "source": "qa-lead",
+      "target": "accept",
+      "when": "success"
+    }
+  ]
+}
