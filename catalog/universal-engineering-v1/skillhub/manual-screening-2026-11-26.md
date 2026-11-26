@@ -1,0 +1,5 @@
+# Manual SkillHub screening, 2026-11-26
+
+Data from [Best Skills by Linkly AI](https://github.com/LinklyAI/best-skills) — [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). [Snapshot](https://github.com/LinklyAI/best-skills/blob/cfd51affb1532ad0afc97f57e9f777a40bc0140a/data/2026-11-25/raw/skillhub.csv). Filtered relevant entries, derived category row positions, added decisions. This is a third-party snapshot of SkillHub counters, not official live ranking or full category coverage. Duplicate source identities are quarantined rather than silently deduplicated.
+
+42 identities screened: 20 primary, 15 reserve, 7 excluded, 0 ambiguous. 10 direct leads, 30 broad/adjacent, 10 missing specialists across 50 target capabilities. Reusing one broad skill for several targets does not count as distinct packages. 0 verified pins/installations/certifications. Prioritize DevExpert, Superpowers, focused reviewers and E2E specialists; compare derivatives and avoid auto-updaters, vendor lock-in and broad public deployment. No external package is approved by this review; inspect actual package, license, hash and behavior before installation.
