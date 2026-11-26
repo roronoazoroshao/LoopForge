@@ -1,7 +1,7 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
 import { approvalReviewStatusText, approvalReviewDetailText } from "../src/locale.js";
-import { mergeActivity, activityFace } from "../src/activity.js";
+import { mergeActivity, activityFace, traceBlocks } from "../src/activity.js";
 
 test("approval review events retain original values while UI labels follow locale", () => {
   const prior = localStorage.getItem("loopforge.lang");
@@ -19,6 +19,8 @@ test("approval review events retain original values while UI labels follow local
       assert.equal(approvalReviewDetailText(event.detail), detail);
       assert.equal(activityFace(steps[0]).busy, status);
     }
+    // Status events are transport-only in the current trace renderer.
+    assert.deepEqual(traceBlocks(steps, { live: true }), []);
     assert.equal(steps[0].text, event.text);
     assert.equal(event.detail, "规则快路径 · 原始审查说明");
   } finally {
