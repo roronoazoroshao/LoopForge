@@ -29,6 +29,7 @@ export function approvalReviewStatusText(value) {
 }
 export function approvalReviewDetailText(value) {
   if (typeof value !== "string") return value;
+  if (value.startsWith("审查模型：")) return chatT("审查模型：", "Mô hình rà soát: ", "Review model: ") + value.slice("审查模型：".length);
   const split = value.indexOf(" · ");
   if (split < 0) return value;
   const model = value.slice(0, split);
