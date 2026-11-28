@@ -83,7 +83,7 @@ test("the title icon shows the same reply status as the sidebar", () => {
   assert.match(app, /import ConversationStatusIcon from "\.\/ConversationStatusIcon"/);
   assert.match(
     app,
-    /<ConversationStatusIcon\s+status=\{sessionReplyStatus\(chat\.session, \{\s*generation: chat\.generation,\s*busy: chat\.busy,\s*\}\)\}/,
+    /<ConversationStatusIcon\s+status=\{sessionReplyStatus\(chat\.session, \{\s*generation: chat\.generation,\s*busy: chat\.busy,\s*approvalCount: approvals\.count,\s*\}\)\}/,
   );
   assert.doesNotMatch(app, /conversation-title-icon/);
   const icon = readFileSync(new URL("../src/ConversationStatusIcon.jsx", import.meta.url), "utf8");
@@ -104,6 +104,7 @@ test("status icon colours follow the sidebar palette in both themes", () => {
     running: ["#5273dc", "#9cafff"],
     failed: ["#ce4444", "#f38989"],
     interrupted: ["#b87819", "#e7b76b"],
+    waiting_approval: ["#b7791f", "#f2c46d"],
   };
   for (const [state, [light, dark]] of Object.entries(colours)) {
     const selector = `.conversation-status[data-conversation-status="${state}"]`;
@@ -155,8 +156,9 @@ test("the rename pencil keeps its slot but only shows on hover or focus", () => 
   );
 });
 
-test("read-only sessions still omit the pencil", () => {
-  assert.match(app, /\{!chat\.readOnly \? \(\s*<IconButton\s+label=\{chatT\("重命名会话", "Đổi tên cuộc trò chuyện"\)\}/);
+test("read-only and shared sessions omit the rename control", () => {
+  assert.match(app, /const canRenameSession = !chat\.readOnly && !chat\.session\?\.shared/);
+  assert.match(app, /\{canRenameSession \? \(/);
 });
 
 test("the project switcher stays visible on laptop widths and hides only at phone width", () => {

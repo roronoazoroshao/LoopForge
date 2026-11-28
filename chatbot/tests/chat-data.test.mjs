@@ -25,7 +25,7 @@ test("real image attachment appears as an authenticated artifact independently o
   assert(!visibleText(message).includes("/private"));
   assert(!visibleText(message).includes("![hero])"));
 });
-test("image, chart, code and SOP drafts share one artifact list and remain stable after reload", () => {
+test("image, chart, code and LOOP drafts share one artifact list and remain stable after reload", () => {
   const session = {
     id: "chat-2",
     messages: [
@@ -33,7 +33,7 @@ test("image, chart, code and SOP drafts share one artifact list and remain stabl
         role: "assistant",
         content: JSON.stringify({
           message: "```mermaid\ngraph LR\nA-->B\n```\n```svg\n<svg/>\n```",
-          drafts: [{ tool: "workflows_save", body: { name: "评审 SOP" } }],
+          drafts: [{ tool: "workflows_save", body: { name: "评审 LOOP" } }],
         }),
       },
     ],
@@ -89,4 +89,25 @@ test("reply duration uses recorded timestamps without inventing missing history 
     elapsedSeconds("2026-10-27T08:00:09Z", "2026-10-27T08:00:00Z"),
     null,
   );
+});
+test("a recent tail names its artifacts by stored message index, like the full transcript", () => {
+  const messages = Array.from({ length: 46 }, (_, index) => ({
+    role: index % 2 ? "assistant" : "user",
+    content: index === 39 || index === 45
+      ? JSON.stringify({
+        message: "```svg\n<svg/>\n```",
+        drafts: [{ tool: "issues_save", body: { title: `DRAFT-${index}` } }],
+      })
+      : `MSG-${index}`,
+  }));
+  const full = collectArtifacts({ id: "long", messages });
+  const tail = collectArtifacts({ id: "long", messagesPartial: true, messagesOffset: 6, messages: messages.slice(6) });
+  const named = (items) => items.map(({ id, name, messageIndex, draftIndex }) => ({ id, name, messageIndex, draftIndex }));
+  assert.deepEqual(named(tail), named(full));
+  assert.deepEqual(
+    full.filter((item) => item.draft).map((item) => [item.id, item.name]),
+    [["draft-39-0", "DRAFT-39"], ["draft-45-0", "DRAFT-45"]],
+  );
+  // A complete transcript ignores a stale offset.
+  assert.deepEqual(named(collectArtifacts({ id: "long", messagesOffset: 6, messages })), named(full));
 });

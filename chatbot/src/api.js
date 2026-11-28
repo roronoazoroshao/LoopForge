@@ -47,6 +47,14 @@ export const attachmentURL = (attachment, sessionId) =>
   /^data:[^,]*;base64,/.test(attachment.localDataUrl || "")
     ? attachment.localDataUrl
     : `/api/assistant/attachments/${encodeURIComponent(attachment.id)}?sessionId=${encodeURIComponent(sessionId)}`;
+export function attachmentThumbnailURL(url, mimeType) {
+  if (!url?.startsWith("/api/assistant/attachments/") ||
+      !["image/png", "image/jpeg", "image/webp"].includes(mimeType)) return url;
+  const preview = new URL(url, window.location.origin);
+  preview.searchParams.set("view", "thumbnail");
+  return preview.pathname + preview.search;
+}
+
 export function newId() {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   return (
@@ -82,11 +90,20 @@ export function visibleText(message) {
   }
   return text;
 }
+// Stored index of session.messages[0]. A view=recent tail starts later in the
+// transcript; anything named after a message position (draft-<index>-<n>,
+// block-<index>-<n>) must use the stored index so it keeps naming the same
+// message once the full transcript replaces the tail.
+export function messageOffset(session) {
+  return session?.messagesPartial ? Math.max(0, Number(session.messagesOffset) || 0) : 0;
+}
 export function collectArtifacts(session) {
   if (!session) return [];
   const artifacts = [];
   const seen = new Set();
-  (session.messages || []).forEach((message, messageIndex) => {
+  const offset = messageOffset(session);
+  (session.messages || []).forEach((message, position) => {
+    const messageIndex = offset + position;
     for (const attachment of message.attachments || []) {
       if (seen.has(attachment.id)) continue;
       seen.add(attachment.id);
@@ -96,6 +113,8 @@ export function collectArtifacts(session) {
         source: message.role === "assistant" ? "AI 生成" : "上传的文件",
         url: attachmentURL(attachment, session.id),
         messageIndex,
+        knowledgeReads:
+          message.role === "assistant" ? message.knowledgeReads || null : null,
       });
     }
     if (message.role !== "assistant") return;
@@ -398,15 +417,22 @@ export function restoreStream(snapshot) {
 // model-resume instruction as something the user typed. Validate the preceding
 // saved receipt; ordinary user text must never be hidden by a prefix match.
 // Mirrors assistantProposalDeclinedText and assistantProposalExpiredText.
-const PROPOSAL_DECLINED = "不走 SOP，这件事由你直接完成。";
-const PROPOSAL_EXPIRED = "SOP 建议超时未确认，这件事由你直接完成。";
+// Conversations saved before the LOOP rename still hold the SOP wording.
+const PROPOSAL_DECLINED = [
+  "不走 LOOP，这件事由你直接完成。",
+  "不走 SOP，这件事由你直接完成。",
+];
+const PROPOSAL_EXPIRED = [
+  "LOOP 建议超时未确认，这件事由你直接完成。",
+  "SOP 建议超时未确认，这件事由你直接完成。",
+];
 // The card already says it timed out, so the turn that hands the work back
 // is not shown.
 export function isProposalTimeout(message, previous) {
   return (
     message?.role === "user" &&
     message.trigger === "proposal_timeout" &&
-    message.content === PROPOSAL_EXPIRED &&
+    PROPOSAL_EXPIRED.includes(message.content) &&
     previous?.role === "assistant" &&
     (parseReply(previous).drafts || []).some(
       (d) => d.proposal && d.decision === "expired",
@@ -416,11 +442,11 @@ export function isProposalTimeout(message, previous) {
 
 export function confirmationCaption(message, previous) {
   if (message?.role !== "user" || previous?.role !== "assistant") return "";
-  if (message.content === PROPOSAL_DECLINED)
+  if (PROPOSAL_DECLINED.includes(message.content))
     return (parseReply(previous).drafts || []).some(
       (d) => d.proposal && ["declined", "muted"].includes(d.decision),
     )
-      ? chatT("不走 SOP，让 AI 助手自己做", "Không dùng SOP, để trợ lý AI tự thực hiện")
+      ? chatT("不走 LOOP，让 AI 助手自己做", "Không dùng LOOP, để trợ lý AI tự thực hiện")
       : "";
   const match =
     /^已确认并执行 ([a-z_]+)。请核对这条草稿的保存回执，继续完成原始请求；不要重复刚才的写入，下一项需要确认时提交草稿，全部完成时总结实际结果。$/.exec(

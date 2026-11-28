@@ -1,5 +1,5 @@
 import { chatT, chatLocale } from "./locale.js";
-// SOP designer surface of the chatbot. The SOP canvas (web/orchestrate.js)
+// LOOP designer surface of the chatbot. The LOOP canvas (web/orchestrate.js)
 // embeds /chatbot/?surface=sop-designer in its side panel. The canvas owns the
 // graph and its build animation; this surface owns the conversation and talks
 // to the canvas only through the window messages below.
@@ -50,7 +50,7 @@ export function designerParams(search) {
 
 export const isDesignerSurface = (search) => designerParams(search).surface === SURFACE;
 
-// The newest conversation of this SOP continues; the list is sorted by the
+// The newest conversation of this LOOP continues; the list is sorted by the
 // server, newest first, but sort again so a cached list cannot reorder it.
 export function latestSession(rows, projectId, workflowId) {
   return (rows || [])
@@ -58,7 +58,7 @@ export function latestSession(rows, projectId, workflowId) {
     .sort((a, b) => Date.parse(b.updatedAt || 0) - Date.parse(a.updatedAt || 0))[0] || null;
 }
 
-// The SOP or role draft, with its body as an object.
+// The LOOP or role draft, with its body as an object.
 export function replyDraft(message) {
   const reply = parseReply(message || { content: "" });
   const draft = (reply.drafts || []).find((item) => ["workflows_save", "agents_save"].includes(item?.tool) && item.body);
@@ -79,7 +79,7 @@ export function draftSummary(draft) {
   if (draft.tool === "agents_save") return chatT("角色草稿 · ", "Bản nháp vai trò · ") + draft.body.name;
   const nodes = Array.isArray(draft?.body?.nodes) ? draft.body.nodes.length : 0;
   const edges = Array.isArray(draft?.body?.edges) ? draft.body.edges.length : 0;
-  return chatT(`${draft?.body?.name || "SOP 草稿"} · ${nodes} 个节点 · ${edges} 条连线`, `${draft?.body?.name || "Bản nháp SOP"} · ${nodes} nút · ${edges} đường nối`);
+  return chatT(`${draft?.body?.name || "LOOP 草稿"} · ${nodes} 个节点 · ${edges} 条连线`, `${draft?.body?.name || "Bản nháp LOOP"} · ${nodes} nút · ${edges} đường nối`);
 }
 
 export function requestId() {

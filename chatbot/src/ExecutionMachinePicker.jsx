@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import HarnessIcon from "./HarnessIcon";
 import { SelectMenu } from "./ui";
 import { executionLocked } from "./execution-target";
+import { sandboxDriverPresentation } from "./SandboxPicker";
 import "./execution-machine-picker.css";
 
 export default function ExecutionMachinePicker({ chat, onManage }) {
@@ -47,13 +48,27 @@ export default function ExecutionMachinePicker({ chat, onManage }) {
   const title = locked
     ? loadError || chatT(`当前会话执行机器：${label}。会话已绑定，后续运行始终使用此机器。`, `Máy thực thi cuộc trò chuyện hiện tại: ${label}. Cuộc trò chuyện đã liên kết; các lượt sau luôn dùng máy này.`)
     : chat.machineError || chatT("选择执行机器，发送首条消息后固定", "Chọn máy thực thi; cố định sau khi gửi tin nhắn đầu tiên");
+  const sandbox = chat.workspaceSandbox;
+  const sandboxType = sandboxDriverPresentation(sandbox?.driver);
+  const sandboxLabel = sandbox?.id ? `${sandboxType.label}-${sandbox.id}` : "";
 
   if (locked)
     return (
-      <span className="machine-context machine-fixed" title={title}>
-        <HarnessIcon name="server" size={13} interactive={false} />
-        <span>{label}</span>
-        <HarnessIcon name="lock" size={11} interactive={false} />
+      <span className={`machine-context machine-fixed${sandboxLabel ? " has-sandbox" : ""}`}>
+        <span className="machine-name" title={title}>
+          <HarnessIcon name="server" size={13} interactive={false} />
+          <span>{label}</span>
+          <HarnessIcon name="lock" size={11} interactive={false} />
+        </span>
+        {sandboxLabel ? (
+          <span
+            className="machine-sandbox"
+            title={sandboxLabel}
+          >
+            <HarnessIcon name={sandboxType.icon} size={13} interactive={false} />
+            <span>{sandbox.id}</span>
+          </span>
+        ) : null}
       </span>
     );
 
@@ -68,11 +83,14 @@ export default function ExecutionMachinePicker({ chat, onManage }) {
               ? chatT("暂无在线机器", "Chưa có máy trực tuyến")
               : chatT("平台自动分配", "Nền tảng tự phân bổ"),
         },
-        ...(chat.machines || []).map((row) => ({
+        ...(chat.availableMachines || []).map((row) => ({
           id: row.id,
           label: row.name || row.id,
           icon: "monitor",
-          description: row.status === "online" ? chatT("在线", "Trực tuyến") : chatT("离线，执行前需启动", "Ngoại tuyến, cần khởi động trước khi thực thi"),
+          description: [
+            row.ownerUserId && row.ownerUserId !== chat.user?.id ? "项目共享" : "",
+            row.status === "online" ? chatT("在线", "Trực tuyến") : chatT("离线，执行前需启动", "Ngoại tuyến, cần khởi động trước khi thực thi"),
+          ].filter(Boolean).join(" · "),
         })),
       ]
     : [];

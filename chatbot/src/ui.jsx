@@ -228,6 +228,7 @@ function SelectPopover({
   onExited,
   anchorRef,
   searchable = false,
+  multiple = false,
   actions = [],
   emptyText = chatT("没有匹配的选项", "Không có tùy chọn phù hợp"),
 }) {
@@ -253,10 +254,11 @@ function SelectPopover({
     ...visible.map((option) => ({ key: `o:${option.id}`, option })),
     ...actions.map((action) => ({ key: `a:${action.id}`, action })),
   ];
+  const isSelected = (option) => multiple ? value?.includes(option.id) : option.id === value;
   const [active, setActive] = React.useState(() =>
     Math.max(
       0,
-      visible.findIndex((o) => o.id === value),
+      visible.findIndex(isSelected),
     ),
   );
   const current = Math.min(active, items.length - 1);
@@ -276,7 +278,7 @@ function SelectPopover({
       return;
     }
     onSelect(item.option.id);
-    onClose();
+    if (!multiple) onClose();
   };
   const moveTo = (index) => {
     if (!items.length) return;
@@ -511,7 +513,7 @@ function SelectPopover({
   const rowId = (index) => `${id}-row-${index}`;
   const renderRow = (item, index) => {
     const { option, action } = item;
-    const selected = !!option && option.id === value;
+    const selected = !!option && !!isSelected(option);
     const icon = option ? option.icon : action.icon;
     return (
       <button
@@ -595,6 +597,7 @@ function SelectPopover({
         className="select-body"
         ref={body}
         role="listbox"
+        aria-multiselectable={multiple || undefined}
         id={listId}
         aria-label={label}
       >

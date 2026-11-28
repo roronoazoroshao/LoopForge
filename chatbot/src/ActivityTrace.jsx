@@ -46,7 +46,39 @@ const icons = {
   verify: CircleCheck,
   plan: ListTodo,
 };
-function Step({ step, live, interrupted }) {
+// A tool name reaches the trace from the CLI and the approval from the server;
+// prefixes and case can differ, so both sides are reduced to the bare name.
+export function approvalToolKey(name) {
+  return String(name || "")
+    .toLowerCase()
+    .trim()
+    .replace(/^mcp__/, "")
+    .replace(/^agentflow_session__/, "")
+    .replace(/^agentflow__/, "")
+    .replace(/^.*__/, "");
+}
+// Attach each pending external write to the newest unfinished row that ran the
+// same tool. Anything the CLI named differently still gets a row of its own,
+// so a waiting write is never only visible in the card.
+export function matchApprovalSteps(steps = [], approvals = []) {
+  const badges = new Map();
+  const unmatched = [];
+  const candidates = steps.filter((step) => !step.finishedAt && step.tool);
+  for (const item of approvals) {
+    const key = approvalToolKey(item.tool);
+    let hit = null;
+    for (const step of candidates) {
+      if (approvalToolKey(step.tool) === key) hit = step;
+    }
+    if (!hit) {
+      unmatched.push(item);
+      continue;
+    }
+    badges.set(hit.id, [...(badges.get(hit.id) || []), item]);
+  }
+  return { badges, unmatched };
+}
+function Step({ step, live, interrupted, waitingItems = [] }) {
   const [expanded, setExpanded] = useState(false);
   const face = activityFace(step);
   const target = activityTarget(step);
@@ -54,16 +86,21 @@ function Step({ step, live, interrupted }) {
   const pending = live && !step.finishedAt;
   const duration = elapsedSeconds(step.startedAt, step.finishedAt);
   const stopped = interrupted && !step.finishedAt;
+  const waiting = pending && !stopped && !step.failed && waitingItems.length > 0;
+  const badge =
+    waitingItems.length > 1 ? chatT(`待审批 ${waitingItems.length} 项`, `Chờ phê duyệt ${waitingItems.length} mục`, `Awaiting ${waitingItems.length} approvals`) : chatT("待审批", "Chờ phê duyệt", "Awaiting approval");
   // Like Codex, a command that took a while says so in its row.
   const label = step.failed
     ? chatT("执行失败", "Thực thi thất bại")
     : stopped
       ? chatT("已中断", "Đã gián đoạn")
-      : pending
-        ? face.busy
-        : face.kind === "command" && duration >= 1
-          ? chatT(`已在${formatElapsed(duration)}内运行`, `Đã chạy trong ${formatElapsed(duration)}`)
-          : face.done;
+      : waiting
+        ? chatT("待审批", "Chờ phê duyệt", "Awaiting approval")
+        : pending
+          ? face.busy
+          : face.kind === "command" && duration >= 1
+            ? chatT(`已在${formatElapsed(duration)}内运行`, `Đã chạy trong ${formatElapsed(duration)}`)
+            : face.done;
   return (
     <div
       className={`execution-step ${pending ? "is-running" : ""} ${step.failed ? "is-failed" : ""}`}
@@ -73,16 +110,18 @@ function Step({ step, live, interrupted }) {
           ? "failed"
           : stopped
             ? "interrupted"
-            : pending
-              ? "running"
-              : "done"
+            : waiting
+              ? "waiting_approval"
+              : pending
+                ? "running"
+                : "done"
       }
     >
       <Icon
         size={15}
         strokeWidth={1.7}
         aria-hidden="true"
-        motion={pending && !stopped && !step.failed ? "busy" : "idle"}
+        motion={pending && !stopped && !step.failed && !waiting ? "busy" : "idle"}
       />
       <div className="execution-step-content">
         <details
@@ -98,6 +137,15 @@ function Step({ step, live, interrupted }) {
                 aria-live={pending && step.tool === "workspace_docker_build" ? "polite" : undefined}
               >
                 {target}
+              </span>
+            ) : null}
+            {waiting ? (
+              <span
+                className="execution-step-badge"
+                data-approval="waiting"
+                title={waitingItems.map((item) => item.summary).filter(Boolean).join("、")}
+              >
+                {badge}
               </span>
             ) : null}
             {step.failed ? <AlertCircle size={13} aria-label={chatT("失败", "Thất bại")} /> : null}
@@ -155,11 +203,17 @@ export function SubagentProcess({ step, live = false, interrupted = false }) {
     </div>
   );
 }
-function StepList({ steps, live, interrupted }) {
+function StepList({ steps, live, interrupted, badges }) {
   return (
     <div className="execution-list">
       {steps.map((step) => (
-        <Step key={step.id} step={step} live={live} interrupted={interrupted} />
+        <Step
+          key={step.id}
+          step={step}
+          live={live}
+          interrupted={interrupted}
+          waitingItems={badges?.get(step.id)}
+        />
       ))}
     </div>
   );
@@ -167,7 +221,7 @@ function StepList({ steps, live, interrupted }) {
 // Like Codex, a round's steps sit in a box of fixed height that scrolls; the
 // edge with hidden steps fades. A running round follows its newest step until
 // the reader scrolls up, and follows again once they scroll back down.
-function ScrollList({ steps, live, interrupted, follow = false }) {
+function ScrollList({ steps, live, interrupted, follow = false, badges }) {
   const ref = useRef(null);
   const atEnd = useRef(true);
   const [fade, setFade] = useState({ top: false, bottom: false });
@@ -201,7 +255,7 @@ function ScrollList({ steps, live, interrupted, follow = false }) {
       data-follow={follow ? "true" : undefined}
       onScroll={measure}
     >
-      <StepList steps={steps} live={live} interrupted={interrupted} />
+      <StepList steps={steps} live={live} interrupted={interrupted} badges={badges} />
     </div>
   );
 }
@@ -209,8 +263,10 @@ function ScrollList({ steps, live, interrupted, follow = false }) {
 // step as it runs; once the model moves on it folds into one summary line.
 // Opening a finished reply's process shows every round in full. Failed steps
 // stay visible under the fold.
-function ActivityGroup({ block, live, interrupted, expandAll }) {
+function ActivityGroup({ block, live, interrupted, expandAll, badges }) {
   const active = live && !!block.active;
+  // A round that is waiting for a person is not working: its header stops too.
+  const waiting = block.steps?.some((step) => badges?.get(step.id)?.length);
   const [open, setOpen] = useState(active || expandAll);
   useEffect(() => {
     setOpen(active || expandAll);
@@ -219,13 +275,13 @@ function ActivityGroup({ block, live, interrupted, expandAll }) {
   // A lone tool call is shown as itself; a lone thought still folds so raw
   // reasoning never takes a line of its own.
   if (steps.length === 1 && steps[0].kind !== "thinking")
-    return <StepList steps={steps} live={live} interrupted={interrupted} />;
+    return <StepList steps={steps} live={live} interrupted={interrupted} badges={badges} />;
   // The running round has no title, like Codex: its steps are listed under
   // the note and scroll to the newest one.
   if (active && steps.some((step) => step.kind !== "thinking"))
     return (
       <div className="execution-group is-running" data-status="running">
-        <ScrollList steps={steps} live={live} interrupted={interrupted} follow />
+        <ScrollList steps={steps} live={live} interrupted={interrupted} follow badges={badges} />
       </div>
     );
   const Icon = icons[activityGroupKind(steps)] || Wrench;
@@ -247,7 +303,7 @@ function ActivityGroup({ block, live, interrupted, expandAll }) {
             size={15}
             strokeWidth={1.7}
             aria-hidden="true"
-            motion={active ? "busy" : "idle"}
+            motion={active && !waiting ? "busy" : "idle"}
           />
           <span className="execution-group-label">
             {activityGroupSummary(steps, { active })}
@@ -261,23 +317,30 @@ function ActivityGroup({ block, live, interrupted, expandAll }) {
         </summary>
         {open ? (
           <div className="execution-group-body">
-            <ScrollList steps={steps} live={live} interrupted={interrupted} />
+            <ScrollList steps={steps} live={live} interrupted={interrupted} badges={badges} />
           </div>
         ) : null}
       </details>
       {!open && failed.length ? (
         <div className="execution-group-body is-failures">
-          <StepList steps={failed} live={live} interrupted={interrupted} />
+          <StepList steps={failed} live={live} interrupted={interrupted} badges={badges} />
         </div>
       ) : null}
     </div>
   );
 }
-function Narration({ blocks, live, interrupted, expandAll = false }) {
+function Narration({
+  blocks,
+  live,
+  interrupted,
+  expandAll = false,
+  badges,
+  citationProps = null,
+}) {
   return blocks.map((block) =>
     block.type === "text" ? (
       <div key={block.id} className="reply-trace-text">
-        <RichContent message={block.text} />
+        <RichContent message={block.text} {...citationProps} />
       </div>
     ) : (
       <ActivityGroup
@@ -286,16 +349,44 @@ function Narration({ blocks, live, interrupted, expandAll = false }) {
         live={live}
         interrupted={interrupted}
         expandAll={expandAll}
+        badges={badges}
       />
     ),
   );
 }
+// The history response already contains the visible answer. Fetch the trace
+// when the reader opens it, or follows a dispatch into a subagent's process.
+export function DeferredActivity({ sessionId, index, activityRef, loadActivity }) {
+  const [error, setError] = useState("");
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let current = true;
+    setError("");
+    loadActivity(sessionId, index, activityRef).catch((e) => {
+      if (current) setError(e.message || "执行过程加载失败");
+    });
+    return () => { current = false; };
+  }, [sessionId, index, activityRef, loadActivity, attempt]);
+  return error ? (
+    <p role="alert" className="execution-empty">
+      {error} <button type="button" onClick={() => setAttempt(n => n + 1)}>重试</button>
+    </p>
+  ) : <p role="status" className="execution-empty">正在读取执行过程…</p>;
+}
+
 export function ReplyTimeline({
+  deferredActivity = null,
   steps = [],
   startedAt,
   finishedAt,
   live = false,
   interrupted = false,
+  knowledgeReads = null,
+  knowledgeSummary = null,
+  citationsEnabled = false,
+  streaming = false,
+  onCitationClick = null,
+  approvals = [],
 }) {
   return (
     <div className="reply-heading">
@@ -305,7 +396,16 @@ export function ReplyTimeline({
         finishedAt={finishedAt}
         live={live}
         interrupted={interrupted}
+        approvals={approvals}
+        deferredActivity={deferredActivity}
         narration={traceBlocks(steps, { live })}
+        citationProps={{
+          knowledgeReads,
+          knowledgeSummary,
+          citationsEnabled,
+          streaming,
+          onCitationClick,
+        }}
       />
     </div>
   );
@@ -316,16 +416,19 @@ export function ReplyTimeline({
 // the whole process into its elapsed-time line; opening it shows every note,
 // thought and step between the line and the answer.
 export default function ActivityTrace({
+  deferredActivity = null,
   steps = [],
   startedAt,
   finishedAt,
   live = false,
   interrupted = false,
+  approvals = [],
   narration = null,
+  citationProps = null,
 }) {
   const [expanded, setExpanded] = useState(false);
   const [now, setNow] = useState(Date.now);
-  // Fold the trace once its turn finishes (an SOP node keeps this instance).
+  // Fold the trace once its turn finishes (a LOOP node keeps this instance).
   useEffect(() => {
     if (!live) setExpanded(false);
   }, [live]);
@@ -346,15 +449,57 @@ export default function ActivityTrace({
   );
   if (live) {
     const status = steps.filter((step) => step.kind === "status").at(-1)?.text;
+    // A pending external write pauses the turn: the header says who is being
+    // waited on instead of claiming the model is still working.
+    const waiting = approvals.length;
+    const { badges, unmatched } = matchApprovalSteps(steps, approvals);
+    const waitingTitle = waiting
+      ? chatT(`待审批${waiting > 1 ? ` · ${waiting} 项` : ""}${elapsed ? ` · 已用${elapsed}` : ""}`, `Chờ phê duyệt${waiting > 1 ? ` · ${waiting} mục` : ""}${elapsed ? ` · Đã dùng${elapsed}` : ""}`, `Awaiting approval${waiting > 1 ? ` · ${waiting} items` : ""}${elapsed ? ` · Elapsed${elapsed}` : ""}`)
+      : `${chatT("正在处理", "Đang xử lý", "Processing")}${elapsed}`;
+    const waitingLine = waiting
+      ? `待审批：${approvals[0].summary || "外部写入"}${waiting > 1 ? ` 等 ${waiting} 项` : ""}`
+      : "";
     return (
       <div className="reply-timing execution-trace is-live">
         <div className="execution-summary-row">
-          <span className="live-elapsed">{chatT("正在处理", "Đang xử lý")}{elapsed}</span>
+          <span className="live-elapsed">{waitingTitle}</span>
         </div>
         {divider}
         <div className="execution-body" aria-label={chatT("执行过程", "Quá trình thực thi")}>
           {blocks.length ? (
-            <Narration blocks={blocks} live interrupted={interrupted} />
+            <>
+              <Narration
+                blocks={blocks}
+                live
+                interrupted={interrupted}
+                badges={badges}
+                citationProps={citationProps}
+              />
+              {/* A CLI that names the tool differently still shows what waits. */}
+              {unmatched.map((item) => (
+                <div className="execution-waiting" data-approval="waiting" key={item.id}>
+                  <HarnessIcon
+                    name="pending-approval"
+                    size={15}
+                    strokeWidth={1.7}
+                    motion="idle"
+                    aria-hidden="true"
+                  />
+                  <span>待审批：{item.summary || "外部写入"}</span>
+                </div>
+              ))}
+            </>
+          ) : waiting ? (
+            <span className="execution-current" data-kind="status" data-approval="waiting">
+              <HarnessIcon
+                name="pending-approval"
+                size={15}
+                strokeWidth={1.7}
+                motion="idle"
+                aria-hidden="true"
+              />
+              <span className="execution-current-text">{waitingLine}</span>
+            </span>
           ) : (
             <span className="execution-current" data-kind="status">
               <LoaderCircle size={15} strokeWidth={1.7} aria-hidden="true" />
@@ -384,12 +529,13 @@ export default function ActivityTrace({
       </summary>
       {expanded ? (
         <div className="execution-body" aria-label={chatT("执行过程", "Quá trình thực thi")}>
-          {blocks.length ? (
+          {deferredActivity ? <DeferredActivity {...deferredActivity} /> : blocks.length ? (
             <Narration
               blocks={blocks}
               live={false}
               interrupted={interrupted}
               expandAll
+              citationProps={citationProps}
             />
           ) : (
             <p className="execution-empty">{chatT("这条历史回复未保存执行过程。", "Phản hồi lịch sử này không lưu quá trình thực thi.")}</p>

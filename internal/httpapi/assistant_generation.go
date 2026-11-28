@@ -77,20 +77,12 @@ func (h *assistantHandlers) startGeneration(c *gin.Context) {
 		return
 	}
 	old, _ := h.repo.AssistantSession(ownerID, req.SessionID)
-	if old.ID != "" && old.ExecutionLocked() {
-		if req.ExecutionTarget != nil && *req.ExecutionTarget != old.Execution() {
-			c.JSON(409, gin.H{"error": "会话执行机器已固定，不能更换"})
-			return
-		}
-		target := old.Execution()
-		req.ExecutionTarget = &target
-	} else {
-		var targetErr error
-		req.ExecutionTarget, targetErr = h.newExecutionTarget(stored.ID, req.ProjectID, draftExecutionTarget(old, req.ExecutionTarget))
-		if targetErr != nil {
-			c.JSON(400, gin.H{"error": targetErr.Error()})
-			return
-		}
+	if !restoreAssistantActivities(req.Messages, old.Messages) {
+		c.JSON(409, gin.H{"error": "会话执行记录已更新，请重新打开后发送"})
+		return
+	}
+	if !h.bindTurnExecutionTarget(c, &req, stored.ID, old) {
+		return
 	}
 	req.Model = h.assistantChatRequestModel(req, old, stored)
 	cliEngine, _ := assistantModelEngine(req.Model)
@@ -236,7 +228,7 @@ func (h *assistantHandlers) startGeneration(c *gin.Context) {
 		})
 	}
 	_, sharedModels, _ := h.assistantChatUser(stored)
-	h.scheduleAssistantTitle(h.helperExecutionContext(parent, ownerID, req.ExecutionTarget), ownerID, user, old, req.SessionID, req.Messages, req.Model, sharedModels)
+	h.scheduleAssistantTitle(h.helperExecutionContext(parent, ownerID, req.ProjectID, req.ExecutionTarget), ownerID, user, old, req.SessionID, req.Messages, req.Model, sharedModels)
 	done := inflightTasks.Add()
 	go func() {
 		defer done()
@@ -260,6 +252,17 @@ func (h *assistantHandlers) generation(c *gin.Context) {
 	if err != nil {
 		c.JSON(403, gin.H{"error": err.Error()})
 		return
+	}
+	saved := c.Query("savedReply")
+	if c.Request.Method == "GET" && c.Query("stream") != "1" && saved != "" {
+		if status, updatedAt, found := h.repo.CompletedAssistantGeneration(ownerID, c.Param("id"), saved); found {
+			c.Header("Cache-Control", "no-store")
+			c.JSON(200, struct {
+				domain.AssistantGeneration
+				SessionUpdatedAt time.Time `json:"sessionUpdatedAt"`
+			}{status, updatedAt})
+			return
+		}
 	}
 	g, ok := h.currentGeneration(ownerID, c.Param("id"))
 	if !ok {
@@ -545,6 +548,13 @@ func (h *assistantHandlers) steerGeneration(c *gin.Context) {
 		c.JSON(404, gin.H{"error": "会话不存在"})
 		return
 	}
+	target := session.Execution()
+	// The follow-up to a scheduled turn inherits the schedule's access policy.
+	requireShare := session.Source == domain.AssistantSourceScheduled
+	if !h.canUseBoundExecutionTarget(target, session.ProjectID, stored.ID, requireShare) {
+		c.JSON(403, gin.H{"error": errAssistantRunnerAccessRevoked.Error()})
+		return
+	}
 	// The saved conversation selects the CLI for steering. Bare model IDs
 	// use that CLI, and an explicit CLI prefix must match it.
 	executor := h.forkExecutor(c, session, stored.ID)
@@ -564,7 +574,6 @@ func (h *assistantHandlers) steerGeneration(c *gin.Context) {
 		c.JSON(409, gin.H{"error": refusal})
 		return
 	}
-	target := session.Execution()
 	loginRunner := h.assistantLoginRunner(stored.ID, &target, cliEngine)
 	runnerLogin := loginRunner.ID != ""
 	user, model, refusal := h.assistantTurnUser(stored, model, runnerLogin)
@@ -669,6 +678,7 @@ func (h *assistantHandlers) commitTurnTranscript(g domain.AssistantGeneration, s
 	if session.Shared {
 		return h.repo.CommitAssistantTranscript(g.UserID, g.ID, session)
 	}
+	session.TitleEdited = false
 	return saveAssistantConversation(h.repo, g.UserID, session)
 }
 
