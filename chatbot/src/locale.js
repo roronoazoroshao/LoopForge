@@ -10,6 +10,35 @@ export const chatT = (zh, vi, en = zh) => {
   return lang === "vi" ? vi : lang === "en" ? en : zh;
 };
 
+// Translate only recognized auto-approval UI metadata, never message bodies or logs.
+const approvalReviewStates = new Map([
+  ["已批准", ["Đã phê duyệt", "Approved"]],
+  ["已拒绝", ["Đã từ chối", "Denied"]],
+  ["审查不可用", ["Không thể rà soát", "Review unavailable"]],
+  ["正在审查操作", ["Đang rà soát thao tác", "Reviewing operation"]],
+]);
+const approvalReviewModels = new Map([
+  ["规则快路径", ["Quy tắc xử lý nhanh", "Rule fast path"]],
+  ["熔断保护", ["Bảo vệ ngắt mạch", "Circuit-breaker protection"]],
+]);
+export function isApprovalReviewStatus(value) {
+  return typeof value === "string" && value.startsWith("帮我批准：") && approvalReviewStates.has(value.slice("帮我批准：".length));
+}
+export function approvalReviewStatusText(value) {
+  if (!isApprovalReviewStatus(value)) return value;
+  const labels = approvalReviewStates.get(value.slice("帮我批准：".length));
+  return labels ? chatT(value, "Phê duyệt tự động: " + labels[0], "Auto-approval: " + labels[1]) : value;
+}
+export function approvalReviewDetailText(value) {
+  if (typeof value !== "string") return value;
+  if (value.startsWith("审查模型：")) return chatT("审查模型：", "Mô hình rà soát: ", "Review model: ") + value.slice("审查模型：".length);
+  const split = value.indexOf(" · ");
+  if (split < 0) return value;
+  const model = value.slice(0, split);
+  const labels = approvalReviewModels.get(model);
+  return labels ? chatT(model, labels[0], labels[1]) + value.slice(split) : value;
+}
+
 // Source labels are generated metadata, not filenames, content or protocol IDs.
 const artifactSourceLabels = new Map([
   ["AI 生成", ["AI tạo", "AI generated"]],

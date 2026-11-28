@@ -164,3 +164,29 @@ describe("Codex-style activity trace", () => {
     expect(screen.getByText("The user picked option A")).toBeInTheDocument();
   });
 });
+
+test("Vietnamese approval status and review metadata render in live and historical traces", async () => {
+  const prior = localStorage.getItem("loopforge.lang");
+  localStorage.setItem("loopforge.lang", "vi");
+  try {
+    const event = { kind: "status", text: "帮我批准：已批准", detail: "规则快路径 · original rationale", at: start };
+    const steps = mergeActivity([], [{ data: event, sequence: 1 }]);
+    const user = userEvent.setup();
+    const view = render(<ReplyTimeline steps={steps} startedAt={start} live />);
+    const label = "Phê duyệt tự động: Đã phê duyệt";
+    expect(screen.getByText(label)).toBeVisible();
+    expect(view.container.querySelector('.execution-step[data-kind="status"]')).toHaveAttribute("data-status", "done");
+    await user.click(screen.getByText(label));
+    expect(await screen.findByText("Quy tắc xử lý nhanh · original rationale")).toBeVisible();
+    view.unmount();
+    render(<ReplyTimeline steps={steps} startedAt={start} finishedAt={finish} />);
+    await user.click(screen.getByText(/Đã xử lý/));
+    await user.click(await screen.findByText(label));
+    expect(await screen.findByText("Quy tắc xử lý nhanh · original rationale")).toBeVisible();
+    expect(steps[0].detail).toBe(event.detail);
+    expect(steps[0].text).toBe(event.text);
+  } finally {
+    if (prior === null) localStorage.removeItem("loopforge.lang");
+    else localStorage.setItem("loopforge.lang", prior);
+  }
+});

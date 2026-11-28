@@ -1,4 +1,4 @@
-import { chatT } from "./locale";
+import { chatT, approvalReviewStatusText, approvalReviewDetailText } from "./locale";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import HarnessIcon from "./HarnessIcon";
 import {
@@ -122,7 +122,7 @@ function Step({ step, live, interrupted }) {
                     <div className="execution-tool-name">{step.tool}</div>
                   ) : null}
                   <pre className="execution-detail">
-                    {step.detail || step.text || chatT("未返回更多详情", "Không trả thêm chi tiết")}
+                    {step.kind === "status" ? (step.detail ? approvalReviewDetailText(step.detail) : approvalReviewStatusText(step.text)) : (step.detail || step.text || chatT("未返回更多详情", "Không trả thêm chi tiết"))}
                   </pre>
                   {step.output ? (
                     <pre className="execution-detail execution-output">
@@ -359,7 +359,7 @@ export default function ActivityTrace({
             <span className="execution-current" data-kind="status">
               <LoaderCircle size={15} strokeWidth={1.7} aria-hidden="true" />
               <span className="execution-current-text">
-                {status || chatT("正在处理…", "Đang xử lý…")}
+                {status ? approvalReviewStatusText(status) : chatT("正在处理…", "Đang xử lý…")}
               </span>
             </span>
           )}
