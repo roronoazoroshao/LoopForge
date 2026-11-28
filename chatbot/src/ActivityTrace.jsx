@@ -94,7 +94,7 @@ function Step({ step, live, interrupted }) {
             {target ? (
               <span
                 className={`execution-step-target ${["read", "edit"].includes(face.kind) ? "is-file" : ""}`}
-                title={step.kind === "status" ? approvalReviewDetailText(step.detail) : (step.detail || target)}
+                title={step.detail || target}
                 aria-live={pending && step.tool === "workspace_docker_build" ? "polite" : undefined}
               >
                 {target}
@@ -122,7 +122,7 @@ function Step({ step, live, interrupted }) {
                     <div className="execution-tool-name">{step.tool}</div>
                   ) : null}
                   <pre className="execution-detail">
-                    {step.kind === "status" ? approvalReviewDetailText(step.detail || step.text) : (step.detail || step.text || chatT("未返回更多详情", "Không trả thêm chi tiết"))}
+                    {step.kind === "status" ? (step.detail ? approvalReviewDetailText(step.detail) : approvalReviewStatusText(step.text)) : (step.detail || step.text || chatT("未返回更多详情", "Không trả thêm chi tiết"))}
                   </pre>
                   {step.output ? (
                     <pre className="execution-detail execution-output">
