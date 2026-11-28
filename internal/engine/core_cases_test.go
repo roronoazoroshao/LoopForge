@@ -28,7 +28,7 @@ func cvEEngine(t *testing.T) (*Engine, *repo.Store) {
 
 func TestWorkflowGraphValidationAndTraversal(t *testing.T) {
 	valid := domain.WorkflowDefinition{
-		ID: "cve-wf", SandboxProfileID: "local",
+		ID: "cve-wf", SandboxProfileID: "test-native",
 		Nodes: []domain.WorkflowNode{
 			{ID: "a", Type: "agent"},
 			{ID: "b", Type: "script", ScriptLanguage: "python", Script: "print(1)", ArtifactOutputs: []domain.ArtifactContract{{Name: "report", Path: "out/report.md"}}},
@@ -72,29 +72,29 @@ func TestWorkflowGraphValidationAndTraversal(t *testing.T) {
 
 	cases := []domain.WorkflowDefinition{
 		{ID: "x", Nodes: valid.Nodes},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "", Type: "agent"}}},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent"}, {ID: "a", Type: "agent"}}},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "a", Type: "sop"}}},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "a", Type: "sop", SOPWorkflowID: "x"}}},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "a", Type: "script", ScriptLanguage: "ruby", Script: "x"}}},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "a", Type: "script"}}},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "a", Type: "bad"}}},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent", OnFailure: "bad"}}},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent", ExecutionScope: "bad"}}},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent", RetryStrategy: "bad"}}},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent", ArtifactOutputs: []domain.ArtifactContract{{Name: "", Path: "../bad"}}}}},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent", ArtifactOutputs: []domain.ArtifactContract{{Name: "same", Path: "a"}, {Name: "same", Path: "b"}}}}},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent", RejectTo: "missing"}}},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent", OnFailure: "reject"}}},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent"}}, Edges: []domain.WorkflowEdge{{Source: "a", Target: "missing"}}},
-		{ID: "x", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent"}, {ID: "b", Type: "agent"}}, Edges: []domain.WorkflowEdge{{Source: "a", Target: "b"}, {Source: "b", Target: "a"}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "", Type: "agent"}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent"}, {ID: "a", Type: "agent"}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "a", Type: "sop"}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "a", Type: "sop", SOPWorkflowID: "x"}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "a", Type: "script", ScriptLanguage: "ruby", Script: "x"}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "a", Type: "script"}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "a", Type: "bad"}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent", OnFailure: "bad"}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent", ExecutionScope: "bad"}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent", RetryStrategy: "bad"}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent", ArtifactOutputs: []domain.ArtifactContract{{Name: "", Path: "../bad"}}}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent", ArtifactOutputs: []domain.ArtifactContract{{Name: "same", Path: "a"}, {Name: "same", Path: "b"}}}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent", RejectTo: "missing"}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent", OnFailure: "reject"}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent"}}, Edges: []domain.WorkflowEdge{{Source: "a", Target: "missing"}}},
+		{ID: "x", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "a", Type: "agent"}, {ID: "b", Type: "agent"}}, Edges: []domain.WorkflowEdge{{Source: "a", Target: "b"}, {Source: "b", Target: "a"}}},
 	}
 	for i, wf := range cases {
 		if err := validate(wf); err == nil {
 			t.Fatalf("case %d accepted: %+v", i, wf)
 		}
 	}
-	command := domain.WorkflowDefinition{ID: "cmd", SandboxProfileID: "local", Nodes: []domain.WorkflowNode{{ID: "run", Type: "command", Command: "echo ok"}}}
+	command := domain.WorkflowDefinition{ID: "cmd", SandboxProfileID: "test-native", Nodes: []domain.WorkflowNode{{ID: "run", Type: "command", Command: "echo ok"}}}
 	if err := validate(command); err != nil {
 		t.Fatal(err)
 	}
@@ -361,21 +361,21 @@ func TestWorkspaceTransportAndBrowserRunnerPaths(t *testing.T) {
 }
 
 func TestSandboxSnapshotsPathsAndMisc(t *testing.T) {
-	e, st := cvEEngine(t)
+	e, _ := cvEEngine(t)
 	profile := domain.SandboxProfile{ID: "bad", Driver: "docker"}
-	if _, err := resolveSandboxResources(st, profile); err == nil {
+	if _, err := resolveSandbox(profile); err == nil {
 		t.Fatal("docker without file accepted")
 	}
-	profile.DockerfileID = "missing"
-	if _, err := resolveSandboxResources(st, profile); err == nil {
-		t.Fatal("missing dockerfile accepted")
+	profile.Dockerfile = &domain.SandboxDockerfile{Content: " "}
+	if _, err := resolveSandbox(profile); err == nil {
+		t.Fatal("blank dockerfile accepted")
 	}
 	profile = domain.SandboxProfile{ID: "local", Driver: "local"}
-	resources, err := resolveSandboxResources(st, profile)
+	spec, err := resolveSandbox(profile)
 	if err != nil {
 		t.Fatal(err)
 	}
-	snapshot := resolvedSandboxSnapshot(profile, resources)
+	snapshot := resolvedSandboxSnapshot(spec.Profile, sandboxResourcesFromSnapshot(spec))
 	if snapshot.Profile.ID != "local" {
 		t.Fatalf("snapshot = %+v", snapshot)
 	}
@@ -409,7 +409,7 @@ func TestSandboxSnapshotsPathsAndMisc(t *testing.T) {
 func TestObservationIngressWorkspaceStatusAndStateTransitions(t *testing.T) {
 	e, st := cvEEngine(t)
 	wf := domain.WorkflowDefinition{
-		ID: "cve-state-wf", SandboxProfileID: "local",
+		ID: "cve-state-wf", SandboxProfileID: "test-native",
 		Nodes: []domain.WorkflowNode{{ID: "script", Name: "Script", Type: "script", Script: "echo ok"}, {ID: "gate", Name: "Gate", Type: "approval"}},
 		Edges: []domain.WorkflowEdge{{Source: "script", Target: "gate"}},
 	}
@@ -509,5 +509,23 @@ func TestObservationIngressWorkspaceStatusAndStateTransitions(t *testing.T) {
 	cancelled, _ := st.RunState(run.ID)
 	if cancelled.Nodes["script"].Status != "cancelled" {
 		t.Fatalf("cancelled node = %+v", cancelled.Nodes["script"])
+	}
+}
+
+func TestAgentLoopMessagesDescribeExecutorFailures(t *testing.T) {
+	if got := agentLoopSkipMessage(""); strings.Contains(got, "策略为 ，") || !strings.Contains(got, "不是门禁未通过") {
+		t.Fatalf("executor failure skip message = %q", got)
+	}
+	if got := agentLoopSkipMessage("human"); got != "门禁失败策略为 human，跳过自修正" {
+		t.Fatalf("gate policy skip message = %q", got)
+	}
+	if got := agentLoopHumanMessage(1, 3, ""); strings.Contains(got, "耗尽") || !strings.Contains(got, "第 1 轮执行失败") {
+		t.Fatalf("early hand-off message = %q", got)
+	}
+	if got := agentLoopHumanMessage(1, 3, "fail"); strings.Contains(got, "执行失败") || !strings.Contains(got, "第 1 轮门禁未通过（失败策略为 fail）") {
+		t.Fatalf("early gate hand-off message = %q", got)
+	}
+	if got := agentLoopHumanMessage(3, 3, "loop"); got != "Agent 自修正次数已耗尽，转人工判断：" {
+		t.Fatalf("exhausted message = %q", got)
 	}
 }

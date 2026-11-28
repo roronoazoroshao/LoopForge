@@ -13,14 +13,25 @@ import remarkGfm from "remark-gfm";
 import { createPortal } from "react-dom";
 import DOMPurify from "dompurify";
 import HarnessIcon from "./HarnessIcon";
+import KnowledgeSources from "./KnowledgeSources";
 import SlidingTabs from "./SlidingTabs";
-import { attachmentURL, visibleText } from "./api";
+import { attachmentURL, attachmentThumbnailURL, visibleText } from "./api";
 import { definitionTarget } from "./platform.js";
 import {
   AgentBrowserLinks,
   agentBrowserTarget,
   remarkWorkspaceLinks,
 } from "./agent-browser-links.js";
+import {
+  buildKnowledgeSummary,
+  collapseAdjacentDuplicateCitations,
+  extractCitedIdsInOrder,
+  filterKnowledgeReadsForAttempt,
+  formatTextForCopy,
+  knowledgeCitePrefix,
+  maskIncompleteStreamingCitation,
+  remarkKnowledgeCitations,
+} from "./knowledge-citations.js";
 import "./agent-browser.css";
 import {
   imageRetryDelay,
@@ -250,13 +261,24 @@ export function CodeBlock({ language, source }) {
     </div>
   );
 }
-const MarkdownAssets = createContext({ assets: [], projectId: "" });
+const MarkdownAssets = createContext({
+  assets: [],
+  projectId: "",
+  knowledgeReads: [],
+  knowledgeSummary: null,
+  citationsEnabled: false,
+  streamingCiteOrder: null,
+  onCitationClick: null,
+});
 // Set inside a link so inline code there does not become a nested control.
 const InsideLink = createContext(false);
 // file:///workspace/... survives URL sanitizing only to be opened in the Agent
 // browser; it is never rendered as an href.
 const markdownURL = (url) =>
-  /^file:\/\/\/workspace\//i.test(url) ? url : defaultUrlTransform(url);
+  /^file:\/\/\/workspace\//i.test(url) ||
+  String(url || "").startsWith(knowledgeCitePrefix)
+    ? url
+    : defaultUrlTransform(url);
 function AgentBrowserLink({ target, open, children }) {
   return (
     <InsideLink.Provider value>
@@ -319,7 +341,61 @@ const markdownComponents = {
     );
   },
   a: ({ href, children }) => {
+    const {
+      knowledgeReads,
+      knowledgeSummary,
+      citationsEnabled,
+      streamingCiteOrder,
+      onCitationClick,
+    } = useContext(MarkdownAssets);
     const openInBrowser = useContext(AgentBrowserLinks);
+    if (citationsEnabled && String(href || "").startsWith(knowledgeCitePrefix)) {
+      const citeId = href.slice(knowledgeCitePrefix.length);
+      const hasReads = Array.isArray(knowledgeReads) && knowledgeReads.length > 0;
+      if (hasReads) {
+        const entry = knowledgeSummary?.byCiteId?.get(citeId);
+        if (!entry) {
+          return (
+            <sup
+              className="knowledge-cite-sup is-unresolved"
+              title="未匹配到有效知识库证据"
+            >
+              ?
+            </sup>
+          );
+        }
+        const tooltip = [
+          entry.doc.sourceName || entry.doc.sourceId,
+          entry.doc.label,
+          entry.locator,
+        ]
+          .filter(Boolean)
+          .join(" · ");
+        return (
+          <sup className="knowledge-cite-wrap">
+            <button
+              type="button"
+              className="knowledge-cite-sup"
+              data-cite-index={entry.citeIndex}
+              title={tooltip || entry.doc.label}
+              aria-label={`引用 [${entry.citeIndex}] ${entry.doc.label}`}
+              onClick={() => onCitationClick?.(entry.citeIndex)}
+            >
+              {entry.citeIndex}
+            </button>
+          </sup>
+        );
+      }
+      const streamNum = streamingCiteOrder?.get(citeId) || "?";
+      return (
+        <sup
+          className="knowledge-cite-sup is-streaming"
+          title="知识库引用（生成完成后显示文档详情）"
+        >
+          {streamNum}
+        </sup>
+      );
+    }
     const target = openInBrowser ? agentBrowserTarget(href) : "";
     if (target)
       return (
@@ -351,26 +427,100 @@ const markdownComponents = {
   ),
 };
 const emptyAssets = [];
-export function RichContent({ message, assets = emptyAssets, projectId = "" }) {
-  const text = typeof message === "string" ? message : visibleText(message);
-  const context = useMemo(() => ({ assets, projectId }), [assets, projectId]);
-  const markdown = useMemo(() => (
-    <Markdown
-      remarkPlugins={[remarkGfm, remarkWorkspaceLinks]}
-      components={markdownComponents}
-      urlTransform={markdownURL}
-    >
-      {text}
-    </Markdown>
-  ), [text]);
+export function RichContent({
+  message,
+  assets = emptyAssets,
+  projectId = "",
+  knowledgeReads = [],
+  knowledgeSummary: precomputedSummary = null,
+  citationsEnabled = false,
+  streaming = false,
+  onCitationClick = null,
+}) {
+  const rawText = typeof message === "string" ? message : visibleText(message);
+  const hasReads = Array.isArray(knowledgeReads) && knowledgeReads.length > 0;
+  const enableCites = hasReads || citationsEnabled;
+  const text = useMemo(
+    () =>
+      streaming && enableCites
+        ? maskIncompleteStreamingCitation(rawText)
+        : rawText,
+    [rawText, streaming, enableCites],
+  );
+  const knowledgeSummary = useMemo(() => {
+    if (!hasReads) return null;
+    if (precomputedSummary) return precomputedSummary;
+    return buildKnowledgeSummary(knowledgeReads, [text], {
+      live: streaming,
+    });
+  }, [hasReads, precomputedSummary, knowledgeReads, text, streaming]);
+  const displayText = useMemo(
+    () =>
+      hasReads && knowledgeSummary
+        ? collapseAdjacentDuplicateCitations(text, knowledgeSummary)
+        : text,
+    [hasReads, knowledgeSummary, text],
+  );
+  const streamingCiteOrder = useMemo(() => {
+    if (!enableCites || hasReads) return null;
+    const ids = extractCitedIdsInOrder([text]);
+    const map = new Map();
+    ids.forEach((id, idx) => map.set(id, idx + 1));
+    return map;
+  }, [enableCites, hasReads, text]);
+  const plugins = useMemo(() => {
+    if (!enableCites) return [remarkGfm, remarkWorkspaceLinks];
+    const resolveDocKey = (citeId) => {
+      const entry = knowledgeSummary?.byCiteId?.get(citeId);
+      if (entry?.citeIndex) return `cite:${entry.citeIndex}`;
+      return `id:${citeId}`;
+    };
+    return [
+      remarkGfm,
+      remarkWorkspaceLinks,
+      [remarkKnowledgeCitations, { resolveDocKey }],
+    ];
+  }, [enableCites, knowledgeSummary]);
+  const contextValue = useMemo(
+    () => ({
+      assets,
+      projectId,
+      knowledgeReads,
+      knowledgeSummary,
+      citationsEnabled: enableCites,
+      streamingCiteOrder,
+      onCitationClick,
+    }),
+    [
+      assets,
+      projectId,
+      knowledgeReads,
+      knowledgeSummary,
+      enableCites,
+      streamingCiteOrder,
+      onCitationClick,
+    ],
+  );
+  const markdown = useMemo(
+    () => (
+      <Markdown
+        remarkPlugins={plugins}
+        components={markdownComponents}
+        urlTransform={markdownURL}
+      >
+        {displayText}
+      </Markdown>
+    ),
+    [plugins, displayText],
+  );
   return (
-    <MarkdownAssets.Provider value={context}>
+    <MarkdownAssets.Provider value={contextValue}>
       <div className="markdown">{markdown}</div>
     </MarkdownAssets.Provider>
   );
 }
 
-// Full-window viewer shared by chat images, artifact previews and SOP node
+// Full-window viewer shared by chat images, artifact previews and LOOP node
 // files. Double-click an image to open; Esc closes.
 export function ImageLightbox({ src, alt, onClose }) {
   useEffect(() => {
@@ -400,7 +550,7 @@ export function ImageLightbox({ src, alt, onClose }) {
   );
 }
 
-export function ZoomableImage({ src, alt, className }) {
+export function ZoomableImage({ src, fullSrc = src, alt, className }) {
   const [zoom, setZoom] = useState(false);
   return (
     <>
@@ -412,13 +562,13 @@ export function ZoomableImage({ src, alt, className }) {
         onDoubleClick={() => setZoom(true)}
       />
       {zoom ? (
-        <ImageLightbox src={src} alt={alt} onClose={() => setZoom(false)} />
+        <ImageLightbox src={fullSrc} alt={alt} onClose={() => setZoom(false)} />
       ) : null}
     </>
   );
 }
 
-export function Attachment({ attachment, sessionId, onOpen }) {
+export function Attachment({ attachment, sessionId, onOpen, localPreviewURL }) {
   const image = attachment.mimeType?.startsWith("image/");
   const [zoom, setZoom] = useState(false);
   const [status, setStatus] = useState("loading");
@@ -426,7 +576,9 @@ export function Attachment({ attachment, sessionId, onOpen }) {
   const img = useRef(null);
   const retriedAt = useRef(-Infinity);
   const url = attachmentURL(attachment, sessionId);
-  const src = retryImageURL(url, attempt);
+  const [failedLocalURL, setFailedLocalURL] = useState(null);
+  const local = localPreviewURL && localPreviewURL !== failedLocalURL ? localPreviewURL : null;
+  const src = local || retryImageURL(attachmentThumbnailURL(url, attachment.mimeType), attempt);
   // While a silent reload is pending the failure notice stays hidden, so the
   // first fetch of a just-sent message never flashes an error.
   const retrying = image && shouldAutoRetryImage(status, attempt);
@@ -493,7 +645,14 @@ export function Attachment({ attachment, sessionId, onOpen }) {
               src={src}
               alt={attachment.name}
               onLoad={() => setStatus("loaded")}
-              onError={() => setStatus("error")}
+              onError={() => {
+                if (local) {
+                  setFailedLocalURL(local);
+                  setStatus("loading");
+                } else {
+                  setStatus("error");
+                }
+              }}
             />
             {shown === "loading" ? (
               <span className="message-image-placeholder">
@@ -531,7 +690,7 @@ export function Attachment({ attachment, sessionId, onOpen }) {
       </button>
       {zoom ? (
         <ImageLightbox
-          src={url}
+          src={local || url}
           alt={attachment.name}
           onClose={() => setZoom(false)}
         />
@@ -539,13 +698,36 @@ export function Attachment({ attachment, sessionId, onOpen }) {
     </>
   );
 }
-export function ArtifactPreview({ artifact }) {
+// Larger files are offered for download instead of being read into the page.
+const PREVIEW_MAX_BYTES = 5 * 1024 * 1024;
+// Deliverables without a declared type are stored as Markdown, so the body
+// decides: NUL bytes or a mostly undecodable start mean binary content.
+function looksBinary(content) {
+  if (content.includes("\u0000")) return true;
+  const head = content.slice(0, 65536);
+  return (head.match(/\uFFFD/g) || []).length > head.length * 0.1;
+}
+export function ArtifactPreview({ artifact, knowledgeReads = [], attempt }) {
   const [text, setText] = useState("");
   const [error, setError] = useState("");
   const [mode, setMode] = useState("preview");
+  const [highlightedCite, setHighlightedCite] = useState(null);
+  const sourcesRef = useRef(null);
+  const highlightTimer = useRef(null);
+  useEffect(() => () => window.clearTimeout(highlightTimer.current), []);
+  const handleCitationClick = (citeIndex) => {
+    setHighlightedCite(citeIndex);
+    window.clearTimeout(highlightTimer.current);
+    highlightTimer.current = window.setTimeout(
+      () => setHighlightedCite(null),
+      2000,
+    );
+  };
   const readable =
     !artifact?.mimeType ||
     /^(text\/|application\/(json|javascript|xml))/.test(artifact.mimeType);
+  const oversized =
+    Boolean(artifact?.url) && (artifact?.size || 0) > PREVIEW_MAX_BYTES;
   // An attached HTML file (e.g. a demo from the workspace) previews in the same
   // script-only sandbox as an html code block.
   const kind =
@@ -578,7 +760,7 @@ export function ArtifactPreview({ artifact }) {
         current = false;
       };
     }
-    if (artifact?.url && readable)
+    if (artifact?.url && readable && !oversized)
       fetch(artifact.url)
         .then((r) => {
           if (!r.ok) throw Error(chatT("文件读取失败", "Đọc tệp thất bại"));
@@ -593,16 +775,37 @@ export function ArtifactPreview({ artifact }) {
     return () => {
       current = false;
     };
-  }, [artifact?.id, artifact?.url, artifact?.localDataUrl, readable]);
+  }, [artifact?.id, artifact?.url, artifact?.localDataUrl, readable, oversized]);
   if (!artifact) return null;
   const source = artifact.url ? text : (artifact.content ?? text);
-  const hasSource = typeof source === "string" && source.length > 0 && !error;
+  const binary = Boolean(artifact.url) && looksBinary(text);
+  const hasSource =
+    typeof source === "string" && source.length > 0 && !error && !binary;
   const isMarkdown =
     artifact.mimeType?.startsWith("text/markdown") ||
-    ["markdown", "md"].includes(artifact.language?.toLowerCase());
+    ["markdown", "md"].includes(artifact.language?.toLowerCase()) ||
+    /\.mdx?$/i.test(artifact.name || "");
   const canPreview =
     hasSource &&
     (["svg", "mermaid", "html", "slides", "ppt"].includes(kind) || isMarkdown);
+  const filteredReads = useMemo(
+    () =>
+      filterKnowledgeReadsForAttempt(
+        knowledgeReads,
+        attempt ?? artifact?.attempt,
+      ),
+    [knowledgeReads, attempt, artifact?.attempt],
+  );
+  const artSummary = useMemo(() => {
+    if (!filteredReads.length || !isMarkdown || !hasSource) return null;
+    return buildKnowledgeSummary(filteredReads, [source], {
+      scopeToTexts: true,
+    });
+  }, [filteredReads, isMarkdown, hasSource, source]);
+  const copyValue =
+    mode === "preview" && isMarkdown && filteredReads.length > 0
+      ? formatTextForCopy(source, filteredReads, artSummary)
+      : source;
   return (
     <article className="artifact-preview">
       <header className="artifact-preview-header">
@@ -651,7 +854,7 @@ export function ArtifactPreview({ artifact }) {
             {hasSource ? (
               <CopyButton
                 className="artifact-preview-icon-action"
-                value={source}
+                value={copyValue}
                 label={chatT("复制正文", "Sao chép nội dung")}
               />
             ) : null}
@@ -693,9 +896,14 @@ export function ArtifactPreview({ artifact }) {
         ) : artifact.mimeType?.startsWith("image/") && artifact.url ? (
           <ZoomableImage
             className="artifact-image"
-            src={artifact.url}
+            src={attachmentThumbnailURL(artifact.url, artifact.mimeType)}
+            fullSrc={artifact.url}
             alt={artifact.name}
           />
+        ) : oversized ? (
+          <p className="muted">文件较大，不在页面内预览，可通过右上角下载查看。</p>
+        ) : binary ? (
+          <p className="muted">此类型文件可通过右上角下载查看。</p>
         ) : mode === "source" && canPreview ? (
           <pre className="artifact-source">
             <code>{source}</code>
@@ -726,7 +934,24 @@ export function ArtifactPreview({ artifact }) {
         ) : artifact.url && !readable ? (
           <p className="muted">{chatT("此类型文件可通过右上角下载查看。", "Có thể tải loại tệp này ở góc trên bên phải để xem.")}</p>
         ) : isMarkdown ? (
-          <RichContent message={source} />
+          <>
+            <RichContent
+              message={source}
+              knowledgeReads={filteredReads}
+              knowledgeSummary={artSummary}
+              onCitationClick={handleCitationClick}
+            />
+            {filteredReads.length > 0 ? (
+              <KnowledgeSources
+                knowledgeReads={filteredReads}
+                summary={artSummary}
+                highlightedIndex={highlightedCite}
+                containerRef={sourcesRef}
+                title="产物引用来源"
+                usedLabel="实际用于产出"
+              />
+            ) : null}
+          </>
         ) : (
           <pre className="artifact-source">{source || chatT("正在加载…", "Đang tải…")}</pre>
         )}

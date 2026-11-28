@@ -17,9 +17,11 @@ test("the attribute translator protects a source-localized aria label containing
     DATA_SEL: "[data-i18n-data]",
     HAN: /[\u3400-\u9fff]/,
     translate: value => value.replace("规则", "Quy tắc"),
-    translateExact: value => value.replace("规则", "Quy tắc"),
+    translateExact: value => value === '规则' ? 'Quy tắc' : value,
   };
-  const translate = vm.runInNewContext(match[0] + "\ntranslateAttrs", sandbox);
+  const dataAttr = i18n.match(/const dataAttr = [^\n]+;/)?.[0];
+  assert.ok(dataAttr);
+  const translate = vm.runInNewContext(dataAttr + "\n" + match[0] + "\ntranslateAttrs", sandbox);
   const element = protectedLabel => {
     const attrs = new Map([["aria-label", "Sửa quy tắc “规则”"]]);
     if (protectedLabel) attrs.set("data-i18n-aria-skip", "");
@@ -40,10 +42,12 @@ test("the attribute translator protects a source-localized aria label containing
 });
 
 test("asset cards localize the action while preserving user-owned names in accessible text", () => {
-  const seedNames = assets.slice(assets.indexOf("const ASSET_SEED_NAMES="), assets.indexOf("function assetIsBuiltin("));
+  const seedNames = assets.slice(assets.indexOf("function assetOwnerProjectName("), assets.indexOf("function assetIsBuiltin("));
   const snippet = assets.slice(assets.indexOf("function assetCardHTML(a)"), assets.indexOf("function assetGridEmptyHTML()"));
   const card = vm.runInNewContext(seedNames + snippet + "\nassetCardHTML({id:'asset-1',name:'规则',description:'任务'})", {
     assetVI: () => true,
+    lfT: (zh,en,vi) => vi ?? en ?? zh,
+    assetKindLabelEn: () => 'rule',
     state: { assetType: "rules" },
     assetUICopy: (_, vi) => vi,
     escapeHTML: value => String(value),
@@ -55,7 +59,7 @@ test("asset cards localize the action while preserving user-owned names in acces
     assetMetaHTML: () => "",
     assetStatusHTML: () => "",
   });
-  assert.match(card, /data-i18n-aria-skip aria-label="Sửa quy tắc “规则”"/);
+  assert.match(card, /aria-label="Sửa quy tắc “规则”" data-i18n-data-attrs="aria-label" data-i18n-aria-skip/);
   assert.match(card, /<h3 data-i18n-skip>规则<\/h3>/);
   assert.match(card, /<p class="asset-card-desc" data-i18n-skip>任务<\/p>/);
 });

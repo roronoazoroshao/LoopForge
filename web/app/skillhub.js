@@ -245,8 +245,8 @@ function skillhubSplitFrontMatter(text){
 }
 function skillhubFileWarnings(files){
   const list=files||[],out=[];
-  const big=list.filter(f=>(Number(f.size)||0)>SKILLHUB_FILE_PREVIEW_MAX);
-  if(big.length)out.push(skillhubText(`${big.map(f=>f.path).join('、')} 超过平台单文件 1MB 限额，安装会失败并提示原因。`,`${big.map(f=>f.path).join(', ')} vượt giới hạn 1 MB cho mỗi tệp. Cài đặt sẽ thất bại và hiển thị lý do.`));
+  const big=list.filter(f=>(Number(f.size)||0)>SKILL_FILE_MAX_BYTES);
+  if(big.length)out.push(skillhubText(`${big.map(f=>f.path).join('、')} 超过平台单文件 10MB 限额，安装会失败并提示原因。`,`${big.map(f=>f.path).join(', ')} vượt giới hạn 10 MB cho mỗi tệp. Cài đặt sẽ thất bại và hiển thị lý do.`));
   if(list.length>SKILLHUB_FILE_COUNT_MAX)out.push(skillhubText(`技能包含 ${list.length} 个文件，超过单个技能最多 ${SKILLHUB_FILE_COUNT_MAX} 个文件的限额。`,`Kỹ năng có ${list.length} tệp, vượt giới hạn ${SKILLHUB_FILE_COUNT_MAX} tệp cho mỗi kỹ năng.`));
   const total=list.reduce((s,f)=>s+(Number(f.size)||0),0);
   if(total>SKILLHUB_PACKAGE_MAX)out.push(skillhubText(`技能包共 ${fmtBytes(total)}，超过单个技能 64MB 的限额。`,`Gói kỹ năng có dung lượng ${fmtBytes(total)}, vượt giới hạn 64 MB cho mỗi kỹ năng.`));

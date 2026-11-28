@@ -298,11 +298,12 @@ export const resumeMissed = (step) =>
 // dispatched it; a live dispatch has no saved reply yet and uses liveModel,
 // the model the running reply was sent with. agent.model is the latest
 // dispatch's, agent.models[step.id] each dispatch's.
-export function collectSubagents(messages = [], liveSteps = [], liveModel = "") {
+export function collectSubagents(messages = [], liveSteps = [], liveModel = "", offset = 0) {
   const agents = [];
-  // messageIndex is the saved reply that holds the dispatch; a live one has
-  // none yet, and its collected files are not attachments until it is saved.
-  const add = (step, messageIndex = null, replyModel = "") => {
+  // messageIndex is the saved reply that holds the dispatch (its stored index,
+  // see messageOffset); a live one has none yet, and its collected files are
+  // not attachments until it is saved.
+  const add = (step, messageIndex = null, replyModel = "", activityRef) => {
     const key = step.agentId || step.id;
     let agent = agents.find((item) => item.key === key || (step.agentId && item.agentId === step.agentId));
     if (!agent) {
@@ -316,6 +317,7 @@ export function collectSubagents(messages = [], liveSteps = [], liveModel = "") 
     if (model) agent.models[step.id] = model;
     agent.model = model || agent.model;
     agent.dispatches.push(step);
+    if (activityRef && !agent.deferredActivity) agent.deferredActivity = { index: messageIndex, activityRef };
     // What it published, and the role deliverables the platform collected
     // when it finished (a required one it did not write is marked missing).
     // A later dispatch that delivers the same file replaces the earlier row.
@@ -334,7 +336,7 @@ export function collectSubagents(messages = [], liveSteps = [], liveModel = "") 
     if (message.role !== "assistant") return;
     savedActivity(message)
       .filter(isDispatch)
-      .forEach((step) => add(step, index, message.model));
+      .forEach((step) => add(step, offset + index, message.model, message.activityRef));
   });
   liveSteps.filter(isDispatch).forEach((step) => add(step, null, liveModel));
   return agents;
@@ -451,7 +453,7 @@ export const savedActivity = (message) =>
     (message.activity || []).map((data, sequence) => ({ data, sequence })),
   );
 export function activityForReply(message, generation, liveSteps = []) {
-  if (message.activity?.length) return savedActivity(message);
+  if (message.activityRef || message.activity?.length) return savedActivity(message);
   if (message.generationId && message.generationId !== generation?.id) return [];
   // The old implementation retained only the most recent generation. Recover
   // that visible stream only when its text AND start time match this exact reply.
@@ -518,7 +520,7 @@ export function activityFace(step) {
   if (platform) {
     const [, type, action] = platform;
     const noun = {
-      workflows: "SOP",
+      workflows: "LOOP",
       agents: "角色",
       issues: "需求",
       runs: "运行",
@@ -552,6 +554,12 @@ export function activityFace(step) {
     return { kind: "command", busy: chatT("正在运行", "Đang chạy"), done: chatT("已运行", "Đã chạy") };
   if (/imagegen|generate.?image|生图|画图/.test(name))
     return { kind: "image", busy: chatT("正在生成图片", "Đang tạo hình ảnh"), done: chatT("已生成图片", "Đã tạo hình ảnh") };
+  if (/kb_fetch|read_document/.test(name))
+    return { kind: "read", busy: chatT("正在读取", "Đang đọc"), done: chatT("已读取", "Đã đọc") };
+  if (/search_knowledge|kb_search/.test(name))
+    return { kind: "search", busy: chatT("正在搜索", "Đang tìm kiếm"), done: chatT("已搜索", "Đã tìm kiếm") };
+  if (/knowledge/.test(name))
+    return { kind: "read", busy: chatT("正在读取", "Đang đọc"), done: chatT("已读取", "Đã đọc") };
   if (/browser|fetch|web.?search|navigate/.test(name))
     return { kind: "web", busy: chatT("正在浏览", "Đang duyệt web"), done: chatT("已浏览", "Đã duyệt web") };
   if (/write|edit|patch/.test(name))
@@ -561,7 +569,7 @@ export function activityFace(step) {
   if (/search|grep|glob|find/.test(name))
     return { kind: "search", busy: chatT("正在搜索", "Đang tìm kiếm"), done: chatT("已搜索", "Đã tìm kiếm") };
   if (/workflow|sop/.test(name))
-    return { kind: "workflow", busy: chatT("正在处理 SOP", "Đang xử lý SOP"), done: chatT("已处理 SOP", "Đã xử lý SOP") };
+    return { kind: "workflow", busy: chatT("正在处理 LOOP", "Đang xử lý LOOP"), done: chatT("已处理 LOOP", "Đã xử lý LOOP") };
   if (/list|tree/.test(name))
     return { kind: "search", busy: chatT("正在查看", "Đang xem"), done: chatT("已查看", "Đã xem") };
   return {
@@ -590,6 +598,8 @@ export function activityTarget(step) {
       detail =
         args.file_path ||
         args.filePath ||
+        args.knowledge_id ||
+        args.document_id ||
         args.command ||
         args.cmd ||
         args.query ||

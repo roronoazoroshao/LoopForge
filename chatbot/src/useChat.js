@@ -4,6 +4,7 @@ import {
   api,
   write,
   sessionPath,
+  messageOffset,
   newId,
   mergeEvents,
   projectChange,
@@ -56,6 +57,24 @@ function effortPreference(executor, model) {
   return `effort.${executor}.${unprefixedModel(executor, model)}`;
 }
 
+const runnerLoginExecutors = ["codex", "claude-code", "agy"];
+const historyPendingMessage = "正在补齐更早的对话，请稍候再操作。";
+
+function usesRunnerLogin(machine, executor) {
+  return runnerLoginExecutors.includes(executor) &&
+    machine?.runtimes?.some((runtime) => runtime.provider === executor && runtime.authMode !== "personal");
+}
+
+function runnerModelEntries(models, executor) {
+  return (models || []).filter((model) => concreteModel(model, executor)).map((model) => ({
+    id: `${executor}:${model.id}`,
+    engine: executor,
+    name: model.name || model.id,
+    efforts: model.reasoningEfforts ?? model.discoveredReasoningEfforts,
+    effortModelIds: model.efforts,
+  }));
+}
+
 // Use the first requested preference that is available for this executor.
 function preferredModel(list, executor, ...preferences) {
   const available = list.filter((model) => !model.disabled && !model.unavailable);
@@ -89,6 +108,13 @@ const initialProject =
 
 class ComposerModelError extends Error {}
 
+function withSessionTitle(session, source) {
+  const { title, displayTitle, titleEdited, titleGenerated } = source;
+  if (session.title === title && session.displayTitle === displayTitle &&
+      session.titleEdited === titleEdited && session.titleGenerated === titleGenerated) return session;
+  return { ...session, title, displayTitle, titleEdited, titleGenerated };
+}
+
 export function useChat() {
   const stopRequestRef = useRef(null);
   const accountDefaultsRef = useRef(null);
@@ -97,11 +123,10 @@ export function useChat() {
   const [identity, setIdentity] = useState(null),
     [projects, setProjects] = useState([]),
     [sandboxes, setSandboxes] = useState([]),
+    [draftKnowledgeRefs,setDraftKnowledgeRefs]=useState([]),
     [sandboxProfileId, setSandboxProfileId] = useState(""),
     [sandboxBusy, setSandboxBusy] = useState(false),
-    [workspaceSandbox, setWorkspaceSandbox] = useState(null),
-    [workspaceExecution, setWorkspaceExecution] = useState(null),
-    [workspaceExecutionError, setWorkspaceExecutionError] = useState(""),
+    [loadedWorkspace, setLoadedWorkspace] = useState(null),
     [users, setUsers] = useState([]),
     [draftIssueId, setDraftIssueId] = useState(
       new URLSearchParams(location.search).get("issueId") || "",
@@ -159,6 +184,7 @@ export function useChat() {
     setError,
     bindExecutionMachine,
     session?.executionTarget,
+    projectId,
   );
   const currentId = useRef(activeId),
     sessionRef = useRef(session),
@@ -175,19 +201,52 @@ export function useChat() {
   currentId.current = activeId;
   sessionRef.current = session;
   projectRef.current = projectId;
+  const renamedTitles = useRef(new Map());
+  const mergeRenamedTitle = useCallback((stored, titlesAtRequest) => {
+    const renamed = renamedTitles.current.get(stored?.id);
+    return renamed && renamed !== titlesAtRequest.get(stored.id)
+      ? withSessionTitle(stored, renamed)
+      : stored;
+  }, []);
+  const readSession = useCallback(async (id, { recent = false, view = "" } = {}) => {
+    const titlesAtRequest = renamedTitles.current;
+    const mode = recent ? "recent" : view;
+    const path = sessionPath(id) + (mode ? `?view=${mode}` : "");
+    return mergeRenamedTitle(await api(path), titlesAtRequest);
+  }, [mergeRenamedTitle]);
+  const activityRequests = useRef(new Map());
+  const loadActivity = useCallback((id, index, ref) => {
+    const path = sessionPath(id) + `?view=activity&index=${index}&ref=${encodeURIComponent(ref)}`;
+    const pending = activityRequests.current.get(path);
+    if (pending) return pending;
+    const request = api(path).then((activity) => {
+      if (currentId.current !== id) return;
+      setSession((current) => {
+        if (current?.id !== id) return current;
+        const offset = index - messageOffset(current);
+        if (current.messages[offset]?.activityRef !== ref) return current;
+        const messages = current.messages.slice();
+        messages[offset] = { ...messages[offset], activity, activityRef: undefined };
+        return { ...current, messages };
+      });
+    }).finally(() => activityRequests.current.delete(path));
+    activityRequests.current.set(path, request);
+    return request;
+  }, []);
   const refreshSessions = useCallback(async () => {
-    const rows = await api("/api/assistant/sessions");
-    setSessions(rows || []);
-    const current = sessionRef.current;
-    const row = (rows || []).find((item) => item.id === current?.id);
-    if (row?.title && current && !current.titleEdited && row.title !== current.title) {
+    const titlesAtRequest = renamedTitles.current;
+    const rows = (await api("/api/assistant/sessions") || [])
+      .map((row) => mergeRenamedTitle(row, titlesAtRequest));
+    setSessions(rows);
+    const row = rows.find((item) => item.id === currentId.current);
+    if (row?.title) {
       setSession((prev) =>
-        prev && prev.id === row.id && !prev.titleEdited
-          ? { ...prev, title: row.title, titleGenerated: !!row.titleGenerated }
+        prev?.id === row.id && (!prev.titleEdited || row.titleEdited)
+          ? withSessionTitle(prev, row)
           : prev,
       );
     }
-  }, []);
+  }, [mergeRenamedTitle]);
   const changeURL = useCallback((id) => {
     const url = new URL(location.href);
     url.searchParams.delete("issueId");
@@ -223,6 +282,7 @@ export function useChat() {
       draftExecutorPicked.current = false;
       setSelection((options) => ({ executor: id ? options.executor : accountDefaultsRef.current?.executor || storedExecutor(), model: null, effort: null }));
       setSandboxProfileId("");
+      setDraftKnowledgeRefs([]);
       currentId.current = id;
       setActiveId(id);
       if (id) setRevealId(id);
@@ -249,10 +309,20 @@ export function useChat() {
     });
     return choice;
   }
+  // History can arrive before the model catalog. Use the current catalog even
+  // for a read that started during boot, and restore older unprefixed models
+  // once the catalog becomes available.
+  const restoreReceivedModel = useRef(null);
+  restoreReceivedModel.current = ready ? restoreConversationModel : null;
+  useEffect(() => {
+    if (ready && sessionRef.current) restoreReceivedModel.current(sessionRef.current);
+  }, [ready]);
   function receiveSession(stored, running = false) {
     if (!stored || currentId.current !== stored.id) return;
+    // A tail that arrives after the full transcript must not hide earlier turns.
+    if (sessionRef.current?.id === stored.id && !sessionRef.current.messagesPartial && stored.messagesPartial) return;
     const opening = sessionRef.current?.id !== stored.id;
-    restoreConversationModel(stored, { running, preserveChoice: !opening });
+    restoreReceivedModel.current?.(stored, { running, preserveChoice: !opening });
     if (opening) {
       changeURL(stored.id);
       setProjectId(stored.projectId || "");
@@ -306,25 +376,28 @@ export function useChat() {
       connectionError = "";
     async function load() {
       try {
-        const [auth, projectRows, catalog, users, sandboxRows] = await Promise.all([
-          api("/api/auth/current"),
+        const [, projectRows, catalog, users, sandboxRows] = await Promise.all([
+          api("/api/auth/current").then((auth) => {
+            if (current) setIdentity(auth.user);
+          }),
           api("/api/projects"),
           api("/api/assistant/models"),
           api("/api/users"),
           api("/api/sandboxes"),
         ]);
         if (!current) return;
-        setIdentity(auth.user);
         setUsers(users || []);
         setProjects(projectRows || []);
         setSandboxes(sandboxRows || []);
         applyModelCatalog(catalog);
         if (catalog.cursorModelsPending) requestModelCatalogRefresh((revision) => revision + 1);
-        await refreshSessions();
         if (!current) return;
         const recovered = connectionError;
         setError((old) => (old === recovered ? "" : old));
         setReady(true);
+        // The history list fills the sidebar. It must not sit in front of the
+        // open conversation or the signal that the workbench can be shown.
+        void refreshSessions().catch(() => {});
       } catch (e) {
         if (!current) return;
         const retry = !e.status || e.status >= 500;
@@ -339,8 +412,9 @@ export function useChat() {
       clearTimeout(timer);
     };
   }, [applyModelCatalog, refreshSessions]);
+  const identityKnown = !!identity;
   useEffect(() => {
-    if (!ready || !activeId) return;
+    if (!identityKnown || !activeId) return;
     // send/edit already supplied this session. Reloading it here can return an
     // older empty snapshot and erase the optimistic message during generation.
     if (sessionRef.current?.id === activeId) return;
@@ -349,14 +423,39 @@ export function useChat() {
       connectionError = "";
     async function load() {
       try {
-        const stored = await api(sessionPath(activeId));
-        if (!current || currentId.current !== activeId || sessionRef.current?.id === activeId) return;
+        if (sessionRef.current?.id !== activeId) {
+          const preview = await readSession(activeId, { recent: true });
+          if (!current || currentId.current !== activeId) return;
+          if (sessionRef.current?.id !== activeId) {
+            receiveSession(preview);
+            const recovered = connectionError;
+            setError((old) => (old === recovered ? "" : old));
+          }
+        }
+        if (!current || currentId.current !== activeId || !sessionRef.current?.messagesPartial) return;
+        const stored = await readSession(activeId, { view: "transcript" });
+        if (!current || currentId.current !== activeId) return;
+        // This read only completes the tail. A write made meanwhile (binding a
+        // project, sandbox, knowledge, linked issue) already replaced the tail
+        // with the complete conversation it saved; the server may have served
+        // this read before that write, so it must not undo it.
+        if (sessionRef.current?.id === activeId && !sessionRef.current.messagesPartial) return;
         receiveSession(stored);
         const recovered = connectionError;
         setError((old) => (old === recovered ? "" : old));
       } catch (e) {
-        if (!current || currentId.current !== activeId || sessionRef.current?.id === activeId) return;
+        if (!current || currentId.current !== activeId) return;
+        // The tail is already on screen. A failed full read still has to retry,
+        // otherwise the composer stays blocked on messagesPartial.
+        if (sessionRef.current?.id === activeId && !sessionRef.current.messagesPartial) return;
         const retry = !e.status || e.status >= 500;
+        if (!retry && sessionRef.current?.id === activeId) {
+          // The server refused the full transcript (deleted, access revoked).
+          // Drop the tail too: it cannot be completed, so it must not stay on
+          // screen as a conversation that only waits for its history.
+          sessionRef.current = null;
+          setSession(null);
+        }
         connectionError = retry ? chatT("连接暂时中断，正在重连…", "Kết nối tạm gián đoạn, đang kết nối lại…") : e.message;
         setError(connectionError);
         if (retry) timer = setTimeout(load, 2000);
@@ -367,7 +466,7 @@ export function useChat() {
       current = false;
       clearTimeout(timer);
     };
-  }, [activeId, ready, syncProject]);
+  }, [activeId, identityKnown, readSession, syncProject]);
   useEffect(() => {
     if (!ready) return;
     const timer = setInterval(
@@ -383,18 +482,18 @@ export function useChat() {
     let cancelled = false;
     const timer = setInterval(async () => {
       try {
-        const stored = await api(sessionPath(session.id));
+        const stored = await readSession(session.id, { view: "title" });
         if (cancelled || currentId.current !== session.id || !stored?.title) return;
-        if (stored.title === sessionRef.current?.title && !stored.titleGenerated) return;
+        if (stored.title === sessionRef.current?.title && !stored.titleGenerated && !stored.titleEdited) return;
         setSession((prev) =>
           prev && prev.id === stored.id && !prev.titleEdited
-            ? { ...prev, title: stored.title, titleGenerated: !!stored.titleGenerated }
+            ? withSessionTitle(prev, stored)
             : prev,
         );
         setSessions((rows) =>
           (rows || []).map((item) =>
             item.id === stored.id
-              ? { ...item, title: stored.title, titleGenerated: !!stored.titleGenerated }
+              ? withSessionTitle(item, stored)
               : item,
           ),
         );
@@ -408,9 +507,10 @@ export function useChat() {
       clearInterval(timer);
       clearTimeout(stop);
     };
-  }, [ready, session?.id, session?.title, session?.titleEdited, session?.titleGenerated, titlePrompt]);
+  }, [readSession, ready, session?.id, session?.title, session?.titleEdited, session?.titleGenerated, titlePrompt]);
+  const openedId = session?.id;
   useEffect(() => {
-    if (!ready || !activeId) return;
+    if (!ready || !activeId || openedId !== activeId) return;
     let cancelled = false,
       timer,
       source,
@@ -434,7 +534,10 @@ export function useChat() {
         setError((current) => (current === recovered ? "" : current));
       }
       const running = g.status === "running";
-      const needsTranscript = running ? genId !== g.id : loaded !== g.id;
+      const staleTranscript = !!g.sessionUpdatedAt && sessionRef.current?.updatedAt !== g.sessionUpdatedAt;
+      const needsTranscript = running ? genId !== g.id : loaded !== g.id || staleTranscript;
+      const sameTranscript = !running && !!g.sessionUpdatedAt && !staleTranscript &&
+        sessionRef.current?.messages?.at(-1)?.generationId === g.id;
       if (needsTranscript) {
         // Pause sends until the transcript and CLI for this turn are loaded.
         // A new turn can come from steering or from another member.
@@ -443,9 +546,11 @@ export function useChat() {
           source?.close();
           source = null;
         }
-        const stored = await api(sessionPath(activeId));
-        if (!isCurrent(revision)) return;
-        receiveSession(stored, running);
+        if (!sameTranscript) {
+          const stored = await readSession(activeId, { view: "transcript" });
+          if (!isCurrent(revision)) return;
+          receiveSession(stored, running);
+        }
         if (!running) {
           loaded = g.id;
           setSettledId(g.id);
@@ -470,10 +575,15 @@ export function useChat() {
       setGenerationKnown(activeId);
       if (!running) setStopRequest((old) => old?.generationId === g.id ? null : old);
       if (running && ["platform", "workspace"].includes(g.runtimeMode)) {
-        setSession((stored) => stored?.id === activeId && stored.runtimeMode !== g.runtimeMode ? { ...stored, runtimeMode: g.runtimeMode } : stored);
+        setSession((stored) => {
+          if (stored?.id !== activeId) return stored;
+          const workspaceRunId = g.workspaceRunId || stored.workspaceRunId;
+          if (stored.runtimeMode === g.runtimeMode && workspaceRunId === stored.workspaceRunId) return stored;
+          return { ...stored, runtimeMode: g.runtimeMode, workspaceRunId };
+        });
       }
       if (!running && needsTranscript) {
-        await refreshSessions();
+        if (!sameTranscript) await refreshSessions();
         if (isCurrent(revision) && g.error && !["canceled", "cancelled"].includes(g.status))
           setError(g.error);
       }
@@ -525,8 +635,14 @@ export function useChat() {
           schedulePoll(500);
           return;
         }
+        // Older replies may have their only surviving trace in /generation.
+        // Ask for just the status when this exact reply already owns a trace.
+        const reply = sessionRef.current?.messages?.at(-1);
+        const saved = reply?.role === "assistant" && (reply.activityRef || reply.activity?.length)
+          ? reply.generationId : "";
+        const condition = saved ? "&savedReply=" + encodeURIComponent(saved) : "";
         const g = await api(
-          `${sessionPath(activeId)}/generation?after=${cursor}`,
+          `${sessionPath(activeId)}/generation?after=${cursor}${condition}`,
         );
         if (!isCurrent(revision)) return schedulePoll(200);
         generationFound = true;
@@ -551,7 +667,7 @@ export function useChat() {
       clearTimeout(timer);
       source?.close();
     };
-  }, [activeId, ready, refreshSessions, setGenerationKnown]);
+  }, [activeId, openedId, readSession, ready, refreshSessions, setGenerationKnown]);
   const selectProject = useCallback(
     async (id, { external = false } = {}) => {
       const current = sessionRef.current;
@@ -565,9 +681,18 @@ export function useChat() {
         try {
           const saved = await write(
             sessionPath(current.id),
-            { ...current, projectId: id },
+            // Another device may have renamed the session since this one read it.
+            // Binding changes metadata only. Without messages the server keeps
+            // the stored transcript, so a recent-only view or a copy that missed
+            // newer turns cannot overwrite it.
+            {
+              ...current, projectId: id,
+              title: undefined, titleEdited: undefined, titleGenerated: undefined,
+              messages: undefined, messagesPartial: undefined, messagesOffset: undefined,
+            },
             "PUT",
           );
+          if (currentId.current === current.id) sessionRef.current = saved;
           setSession(saved);
           setProjectId(id);
           syncProject(id);
@@ -579,7 +704,7 @@ export function useChat() {
       }
       if (strategy === "new") newChat();
       if (id !== projectRef.current) {
-        setSandboxProfileId("");
+        setSandboxProfileId(""); setDraftKnowledgeRefs([]);
         setDraftIssueId("");
         const url = new URL(location.href);
         url.searchParams.delete("issueId");
@@ -597,7 +722,7 @@ export function useChat() {
     (id) => {
       newChat();
       if (id === projectRef.current) return;
-      setSandboxProfileId("");
+      setSandboxProfileId(""); setDraftKnowledgeRefs([]);
       setProjectId(id);
       syncProject(id);
     },
@@ -626,7 +751,24 @@ export function useChat() {
           }).catch(() => {});
         return;
       }
+      if (e.data?.type === "agentflow-chat-open-session") {
+        const sid = typeof e.data.sessionId === "string" ? e.data.sessionId.trim() : "";
+        if (!sid) return;
+        const pid = typeof e.data.projectId === "string" ? e.data.projectId.trim() : "";
+        if (pid) globalProject.current = pid;
+        setRevealId(sid);
+        setActiveId(sid);
+        setError("");
+        void api("/api/assistant/sessions")
+          .then((rows) => {
+            if (Array.isArray(rows)) setSessions(rows);
+          })
+          .catch(() => {});
+        return;
+      }
       if (e.data?.type !== "agentflow-project-context") return;
+      // A restored shell default is only a default for a new conversation.
+      if (e.data.initial && currentId.current) return;
       const id = e.data.projectId || "";
       if (id === globalProject.current) return;
       globalProject.current = id;
@@ -641,6 +783,12 @@ export function useChat() {
         );
     return () => window.removeEventListener("message", listener);
   }, [ready]);
+  // The composer can restore this user's draft once their identity is known.
+  // The chat already renders its own loading state for a pending transcript.
+  useEffect(() => {
+    if (identityKnown && window.parent !== window)
+      window.parent.postMessage({ type: "agentflow-chat-visible" }, location.origin);
+  }, [identityKnown]);
   const missingKey = !!user && !user.codeBuddyApiKeyConfigured;
   // Without their own key users chat on the platform's shared key, limited to
   // the models the administrator allowed (the first is the default).
@@ -652,11 +800,10 @@ export function useChat() {
   const runnerId = composerRunnerId(session);
   const runner = executionMachines.machines.find(machine => machine.id === runnerId && machine.ownerUserId === user?.id);
   const checkServerCLI = executionMachines.machinesReady && !runnerId &&
-    !session?.executionTarget?.runnerId && !session?.runId && session?.runtimeMode !== "workspace";
+    !(session?.executionTarget?.pool === "cloud" && session.executionTarget.runnerId) &&
+    !session?.runId && session?.runtimeMode !== "workspace";
   const availableExecutors = EXECUTORS.flatMap(item => {
-    const local = ["codex", "claude-code", "agy"].includes(item.id) &&
-      runner?.runtimes?.some(runtime => runtime.provider === item.id && runtime.authMode !== "personal");
-    if (local) return [{ ...item, detail: chatT("使用执行机器上的本机登录态。", "Dùng phiên đăng nhập cục bộ trên máy thực thi.") }];
+    if (usesRunnerLogin(runner, item.id)) return [{ ...item, detail: chatT("使用执行机器上的本机登录态。", "Dùng phiên đăng nhập cục bộ trên máy thực thi.") }];
     const option = catalogEngines.find(engine => engine.id === item.id);
     const configured = option?.configured ?? personalEngineConfigured(user, item.id);
     if (!configured && !(item.id === "codebuddy" && sponsoredModel)) return [];
@@ -685,12 +832,15 @@ export function useChat() {
     const personalMachine = machines.find(
       (machine) => machine.id === personalMachineId && machine.ownerUserId === user?.id,
     );
-    const agyRuntime = personalMachine?.runtimes?.find((runtime) => runtime.provider === "agy");
-    const agyAccountKey = executor === "agy" && agyRuntime && agyRuntime.authMode !== "personal"
+    const useLogin = usesRunnerLogin(personalMachine, executor);
+    const agyAccountKey = useLogin && executor === "agy"
       ? `agy-account:${user.id}:${personalMachine.id}` : "";
     const providerCatalog = catalogs[agyAccountKey || executor];
     const codeBuddy = executor === "codebuddy";
-    const listed = engineModels(models, executor);
+    const runnerCatalog = useLogin && executor !== "agy";
+    const listed = runnerCatalog
+      ? runnerModelEntries(personalMachine.loginModels?.[executor], executor)
+      : engineModels(models, executor);
     const usesProviderCatalog = !!executor && !codeBuddy && (!!agyAccountKey || !listed.length);
     const catalogToLoad = usesProviderCatalog && !providerCatalog ? agyAccountKey || executor : "";
     const executorModels = usesProviderCatalog
@@ -699,8 +849,12 @@ export function useChat() {
     const sponsored = codeBuddy && missingKey && !user.isGuest && !!sponsoredModel;
     const listedModel = findExecutorModel(executorModels, executor, model);
     const concrete = concreteModel({ id: model }, executor);
+    const changedDraftRunner = conversation?.executionTarget?.pool === "runner" &&
+      conversation.executionTarget.runnerId !== personalMachineId;
+    const keepConversationModel = conversation &&
+      (executionLocked(conversation) || (!runnerCatalog && !changedDraftRunner));
     const hasSelectedModel = concrete && !listedModel?.disabled && !listedModel?.unavailable &&
-      (conversation || !executorModels.length || listedModel);
+      (keepConversationModel || !executorModels.length || listedModel);
     const inheritsDefault = !!conversation && !concrete;
     const saved = (draft || inheritsDefault) && !sponsored && accountDefaults?.executor === executor ? accountDefaults : null;
     const savedModel = saved ? findExecutorModel(executorModels, executor, saved.model) : null;
@@ -745,22 +899,14 @@ export function useChat() {
     const existing = catalogRequests.current.get(key);
     if (existing) return existing;
     const request = runnerId
-      ? write(`/api/runners/${encodeURIComponent(runnerId)}/models/probe`, { provider: "agy", useSaved: true })
+      ? write(`/api/runners/${encodeURIComponent(runnerId)}/models/probe`, { provider: executor, useSaved: true })
       : api(`/api/assistant/models?executor=${encodeURIComponent(executor)}`);
     const loading = request
       .then((catalog) => {
         if (catalogRequests.current.get(key) !== loading)
           throw new ComposerModelError(chatT("模型目录已更新，请重新发送。", "Danh mục mô hình đã cập nhật, vui lòng gửi lại."));
         if (catalog.error) throw new Error(catalog.error);
-        const result = runnerId ? {
-          models: (catalog.models || []).filter((model) => concreteModel(model, "agy")).map((model) => ({
-            id: `agy:${model.id}`,
-            engine: "agy",
-            name: model.name || model.id,
-            efforts: model.reasoningEfforts ?? model.discoveredReasoningEfforts,
-            effortModelIds: model.efforts,
-          })),
-        } : catalog;
+        const result = runnerId ? { models: runnerModelEntries(catalog.models, executor) } : catalog;
         setProviderCatalogs((old) => ({ ...old, [key]: result }));
         return result;
       })
@@ -790,7 +936,7 @@ export function useChat() {
     const visibleModel = resolved.activeModel;
     const visibleEffort = resolved.activeEffort;
     let machines = executionMachines.machines;
-    if (selection.executor === "agy" && resolved.personalMachineId && !executionMachines.machinesReady) {
+    if (runnerLoginExecutors.includes(selection.executor) && resolved.personalMachineId && !executionMachines.machinesReady) {
       const rows = await api("/api/runners?mine=1");
       machines = Array.isArray(rows) ? rows : [];
       resolved = resolveComposerModel(selection, conversation, false, providerCatalogs, machines);
@@ -815,6 +961,12 @@ export function useChat() {
   }
   function sessionLoading() {
     return !!currentId.current && sessionRef.current?.id !== currentId.current;
+  }
+  // A recent view holds only the tail of the transcript. Its message indices
+  // are not transcript indices, and writing it back would drop earlier turns,
+  // so every index-based or whole-transcript write waits for the full read.
+  function historyPending() {
+    return !!sessionRef.current?.messagesPartial && sessionRef.current.id === currentId.current;
   }
   function replyStatePending() {
     const id = currentId.current;
@@ -1069,6 +1221,10 @@ export function useChat() {
       setError(chatT("会话仍在加载，请稍候再发送。", "Cuộc trò chuyện vẫn đang tải; vui lòng gửi lại sau."));
       return false;
     }
+    if (historyPending()) {
+      setError("正在补齐更早的对话，请稍候再发送。");
+      return false;
+    }
     if (!executor || missingServerCLI) return false;
     const currentProjectId = sessionRef.current?.projectId || "";
     const approval = fromQueue
@@ -1151,6 +1307,7 @@ export function useChat() {
             id,
             projectId: draft.projectId,
             issueId: draft.issueId,
+            knowledgeRefs: draftKnowledgeRefs,
             sandboxProfileId,
             executionTarget: {pool: executionMachines.defaultRunnerId ? "runner" : "cloud", runnerId: executionMachines.defaultRunnerId || ""},
             ...chosen,
@@ -1220,7 +1377,7 @@ export function useChat() {
         setGeneration(g);
         setGenerationKnown(s.id);
       }
-      await refreshSessions().catch(() => {});
+      void refreshSessions().catch(() => {});
       return true;
     } catch (e) {
       if (clientRequestId) {
@@ -1234,7 +1391,7 @@ export function useChat() {
         // the transcript fails. The session keeps receipts for earlier turns.
         if (mayHaveReachedServer && g?.clientRequestId === clientRequestId) return true;
         try {
-          const stored = await api(sessionPath(s.id));
+          const stored = await readSession(s.id);
           receiveSession(stored, g?.status === "running");
           if (g?.status === "running" && currentId.current === s.id) setGenerationKnown(s.id);
           if (mayHaveReachedServer && stored?.recentClientRequestIds?.includes(clientRequestId)) return true;
@@ -1269,16 +1426,12 @@ export function useChat() {
     }
   }
   async function rename(id, title) {
-    try {
-      const stored = await api(sessionPath(id));
-      const saved = await write(sessionPath(id), { ...stored, title }, "PUT");
-      if (id === currentId.current) setSession(saved);
-      await refreshSessions();
-      return true;
-    } catch (e) {
-      setError(e.message);
-      return false;
-    }
+    const saved = await write(`${sessionPath(id)}/title`, { title }, "PUT");
+    // Requests started before this rename can still return an older title.
+    renamedTitles.current = new Map(renamedTitles.current).set(id, saved);
+    setSession((current) => current?.id === id ? withSessionTitle(current, saved) : current);
+    setSessions((rows) => rows.map((row) => row.id === id ? withSessionTitle(row, saved) : row));
+    return true;
   }
   async function archive(id, archived) {
     try {
@@ -1300,6 +1453,10 @@ export function useChat() {
     }
   }
   async function edit(index, content, fork = false) {
+    if (historyPending()) {
+      setError(historyPendingMessage);
+      return null;
+    }
     try {
       const stored = await write(
         `${sessionPath(activeId)}/${fork ? "fork" : "edit"}`,
@@ -1355,13 +1512,14 @@ export function useChat() {
     }
   }
   async function applyDraft(messageIndex, draftIndex, review = {}) {
+    if (historyPending()) throw Error(historyPendingMessage);
     const id = activeId;
     const key = `${id}:${messageIndex}:${draftIndex}`;
     if (applyingRef.current.has(key)) throw Error(chatT("这项操作正在执行，请稍候。", "Thao tác này đang thực thi, vui lòng thử lại sau."));
     applyingRef.current.add(key);
     let executed = false;
     try {
-      let stored = await api(sessionPath(id));
+      let stored = await readSession(id);
       let reply = JSON.parse(stored.messages[messageIndex].content);
       let draft = reply.drafts[draftIndex];
       if (draft.saved || draft.inherited || draft.decision === "rejected") return null;
@@ -1379,7 +1537,7 @@ export function useChat() {
             })
           ).session;
         } catch (error) {
-          void api(sessionPath(id))
+          void readSession(id)
             .then((latest) => currentId.current === id && setSession(latest))
             .catch(() => {});
           throw error;
@@ -1397,7 +1555,7 @@ export function useChat() {
         if (error.draftChanged && currentId.current === id) setSession(stored);
         throw error;
       }
-      // The session header lets a confirmed SOP continue in this
+      // The session header lets a confirmed LOOP continue in this
       // conversation's workspace.
       const result = await api("/mcp", {
         method: "POST",
@@ -1440,7 +1598,9 @@ export function useChat() {
           );
       }
       stored.messages[messageIndex].content = JSON.stringify(reply);
-      const saved = await write(sessionPath(id), stored, "PUT");
+      const saved = await write(sessionPath(id), {
+        ...stored, title: undefined, titleEdited: undefined, titleGenerated: undefined,
+      }, "PUT");
       if (currentId.current === id) {
         setSession(saved);
         // Confirmation resumes the original goal, while subsequent writes still
@@ -1466,6 +1626,7 @@ export function useChat() {
   // Answers an assistant proposal card. Declining work the assistant had not
   // started continues with the turn the server returns.
   async function decideProposal(messageIndex, draftIndex, decision, approvalMode = "confirm") {
+    if (historyPending()) throw Error(historyPendingMessage);
     const id = activeId;
     if (generation?.status === "running")
       throw Error(chatT("请等待回复结束后再处理建议。", "Chờ phản hồi kết thúc trước khi xử lý đề xuất."));
@@ -1552,22 +1713,30 @@ export function useChat() {
     } catch (e) { setError(e.message); return false; }
     finally { sandboxBusyRef.current = false; setSandboxBusy(false); }
   }
+  const workspaceRunId = session?.workspaceRunId || session?.runId;
   useEffect(() => {
+    if (!workspaceRunId) return;
     let current = true;
-    setWorkspaceSandbox(null);
-    setWorkspaceExecution(null);
-    setWorkspaceExecutionError("");
-    const id = session?.workspaceRunId || session?.runId;
-    if (id) void api(`/api/runs/${encodeURIComponent(id)}`).then((run) => {
-      if (current) {
-        setWorkspaceSandbox(run.workflowSnapshot?.sandboxSnapshot?.profile || { id: run.workflowSnapshot?.sandboxProfileId });
-        setWorkspaceExecution(run.executionContext || {});
-      }
+    void api(`/api/runs/${encodeURIComponent(workspaceRunId)}`).then((run) => {
+      if (!current) return;
+      setLoadedWorkspace({
+        id: workspaceRunId,
+        workflow: run.workflowSnapshot,
+        execution: run.executionContext || {},
+      });
     }).catch(() => {
-      if (current) setWorkspaceExecutionError(chatT("无法加载工作区执行机器", "Không tải được máy thực thi workspace"));
+      if (current) setLoadedWorkspace({ id: workspaceRunId, error: chatT("无法加载工作区执行机器", "Không tải được máy thực thi workspace") });
     });
     return () => { current = false; };
-  }, [session?.workspaceRunId, session?.runId]);
+  }, [workspaceRunId]);
+  const workspace = loadedWorkspace?.id === workspaceRunId ? loadedWorkspace : null;
+  const sandboxSnapshot = workspace?.workflow?.sandboxSnapshot?.profile;
+  const workspaceSandboxId = sandboxSnapshot?.id || workspace?.workflow?.sandboxProfileId;
+  const workspaceSandbox = workspaceSandboxId && (
+    sandboxSnapshot
+      ? { ...sandboxSnapshot, id: workspaceSandboxId }
+      : sandboxes.find((row) => row.id === workspaceSandboxId) || { id: workspaceSandboxId }
+  );
   async function refresh() {
     await executionMachines.refreshMachines();
     const sandboxRows = await api("/api/sandboxes").catch(() => null);
@@ -1575,7 +1744,7 @@ export function useChat() {
     const projectRows = await api("/api/projects").catch(() => null);
     if (Array.isArray(projectRows)) setProjects(projectRows);
     if (activeId) {
-      const stored = await api(sessionPath(activeId));
+      const stored = await readSession(activeId);
       if (currentId.current === activeId) setSession(stored);
     }
     await refreshSessions();
@@ -1610,6 +1779,7 @@ export function useChat() {
   }, []);
   return {
     user,
+    loadActivity,
     defaultApproval: accountDefaults?.approval,
     refreshCredentials,
     users,
@@ -1620,11 +1790,19 @@ export function useChat() {
     sandboxProfileId: activeId ? session?.sandboxProfileId || "" : sandboxProfileId,
     sandboxLocked: !!session?.runId,
     sandboxBusy,
-    workspaceSandbox,
-    workspaceExecution,
-    workspaceExecutionError,
+    workspaceSandbox: workspaceSandbox || null,
+    workspaceExecution: workspace?.execution || null,
+    workspaceExecutionError: workspace?.error || "",
     ...executionMachines,
     selectSandbox,
+    knowledgeRefs:activeId ? session?.knowledgeRefs || [] : draftKnowledgeRefs,
+    async saveKnowledgeRefs(refs){
+      const id=activeId;
+      if((id||"")!==(currentId.current||"") || projectId!==projectRef.current)throw new Error("会话已切换，请重新选择知识库");
+      if (!id){setDraftKnowledgeRefs(refs);return}
+      const saved=await write(sessionPath(id)+"/knowledge",{knowledgeRefs:refs},"PUT");
+      if(currentId.current===id){sessionRef.current=saved;setSession(saved)}
+    },
     models: executorModels,
     executor,
     executors: user ? availableExecutors : [],

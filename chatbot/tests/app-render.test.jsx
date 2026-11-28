@@ -71,6 +71,33 @@ vi.mock("mermaid", () => ({
 import App from "../src/App.jsx";
 
 describe("App", () => {
+  test("tells the workbench whether the composer is centred (home) or at the bottom (conversation)", () => {
+    const parent = { postMessage: vi.fn() };
+    const descriptor = Object.getOwnPropertyDescriptor(window, "parent");
+    const original = { activeId: chat.activeId, session: chat.session };
+    Object.defineProperty(window, "parent", { configurable: true, get: () => parent });
+    const layouts = () => parent.postMessage.mock.calls.filter(([m]) => m?.type === "agentflow-chat-layout").map(([m, origin]) => [m.layout, origin]);
+    try {
+      Object.assign(chat, { activeId: null, session: null });
+      const view = render(<App />);
+      expect(layouts()).toEqual([["home", location.origin]]);
+      Object.assign(chat, { activeId: "s1", session: { id: "s1", messages: [{ role: "user", content: "hi" }] } });
+      view.rerender(<App />);
+      expect(layouts()).toEqual([["home", location.origin], ["conversation", location.origin]]);
+      Object.assign(chat, { activeId: "s2", session: { id: "s2", messages: [{ role: "user", content: "hi" }] } });
+      view.rerender(<App />);
+      expect(layouts()).toHaveLength(2);
+      Object.assign(chat, { activeId: null, session: null });
+      view.rerender(<App />);
+      expect(layouts().at(-1)).toEqual(["home", location.origin]);
+      view.unmount();
+    } finally {
+      Object.assign(chat, original);
+      if (descriptor) Object.defineProperty(window, "parent", descriptor);
+      else delete window.parent;
+    }
+  });
+
   test("pages the transcript without losing the reading position or original message indexes", () => {
     const original = { activeId: chat.activeId, session: chat.session };
     const messages = Array.from({ length: 85 }, (_, index) => ({
@@ -555,6 +582,43 @@ describe("App", () => {
     }
   });
 
+  test("create-and-clarify handoff pre-fills a clarify prompt and cleans mentionIntent", async () => {
+    const previous = { ...chat };
+    const originalFetch = globalThis.fetch;
+    const issues = {
+      i1: { id: "i1", title: "导出 CSV", projectId: "p1" },
+      i2: { id: "i2", title: "筛选条件", projectId: "p1" },
+    };
+    globalThis.fetch = vi.fn(async (path) => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ issue: issues[decodeURIComponent(String(path).split("/").pop())] }),
+    }));
+    Object.assign(chat, { projectId: "p1", startProjectDraft: vi.fn() });
+    history.replaceState({}, "", "/?projectId=p1&mentionIssue=i1&mentionIntent=clarify");
+    let view;
+    try {
+      view = render(<App />);
+      const box = screen.getByRole("textbox");
+      await waitFor(() => expect(box.value).toBe("@导出 CSV 帮我澄清这个需求"));
+      expect(new URLSearchParams(location.search).has("mentionIssue")).toBe(false);
+      expect(new URLSearchParams(location.search).has("mentionIntent")).toBe(false);
+
+      window.dispatchEvent(new MessageEvent("message", {
+        data: { type: "agentflow-chat-mention-issue", issueId: "i2", projectId: "p1", intent: "clarify" },
+        origin: location.origin,
+        source: window.parent,
+      }));
+      await waitFor(() => expect(box.value).toBe("@筛选条件 帮我澄清这个需求"));
+    } finally {
+      view?.unmount();
+      globalThis.fetch = originalFetch;
+      Object.assign(chat, previous);
+      delete chat.startProjectDraft;
+      localStorage.clear();
+    }
+  });
+
   test("a requirement handoff keeps the project's unsent new-conversation draft", async () => {
     const previous = { ...chat };
     const originalFetch = globalThis.fetch;
@@ -697,8 +761,8 @@ describe("App", () => {
     expect(screen.getByLabelText("选择项目")).toHaveClass("is-unset");
     await user.click(screen.getByText("接入测试环境"));
     expect(screen.getByRole("textbox").value).toMatch(/^带我一步步接入测试环境/);
-    await user.click(screen.getByText("选用 SOP 与角色"));
-    expect(screen.getByRole("textbox").value).toMatch(/产品、前端、后端交付 SOP/);
+    await user.click(screen.getByText("选用 LOOP 与角色"));
+    expect(screen.getByRole("textbox").value).toMatch(/产品、前端、后端交付 LOOP/);
   });
 
   test("questions and replies show when they were sent, and the header switches project", async () => {
@@ -795,11 +859,21 @@ describe("App", () => {
     expect(chat.edit).toHaveBeenCalled();
 
     await user.click(screen.getByLabelText("重命名会话"));
-    const rename = screen.getByRole("dialog").querySelector("input");
+    const renameDialog = screen.getByRole("dialog", { name: "重命名会话" });
+    const rename = within(renameDialog).getByRole("textbox", { name: "会话名称" });
     await user.clear(rename);
     await user.type(rename, "新会话名");
+    let failRename;
+    chat.rename.mockReturnValueOnce(new Promise((_, reject) => { failRename = reject; }));
+    await user.keyboard("{Enter}");
+    expect(within(renameDialog).getByRole("button", { name: "保存中…" })).toBeDisabled();
+    expect(chat.rename).toHaveBeenCalledTimes(1);
+    await act(async () => failRename(new Error("保存会话名称失败")));
+    expect(within(renameDialog).getByRole("alert")).toHaveTextContent("保存会话名称失败");
+    expect(rename).toHaveValue("新会话名");
     chat.rename.mockResolvedValueOnce(true);
-    await user.click(screen.getByText("保存"));
+    await user.click(within(renameDialog).getByRole("button", { name: "保存" }));
+    expect(renameDialog).not.toBeInTheDocument();
 
     const showSidebar = screen.queryByLabelText("显示会话侧边栏");
     if (showSidebar) await user.click(showSidebar);
@@ -847,7 +921,7 @@ describe("App", () => {
             role: "assistant",
             content: JSON.stringify({
               message: "生成了产物",
-              drafts: [{ tool: "workflows_save", body: { name: "交付 SOP", projectId: "p1" } }],
+              drafts: [{ tool: "workflows_save", body: { name: "交付 LOOP", projectId: "p1" } }],
             }),
             attachments: [{ id: "img1", name: "result.png", mimeType: "image/png" }],
             createdAt: new Date().toISOString(),
@@ -992,16 +1066,18 @@ describe("App", () => {
       activeId: "readonly",
       session: {
         id: "readonly", title: "共享会话", projectId: "p2", readOnly: true,
-        shared: true, messages: [{ role: "assistant", content: "只读内容", createdAt: new Date().toISOString() }],
+        messages: [{ role: "assistant", content: "只读内容", createdAt: new Date().toISOString() }],
       },
       projectId: "p2",
       readOnly: true,
     });
     view.rerender(<App />);
     expect(document.querySelector(".readonly-notice")?.textContent).toContain("只能查看这个会话");
+    expect(screen.queryByLabelText("重命名会话")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "共享会话" })).toBeDisabled();
 
     Object.assign(chat, {
-      session: { ...chat.session, readOnly: false },
+      session: { ...chat.session, readOnly: false, shared: true },
       readOnly: false,
       generation: { id: "g2", status: "failed", error: "中断原因" },
       live: {
@@ -1013,49 +1089,66 @@ describe("App", () => {
     });
     view.rerender(<App />);
     expect(screen.getByText("中断原因")).toBeInTheDocument();
+    expect(screen.queryByLabelText("重命名会话")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "共享会话" })).toBeDisabled();
     Object.assign(chat, previous);
   });
 
-  test("previews a pasted screenshot in the composer instead of only a filename", async () => {
+  test("keeps a pasted screenshot visible through sending and transcript refresh", async () => {
+    const previous = { ...chat };
     const originalFetch = globalThis.fetch;
-    const originalCreate = globalThis.URL.createObjectURL;
-    const originalRevoke = globalThis.URL.revokeObjectURL;
-    globalThis.URL.createObjectURL = vi.fn(() => "blob:composer-preview");
-    globalThis.URL.revokeObjectURL = vi.fn();
+    const originalCreate = URL.createObjectURL;
+    const originalRevoke = URL.revokeObjectURL;
+    URL.createObjectURL = vi.fn(() => "blob:composer-preview");
+    URL.revokeObjectURL = vi.fn();
+    const attachment = { id: "shot-1", name: "shot.png", mimeType: "image/png", size: 2048 };
     globalThis.fetch = vi.fn(async () => ({
-      ok: true,
-      status: 200,
-      json: async () => ({ id: "shot-1", name: "shot.png", mimeType: "image/png", size: 2048 }),
+      ok: true, status: 200, json: async () => attachment,
     }));
-    Object.assign(chat, {
-      local: false,
-      activeId: null,
-      session: null,
-      projectId: "p1",
-      readOnly: false,
-    });
+    const session = { id: "sent-screenshot", projectId: "p1", messages: [] };
+    Object.assign(chat, { local: false, activeId: session.id, session, projectId: "p1", readOnly: false });
     const view = render(<App />);
-    fireEvent.paste(screen.getByLabelText("消息"), {
-      clipboardData: {
-        items: [
-          {
-            kind: "file",
-            getAsFile: () => new File(["png"], "shot.png", { type: "image/png" }),
-          },
-        ],
-      },
-    });
-    const thumb = await screen.findByAltText("shot.png");
-    expect(thumb.getAttribute("src")).toBe("blob:composer-preview");
-    expect(thumb.closest(".composer-attachment-thumb")).toBeTruthy();
-    fireEvent.click(screen.getByLabelText("查看图片 shot.png"));
-    expect(screen.getByLabelText("查看大图 shot.png")).toBeInTheDocument();
-    view.unmount();
-    globalThis.fetch = originalFetch;
-    if (originalCreate) globalThis.URL.createObjectURL = originalCreate;
-    else delete globalThis.URL.createObjectURL;
-    if (originalRevoke) globalThis.URL.revokeObjectURL = originalRevoke;
-    else delete globalThis.URL.revokeObjectURL;
+    let acknowledge;
+    try {
+      fireEvent.paste(screen.getByLabelText("消息"), {
+        clipboardData: {
+          items: [{ kind: "file", getAsFile: () => new File(["png"], "shot.png", { type: "image/png" }) }],
+        },
+      });
+      const composerImage = await screen.findByLabelText("查看图片 shot.png");
+      expect(within(composerImage).getByAltText("shot.png")).toHaveAttribute("src", "blob:composer-preview");
+      fireEvent.click(composerImage);
+      const lightbox = screen.getByLabelText("查看大图 shot.png");
+      fireEvent.click(within(lightbox).getByRole("button", { name: "关闭大图" }));
+
+      chat.send.mockImplementationOnce(({ attachments }) => {
+        expect(attachments).toEqual([attachment]);
+        chat.session = { ...session, messages: [{ role: "user", content: "截图", attachments }] };
+        return new Promise((resolve) => { acknowledge = resolve; });
+      });
+      fireEvent.click(screen.getByRole("button", { name: "发送消息" }));
+      view.rerender(<App />);
+      const messageImage = () => view.container.querySelector(".message-attachments img");
+      expect(messageImage()).toHaveAttribute("src", "blob:composer-preview");
+      await act(async () => acknowledge(true));
+      expect(screen.queryByLabelText("查看图片 shot.png")).toBeNull();
+      chat.session = JSON.parse(JSON.stringify(chat.session));
+      view.rerender(<App />);
+      expect(messageImage()).toHaveAttribute("src", "blob:composer-preview");
+      expect(URL.revokeObjectURL).not.toHaveBeenCalledWith("blob:composer-preview");
+    } finally {
+      view.unmount();
+      Object.assign(chat, previous);
+      globalThis.fetch = originalFetch;
+      try {
+        expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:composer-preview");
+      } finally {
+        if (originalCreate) URL.createObjectURL = originalCreate;
+        else delete URL.createObjectURL;
+        if (originalRevoke) URL.revokeObjectURL = originalRevoke;
+        else delete URL.revokeObjectURL;
+      }
+    }
   });
 
   test("uploads a pasted screenshot over plain HTTP, where crypto.randomUUID is missing", async () => {
@@ -1182,6 +1275,93 @@ describe("App", () => {
     expect(screen.getByLabelText("查看会话产物")).toBeInTheDocument();
     await new Promise((resolve) => setTimeout(resolve, 320));
     expect(document.getElementById("conversation-artifacts")).toBeNull();
+    view.unmount();
+    Object.assign(chat, previous);
+  });
+
+  // 46 turns with pending drafts in MSG-039 and MSG-045; the recent view holds
+  // the last 40 (offset 6) until the full transcript arrives.
+  const longDraftSession = () => {
+    const messages = Array.from({ length: 46 }, (_, index) => {
+      const label = `MSG-${String(index).padStart(3, "0")}`;
+      if (index !== 39 && index !== 45)
+        return { id: label, role: index % 2 ? "assistant" : "user", content: label };
+      const title = `DRAFT-${String(index).padStart(3, "0")}`;
+      return {
+        id: label,
+        role: "assistant",
+        content: JSON.stringify({
+          message: `${label} 草稿`,
+          drafts: [{ tool: "issues_save", body: { projectId: "p1", title } }],
+        }),
+      };
+    });
+    const full = { id: "long-draft", title: "长会话", projectId: "p1", messages };
+    const tail = { ...full, messagesPartial: true, messagesOffset: 6, messages: messages.slice(6) };
+    return { full, tail };
+  };
+  const openLongDraft = (session) => Object.assign(chat, {
+    local: false,
+    projectId: "p1",
+    activeId: "long-draft",
+    readOnly: false,
+    sessions: [],
+    busy: false,
+    generation: null,
+    live: { answer: "", thinking: "", tools: [], activity: [] },
+    session,
+  });
+
+  test("keeps the drawer closed when the full transcript replaces the recent tail", async () => {
+    const previous = { ...chat };
+    const { full, tail } = longDraftSession();
+    openLongDraft(tail);
+    const view = render(<App />);
+    await new Promise((resolve) => setTimeout(resolve, 320));
+    expect(document.getElementById("conversation-artifacts")).toBeNull();
+    // The earlier turns arrive; their artifacts are restored, not generated.
+    openLongDraft(full);
+    view.rerender(<App />);
+    await new Promise((resolve) => setTimeout(resolve, 320));
+    expect(document.getElementById("conversation-artifacts")).toBeNull();
+    expect(document.getElementById("artifact-unread-description")).toBeNull();
+    view.unmount();
+    Object.assign(chat, previous);
+  });
+
+  test("a draft selected on the recent tail stays selected when the full transcript arrives", async () => {
+    const previous = { ...chat };
+    const { full, tail } = longDraftSession();
+    openLongDraft(tail);
+    const applyDraft = vi.fn(async () => {});
+    chat.applyDraft = applyDraft;
+    const view = render(<App />);
+    await userEvent.click(screen.getByLabelText("查看会话产物"));
+    const drawer = await waitFor(() => {
+      const panel = document.getElementById("conversation-artifacts");
+      expect(panel).toBeTruthy();
+      return panel;
+    });
+    await userEvent.click(within(drawer).getByText("DRAFT-045"));
+    await waitFor(() => expect(within(drawer).getAllByText(/DRAFT-045/).length).toBeGreaterThan(0));
+    // Each transcript turn still shows its own draft card.
+    const cards = [...document.querySelectorAll(".message-drafts .draft-card")].map((card) => card.textContent);
+    expect(cards).toHaveLength(2);
+    expect(cards[0]).toContain("DRAFT-039");
+    expect(cards[1]).toContain("DRAFT-045");
+
+    openLongDraft(full);
+    view.rerender(<App />);
+    const panel = document.getElementById("conversation-artifacts");
+    expect(within(panel).queryByText(/DRAFT-039/)).toBeNull();
+    const confirm = within(panel)
+      .getAllByRole("button")
+      .find((button) => button.className.includes("primary-button") && /^确认/.test(button.textContent));
+    expect(confirm).toBeTruthy();
+    await userEvent.click(confirm);
+    await waitFor(() => expect(applyDraft).toHaveBeenCalled());
+    expect(applyDraft.mock.calls[0].slice(0, 2)).toEqual([45, 0]);
+    expect(applyDraft.mock.calls[0][2].expected.body.title).toBe("DRAFT-045");
     view.unmount();
     Object.assign(chat, previous);
   });

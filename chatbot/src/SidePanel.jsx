@@ -187,7 +187,7 @@ export function DraftCard({
           <p className="proposal-reason">
             {draft.proposal.timing !== "start"
               ? chatT("可选的后续工作", "Công việc tiếp theo tùy chọn")
-              : chatT("建议整件事走 SOP", "Đề xuất thực hiện toàn bộ công việc qua SOP")}
+              : chatT("建议整件事走 LOOP", "Đề xuất thực hiện toàn bộ công việc qua LOOP")}
             ：{draft.proposal.reason}
           </p>
         ) : null}
@@ -321,7 +321,7 @@ export function DraftCard({
           ) : busy ? (
             chatT("执行中…", "Đang thực thi…")
           ) : draft.proposal ? (
-            draft.tool === "issues_save" ? chatT("建需求并走 SOP", "Tạo yêu cầu và chạy SOP") : chatT("走 SOP", "Chạy SOP")
+            draft.tool === "issues_save" ? chatT("建需求并走 LOOP", "Tạo yêu cầu và chạy LOOP") : chatT("走 LOOP", "Chạy LOOP")
           ) : (
             chatT(`确认${summary.title}`, `Xác nhận ${summary.title}`)
           )}
@@ -503,7 +503,7 @@ export default function SidePanel({
     }
   }
   return (
-    <aside className="side-panel" aria-label={chatT("产物与 SOP", "Sản phẩm đầu ra và SOP")}>
+    <aside className="side-panel" aria-label={chatT("产物与 LOOP", "Sản phẩm đầu ra và LOOP")}>
       <header className="panel-tabs">
         <SlidingTabs aria-label={chatT("右侧面板", "Bảng bên phải")}>
           <button
@@ -529,7 +529,7 @@ export default function SidePanel({
             }}
           >
             <GitBranch size={14} />
-            SOP
+            LOOP
           </button>
         </SlidingTabs>
         <IconButton label={chatT("关闭侧边栏", "Đóng thanh bên")} onClick={onClose}>
@@ -542,7 +542,11 @@ export default function SidePanel({
             <button className="back-link" onClick={() => setSelected(null)}>
               {chatT("← 所有产物", "← Mọi sản phẩm đầu ra")}
             </button>
-            <ArtifactPreview artifact={selected} />
+            <ArtifactPreview
+              artifact={selected}
+              knowledgeReads={selected.knowledgeReads || []}
+              attempt={selected.attempt}
+            />
             {selected.draft ? (
               <DraftCard
                 artifact={selected}
@@ -565,7 +569,7 @@ export default function SidePanel({
                 <File size={28} />
                 <h3>{chatT("产物会显示在这里", "Sản phẩm đầu ra sẽ xuất hiện tại đây")}</h3>
                 <p>
-                  {chatT("对话中的图片、文件、图表、代码和 SOP 草稿会自动汇集，点击即可查看。", "Hình ảnh, tệp, biểu đồ, mã và bản nháp SOP trong cuộc trò chuyện được tự động tập hợp tại đây. Nhấp để xem.")}
+                  {chatT("对话中的图片、文件、图表、代码和 LOOP 草稿会自动汇集，点击即可查看。", "Hình ảnh, tệp, biểu đồ, mã và bản nháp LOOP trong cuộc trò chuyện được tự động tập hợp tại đây. Nhấp để xem.")}
                 </p>
               </div>
             ) : (
@@ -601,8 +605,8 @@ export default function SidePanel({
         ) : (
           <>
             <div className="panel-heading">
-              <h2>SOP</h2>
-              <IconButton label={chatT("刷新 SOP 与运行", "Làm mới SOP và lượt chạy")} onClick={() => void load()}>
+              <h2>LOOP</h2>
+              <IconButton label={chatT("刷新 LOOP 与运行", "Làm mới LOOP và lượt chạy")} onClick={() => void load()}>
                 <RefreshCw size={16} />
               </IconButton>
             </div>
@@ -648,19 +652,19 @@ export default function SidePanel({
                     id: "workflow-" + workflowId,
                     name:
                       workflows.find((w) => w.id === workflowId)?.name ||
-                      chatT("SOP 定义", "Định nghĩa SOP"),
+                      chatT("LOOP 定义", "Định nghĩa LOOP"),
                     kind: "sop",
                     content: JSON.stringify(
                       workflows.find((w) => w.id === workflowId),
                       null,
                       2,
                     ),
-                    source: chatT("项目 SOP", "SOP của dự án"),
+                    source: chatT("项目 LOOP", "LOOP của dự án"),
                   })
                 }
               >
                 <ChevronRight size={14} />
-                {chatT("查看 SOP 定义", "Xem định nghĩa SOP")}
+                {chatT("查看 LOOP 定义", "Xem định nghĩa LOOP")}
               </button>
             ) : null}
             <div className="button-row">
@@ -669,7 +673,7 @@ export default function SidePanel({
                 className="quiet-button"
                 onClick={() => action("clone")}
               >
-                {chatT("创建 SOP", "Tạo SOP")}
+                {chatT("创建 LOOP", "Tạo LOOP")}
               </button>
               <button
                 disabled={busy}
@@ -677,7 +681,7 @@ export default function SidePanel({
                 onClick={() => action("dispatch")}
               >
                 <Play size={13} />
-                {busy ? chatT("处理中…", "Đang xử lý…") : chatT("派发 SOP", "Điều phối SOP")}
+                {busy ? chatT("处理中…", "Đang xử lý…") : chatT("派发 LOOP", "Điều phối LOOP")}
               </button>
             </div>
             {error ? (
@@ -703,7 +707,7 @@ export default function SidePanel({
                 ))}
               {!artifacts.some((a) => a.kind === "sop") ? (
                 <p className="muted">
-                  {chatT("在聊天中描述要创建或派发的 SOP，草稿将在这里等待确认。", "Mô tả SOP cần tạo hoặc điều phối trong trò chuyện; bản nháp sẽ chờ xác nhận tại đây.")}
+                  {chatT("在聊天中描述要创建或派发的 LOOP，草稿将在这里等待确认。", "Mô tả LOOP cần tạo hoặc điều phối trong trò chuyện; bản nháp sẽ chờ xác nhận tại đây.")}
                 </p>
               ) : null}
             </section>
@@ -752,7 +756,7 @@ export default function SidePanel({
                         ...a,
                         mimeType: a.mediaType,
                         kind: a.mediaType === "image/svg+xml" ? "svg" : "code",
-                        source: chatT("SOP 运行产物", "Sản phẩm đầu ra của lượt chạy SOP"),
+                        source: chatT("LOOP 运行产物", "Sản phẩm đầu ra của lượt chạy LOOP"),
                         url: `/api/runs/${encodeURIComponent(openRun.id)}/artifacts/${encodeURIComponent(a.id)}`,
                       })
                     }

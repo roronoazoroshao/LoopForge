@@ -19,7 +19,7 @@ test("chat composer selector survives translated aria-label", () => {
   const code=source("../src/App.jsx");
   assert.match(code, /<ReferenceInput/);
   assert.match(code, /"data-chat-composer": "true"/);
-  assert.match(code, /"aria-label": chatT\("消息", "Tin nhắn"\)/);
+  assert.match(code, /"aria-label": chatT\("消息", "Tin nhắn", "Message"\)/);
 });
 test("shared references localize UI copy but not asset data", () => {
   const code=source("../../web/app/shared-schedules.js");

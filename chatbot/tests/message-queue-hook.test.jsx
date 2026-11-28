@@ -198,7 +198,7 @@ describe("sending while a reply runs", () => {
       executionTarget: { pool: "runner", runnerId: "runner-a" },
     };
     let completeProbe;
-    apiMock.mockImplementation((path, options) => path === "/api/runners?mine=1"
+    apiMock.mockImplementation((path, options) => path === "/api/runners?projectId=p1"
       ? Promise.resolve([{ id: "runner-a", ownerUserId: 1, runtimes: [{ provider: "agy", authMode: "local" }] }])
       : originalAPI(path, options));
     writeMock.mockImplementation((path, body, method) => path === "/api/runners/runner-a/models/probe"
@@ -281,7 +281,7 @@ describe("sending while a reply runs", () => {
     apiMock.mockImplementation((path, options) => {
       if (path.includes("/sessions/s1/generation") && !started)
         return Promise.reject(Object.assign(Error("生成不存在"), { status: 404 }));
-      if (path === "/api/assistant/sessions/s1" && started && !resolveTranscript)
+      if ((path.split("?")[0] === "/api/assistant/sessions/s1") && started && !resolveTranscript)
         return new Promise((resolve) => { resolveTranscript = resolve; });
       return original(path, options);
     });

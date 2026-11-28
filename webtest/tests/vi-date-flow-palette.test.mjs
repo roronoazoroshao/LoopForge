@@ -13,7 +13,7 @@ test('date picker shows Vietnamese weekdays without altering legacy Chinese mode
 test('flow palette renders Vietnamese statuses and protects workflow names',()=>{
  const src=source('flow-palette.js');
  assert.match(src,/data-i18n-skip/);
- assert.match(src,/Đã sao chép tên SOP/);
+ assert.match(src,/Đã sao chép tên LOOP/);
  const context=vm.createContext({window:{lfLang:()=> 'vi'}});
  vm.runInContext(src.slice(src.indexOf('  const paletteVI='),src.indexOf('  const ICONS=')),context);
  assert.equal(vm.runInContext("paletteCopy('已发布','Đã phát hành')",context),'Đã phát hành');

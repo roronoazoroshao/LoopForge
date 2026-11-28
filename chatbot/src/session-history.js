@@ -6,13 +6,13 @@ export function sessionProjectName(projectId, projects) {
     : chatT("个人对话", "Hội thoại cá nhân");
 }
 
-// What a history search matches: the names shown for the row, the SOP a run
+// What a history search matches: the names shown for the row, the LOOP a run
 // conversation belongs to and its project.
 export function sessionSearchText(session, projectName) {
   return `${session.title || ""} ${session.displayTitle || ""} ${session.sopName || ""} ${projectName}`.toLocaleLowerCase();
 }
 
-// An untouched SOP run conversation: the platform created it with the run and
+// An untouched LOOP run conversation: the platform created it with the run and
 // nobody has written to it since.
 export function emptyRunConversation(session) {
   return Boolean(

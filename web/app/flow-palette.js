@@ -1,4 +1,4 @@
-// Flow designer chrome: line icon set, node palette and the SOP switcher.
+// Flow designer chrome: line icon set, node palette and the LOOP switcher.
 const flowPalette=(()=>{
   const COLLAPSE_KEY='agentflow.flowPaletteCollapsed',MIME='application/x-agentflow-node';
   const paletteVI=()=>window.lfLang?.()==='vi';
@@ -72,7 +72,7 @@ const flowPalette=(()=>{
     const roles=workflowAgents().map(a=>({id:a.id,name:sopSeedRoleDisplayName(a,state.workflow)||a.id,original:a.name||'',desc:roleDesc(a)})).filter(r=>matches(q,r.name,r.original,r.id,r.desc));
     const all=workflowAgents().length;
     host.innerHTML=roles.map(r=>`<div class="fd-pal-item" data-i18n-skip role="button" tabindex="0" draggable="true" data-add="agent" data-agent-id="${escapeHTML(r.id)}" data-tip="${escapeHTML(r.name)}"><span class="fd-tile" style="--tint:${roleTint(r.id)}">${escapeHTML(initial(r.name))}</span><div class="fd-pal-text"><b>${escapeHTML(r.name)}</b><small>${escapeHTML(r.desc)}</small></div><span class="fd-grip">${icon('grip',14)}</span></div>`).join('')
-      ||(!q&&!all?`<div class="fd-pal-none">${state.workflow?paletteCopy('这个项目还没有角色','Dự án chưa có vai trò'):paletteCopy('先选择一条 SOP','Hãy chọn SOP trước')}${state.workflow&&!catalogGeneric(state.workflow)?'<button type="button" class="fd-link" data-pal-agents>去角色定义</button>':''}</div>`:'');
+      ||(!q&&!all?`<div class="fd-pal-none">${state.workflow?paletteCopy('这个项目还没有角色','Dự án chưa có vai trò'):paletteCopy('先选择一条 LOOP','Hãy chọn LOOP trước')}${state.workflow&&!catalogGeneric(state.workflow)?'<button type="button" class="fd-link" data-pal-agents>去角色定义</button>':''}</div>`:'');
     const count=document.getElementById('flowPaletteRoleCount');if(count)count.textContent=all?String(roles.length):'';
     let shown=roles.length;
     document.querySelectorAll('#flowPaletteBody .fd-pal-group').forEach(group=>{
@@ -138,7 +138,7 @@ const flowPalette=(()=>{
     render();
   }
 
-  // ---- SOP switcher ----
+  // ---- LOOP switcher ----
   function workflowStatus(w){
     if(catalogGeneric(w))return {cls:'ro',label:window.lfT('只读模板','Read-only template','Mẫu chỉ đọc')};
     if(catalogForeign(w.projectId))return {cls:'ro',label:window.lfT('共享 · 只读','Shared · read-only','Chia sẻ · chỉ đọc')};
@@ -158,8 +158,12 @@ const flowPalette=(()=>{
     host.innerHTML=switcherGroups().map(g=>{
       const items=g.items.filter(w=>matches(q,sopSeedWorkflowDisplayName(w),w.name||'',w.id||''));
       if(!items.length)return '';
-      return `<div class="fd-pop-gh">${escapeHTML(g.title)}</div>`+items.map(w=>{const s=workflowStatus(w),current=w.id===cur,name=sopSeedWorkflowDisplayName(w)||'未命名 SOP';return `<button type="button" class="fd-pop-item ${current?'cur':''}" role="option" aria-selected="${current}" data-switch-workflow="${escapeHTML(w.id)}"><span class="fd-sd ${s.cls}"></span><span class="fd-pop-text"><span class="fd-pop-title"><b data-i18n-skip>${escapeHTML(name)}</b><span class="fd-pop-copy" role="button" tabindex="0" data-copy-sop-name="${escapeHTML(name)}" aria-label="${window.lfT('复制 SOP 名称','Copy SOP name','Sao chép tên SOP')}" title="${window.lfT('复制 SOP 名称','Copy SOP name','Sao chép tên SOP')}">${icon('copy',14,1.7)}</span></span><small>${s.label} · v${w.version||1} · ${window.lfT(`${(w.nodes||[]).length} 步`,`${(w.nodes||[]).length} steps`,`${(w.nodes||[]).length} bước`)}</small></span>${current?`<span class="fd-ck">${icon('check',15,2.2)}</span>`:''}</button>`}).join('');
-    }).join('')||`<div class="fd-pal-empty">没有匹配的 SOP</div>`;
+      return `<div class="fd-pop-gh">${escapeHTML(g.title)}</div>`+items.map(w=>{
+        const status=workflowStatus(w),current=w.id===cur,name=sopSeedWorkflowDisplayName(w)||'未命名 LOOP';
+        const meta=[status.label,workflowVersionLabel(w),window.lfT(`${(w.nodes||[]).length} 步`,`${(w.nodes||[]).length} steps`,`${(w.nodes||[]).length} bước`)].filter(Boolean).join(' · ');
+        return `<button type="button" class="fd-pop-item ${current?'cur':''}" role="option" aria-selected="${current}" data-switch-workflow="${escapeHTML(w.id)}"><span class="fd-sd ${status.cls}"></span><span class="fd-pop-text"><span class="fd-pop-title"><b data-i18n-skip>${escapeHTML(name)}</b><span class="fd-pop-copy" role="button" tabindex="0" data-copy-sop-name="${escapeHTML(name)}" aria-label="${window.lfT('复制 LOOP 名称','Copy LOOP name','Sao chép tên LOOP')}" title="${window.lfT('复制 LOOP 名称','Copy LOOP name','Sao chép tên LOOP')}">${icon('copy',14,1.7)}</span></span><small>${escapeHTML(meta)}</small></span>${current?`<span class="fd-ck">${icon('check',15,2.2)}</span>`:''}</button>`;
+      }).join('');
+    }).join('')||`<div class="fd-pal-empty">没有匹配的 LOOP</div>`;
   }
   function isSwitcherOpen(){const p=document.getElementById('flowSwitchPop');return !!p&&!p.hidden}
   function setSwitcher(open){
@@ -178,7 +182,7 @@ const flowPalette=(()=>{
       e.preventDefault();e.stopPropagation();
       const name=(state.workflow?.name||'').trim()||'未命名流程';
       if(!state.workflow||typeof copyText!=='function')return;
-      copyText(name,paletteCopy('SOP 名称已复制','Đã sao chép tên SOP'));
+      copyText(name,paletteCopy('LOOP 名称已复制','Đã sao chép tên LOOP'));
     });
     const q=document.getElementById('flowSwitchQ');
     q?.addEventListener('input',renderSwitcher);
@@ -188,7 +192,7 @@ const flowPalette=(()=>{
       if(copy){
         e.preventDefault();e.stopPropagation();
         const name=(copy.getAttribute('data-copy-sop-name')||'').trim()||'未命名流程';
-        if(typeof copyText==='function')copyText(name,paletteCopy('SOP 名称已复制','Đã sao chép tên SOP'));
+        if(typeof copyText==='function')copyText(name,paletteCopy('LOOP 名称已复制','Đã sao chép tên LOOP'));
         return;
       }
       const item=e.target.closest('[data-switch-workflow]');if(!item)return;

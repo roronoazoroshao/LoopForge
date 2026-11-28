@@ -11,6 +11,8 @@ const BUILTIN_VI = {
   "交付汇总": "Tổng kết bàn giao",
   "通用后端交付 SOP": "SOP bàn giao backend chung",
   "后端交付 SOP": "SOP bàn giao backend",
+  "通用后端交付 LOOP": "LOOP bàn giao backend chung",
+  "后端交付 LOOP": "LOOP bàn giao backend",
   "澄清需求边界与验收标准": "Làm rõ phạm vi yêu cầu và tiêu chí nghiệm thu",
   "产出技术方案与实现计划": "Tạo phương án kỹ thuật và kế hoạch triển khai",
   "在工作分支实现并自测": "Triển khai và tự kiểm thử trên nhánh làm việc",
@@ -62,7 +64,7 @@ const STEPS = [
   },
   {
     id: "workflow",
-    title: chatT("默认角色与 SOP", "Vai trò và SOP mặc định"),
+    title: chatT("默认角色与 LOOP", "Vai trò và LOOP mặc định"),
     desc: chatT("使用平台默认角色与通用交付流程", "Dùng vai trò mặc định của nền tảng và quy trình bàn giao chung"),
   },
   {
@@ -596,12 +598,20 @@ function parseGitHubRepo(raw) {
   };
 }
 
-// Explicit SSH keeps its transport. Managed HTTPS links use the configured host.
+// An ordinary managed link keeps its provider identity. Clone commands can
+// explicitly choose plaintext transport.
 export function parseGongfengRepo(raw, host = "") {
+  if (globalThis.LoopForgeExplicitHTTPClone(raw)) {
+    return globalThis.LoopForgeGitHTTPRepository(raw);
+  }
   return globalThis.LoopForgeGitSSH(raw) ||
     globalThis.LoopForgeGongfengRepository(raw, host) ||
-    globalThis.LoopForgeGitHTTPS(raw) ||
-    parseGitHubRepo(raw);
+    parseGitHubRepo(raw) ||
+    globalThis.LoopForgeGitHTTPRepository(raw);
+}
+
+function parseSavedRepo(repo, host) {
+  return parseGongfengRepo(repo?.provider === "http" ? globalThis.LoopForgeGitRepositoryReference(repo) : repo?.cloneUrl, host);
 }
 
 function slugifyProjectId(value) {
@@ -692,7 +702,7 @@ async function provisionFallbackProjectSOP(projectId, workflowId, owner) {
     "/api/workflows",
     {
       id: workflowId,
-      name: builtinDisplay("后端交付 SOP"),
+      name: builtinDisplay("后端交付 LOOP"),
       projectId,
       owner,
       status: "draft",
@@ -795,7 +805,7 @@ export default function QuickAccessWizard({
       : [
           {
             id: DEFAULT_SOP_ID,
-            name: "通用后端交付 SOP",
+            name: "通用后端交付 LOOP",
             description:
               "从需求定型、方案设计、代码实现、独立评审、测试验证到发起 MR 的标准交付链路。",
             generic: true,
@@ -867,8 +877,8 @@ export default function QuickAccessWizard({
           ? chatT("平台默认模板", "Mẫu mặc định nền tảng")
           : projectMode === "existing" &&
               workflow.projectId === currentProject?.id
-            ? chatT("本项目已有 SOP（直接复用）", "SOP hiện có của dự án (dùng lại trực tiếp)")
-            : chatT("共享 SOP", "SOP dùng chung");
+            ? chatT("本项目已有 LOOP（直接复用）", "LOOP hiện có của dự án (dùng lại trực tiếp)")
+            : chatT("共享 LOOP", "LOOP dùng chung");
         return {
           value: workflow.id,
           label: workflow.name,
@@ -987,7 +997,14 @@ export default function QuickAccessWizard({
           const http = fresh.gitHttpCredentialsConfigured
             ? await api(`/api/users/${encodeURIComponent(userId)}/git-http-credentials`).catch(() => [])
             : [];
-          if (current()) setGitHttpHosts(http.map(item => item.host));
+          const savedHosts = Array.isArray(http) ? http.map(item => item.host) : [];
+          const authorized = savedHosts.some(host => host.startsWith("http://"))
+            ? await api("/api/git-http-hosts").catch(() => [])
+            : [];
+          if (current()) {
+            const authorizedHosts = new Set(Array.isArray(authorized) ? authorized.map(item => item.host) : []);
+            setGitHttpHosts(savedHosts.filter(host => !host.startsWith("http://") || authorizedHosts.has(host)));
+          }
         })
         .catch(() => {})
         .finally(() => { if (current()) setCredentialsPending(false); });
@@ -1023,7 +1040,7 @@ export default function QuickAccessWizard({
 
   useEffect(() => {
     if (!open || !selectedWorkflowId) return undefined;
-    // Only platform templates have template roles; a project SOP would 404.
+    // Only platform templates have template roles; a project LOOP would 404.
     const known = (workflows || []).find((w) => w.id === selectedWorkflowId);
     if (known && !known.generic) {
       setTemplateAgents([]);
@@ -1080,7 +1097,7 @@ export default function QuickAccessWizard({
     else setSelectedWorkflowId(DEFAULT_SOP_ID);
   }, [open, projectMode, currentProject?.id]);
 
-  // A new project starts from the platform template; the SOP picked for the
+  // A new project starts from the platform template; the LOOP picked for the
   // previously selected project belongs to that project and is not offered.
   useEffect(() => {
     if (open && projectMode === "create") setSelectedWorkflowId(DEFAULT_SOP_ID);
@@ -1109,19 +1126,19 @@ export default function QuickAccessWizard({
   const wizardStepCount = STEPS.length - 1;
   const gitHubReady = Boolean(storedUser?.gitHubCredentialConfigured);
   const gongfengReady = Boolean(storedUser?.gitTokenOAuth);
-  const hasGit = gitHubReady || gongfengReady || Boolean(storedUser?.gitSshKeyConfigured || storedUser?.gitHttpCredentialsConfigured);
+  const hasGit = gitHubReady || gongfengReady || Boolean(storedUser?.gitSshKeyConfigured) || gitHttpHosts.length > 0;
   const sshKeysLoaded = sshCredentials.userId === user?.id && sshCredentials.keys !== null;
   const hasSSHKey = (remote) => sshKeysLoaded && !sshCredentials.error && sshCredentials.keys.some(
     (key) => globalThis.LoopForgeGitSSHHost(key.host) === remote?.host,
   );
   const gitAccess = (repo) => {
     if (repo?.provider === "ssh") return { label: "Git SSH", ready: hasSSHKey(repo) };
-    if (repo?.provider === "https") return { label: "Git HTTPS", ready: gitHttpHosts.includes(repo.host) };
+    if (["http", "https"].includes(repo?.provider)) return { label: `Git ${repo.provider.toUpperCase()}`, ready: gitHttpHosts.includes(repo.host) };
     if (repo?.provider === "github") return { label: "GitHub", ready: gitHubReady };
     if (repo?.provider === "gongfeng") return { label: chatT("工蜂", "Gongfeng"), ready: gongfengReady };
     return { label: "Git", ready: hasGit };
   };
-  const selectedRepo = (bindRepoNow && parsedRepo) || parseGongfengRepo(defaultRepo?.cloneUrl, gongfengHost);
+  const selectedRepo = (bindRepoNow && parsedRepo) || parseSavedRepo(defaultRepo, gongfengHost);
   const repoAccess = gitAccess(selectedRepo);
   const readyCLIs = EXECUTORS.filter(cli => personalEngineConfigured(storedUser, cli.id));
   const cliReady = readyCLIs.length > 0 || Boolean(sponsoredModel);
@@ -1214,7 +1231,7 @@ export default function QuickAccessWizard({
       }
       if (bindRepoNow && repoUrl.trim() && !parsedRepo) {
         setError(
-          chatT("请输入 Git HTTPS 仓库链接或 Git SSH 克隆地址。", "Nhập liên kết kho Git HTTPS hoặc địa chỉ clone Git SSH."),
+          chatT("请输入 Git HTTP(S) 仓库链接或 Git SSH 克隆地址。", "Nhập liên kết kho Git HTTP(S) hoặc địa chỉ clone Git SSH."),
         );
         return;
       }
@@ -1231,7 +1248,7 @@ export default function QuickAccessWizard({
     setError("");
     try {
       let targetProject = currentProject;
-      // Save the SOP the page shows; a stale id hidden by the current
+      // Save the LOOP the page shows; a stale id hidden by the current
       // filter must never be bound to the project.
       const sopId = activeWorkflow?.id || DEFAULT_SOP_ID;
       if (projectMode === "create") {
@@ -1272,7 +1289,7 @@ export default function QuickAccessWizard({
         const existingRepo = (repositories || []).find(
           (repo) =>
             repo.projectId === targetProject.id &&
-            (["ssh", "https"].includes(parsedRepo.provider)
+            (["ssh", "http", "https"].includes(parsedRepo.provider)
               ? repo.cloneUrl === parsedRepo.cloneUrl
               : repo.gongfengProjectId === parsedRepo.project ||
                 repo.webUrl === parsedRepo.webUrl),
@@ -1319,7 +1336,7 @@ export default function QuickAccessWizard({
               item.projectId === targetProject.id &&
               ((item.tags || []).includes(`generic-source:${sopId}`) ||
                 item.id === `${sopId}-${targetProject.id}` ||
-                item.name === (activeWorkflow?.name || "通用后端交付 SOP")),
+                item.name === (activeWorkflow?.name || "通用后端交付 LOOP")),
           );
         if (existingProjectSop) {
           provisionedWorkflow = existingProjectSop;
@@ -1336,7 +1353,7 @@ export default function QuickAccessWizard({
                 `/api/workflows/${encodeURIComponent(sopId)}/clone`,
                 {
                   id: cloneId,
-                  name: (activeWorkflow?.name || "通用后端交付 SOP").replace(
+                  name: (activeWorkflow?.name || "通用后端交付 LOOP").replace(
                     /^通用/,
                     "",
                   ),
@@ -1402,7 +1419,7 @@ export default function QuickAccessWizard({
         repository: boundRepo,
         workflow: provisionedWorkflow || activeWorkflow,
         roles: roles.map(({ id, name }) => ({ id, name })),
-        gitAccess: gitAccess(parseGongfengRepo(boundRepo?.cloneUrl, gongfengHost)),
+        gitAccess: gitAccess(parseSavedRepo(boundRepo, gongfengHost)),
         cliNames: EXECUTORS.filter(cli => personalEngineConfigured(storedUser, cli.id)).map(cli => cli.label),
       });
       setPhase("success");
@@ -1438,7 +1455,7 @@ export default function QuickAccessWizard({
               <HarnessIcon name="sparkles" size={20} />
             </div>
             <h2 id="qa-wizard-title">{chatT("快速接入", "Kết nối nhanh")}</h2>
-            <p>{chatT("提供最低限度的鉴权与仓库，直接使用默认角色和 SOP。", "Cung cấp xác thực và kho mã tối thiểu để dùng ngay vai trò và SOP mặc định.")}</p>
+            <p>{chatT("提供最低限度的鉴权与仓库，直接使用默认角色和 LOOP。", "Cung cấp xác thực và kho mã tối thiểu để dùng ngay vai trò và LOOP mặc định.")}</p>
           </div>
           <ol className="qa-steps">
             {STEPS.map((item, index) => {
@@ -1523,7 +1540,7 @@ export default function QuickAccessWizard({
                       {chatT("快速接入已完成", "Đã hoàn tất kết nối nhanh")}
                     </h3>
                     <p className="qa-lede qa-success-item" style={{ "--i": 1 }}>
-                      {chatT(`已关联默认角色与「${builtinDisplay(completedSummary?.workflow?.name || "通用后端交付 SOP")}」，现在可以直接在工作台对话或派发需求。`, `Đã liên kết vai trò mặc định và “${builtinDisplay(completedSummary?.workflow?.name || "通用后端交付 SOP")}”; có thể trực tiếp trò chuyện hoặc điều phối yêu cầu trong bàn làm việc.`)}
+                      {chatT(`已关联默认角色与「${builtinDisplay(completedSummary?.workflow?.name || "通用后端交付 LOOP")}」，现在可以直接在工作台对话或派发需求。`, `Đã liên kết vai trò mặc định và “${builtinDisplay(completedSummary?.workflow?.name || "通用后端交付 LOOP")}”; có thể trực tiếp trò chuyện hoặc điều phối yêu cầu trong bàn làm việc.`)}
                     </p>
                   </div>
 
@@ -1548,7 +1565,7 @@ export default function QuickAccessWizard({
                             <HarnessIcon name="workflow" size={13} />
                           </span>
                           <span>
-                            {builtinDisplay(completedSummary?.workflow?.name || "通用后端交付 SOP")}
+                            {builtinDisplay(completedSummary?.workflow?.name || "通用后端交付 LOOP")}
                           </span>
                           <small>{chatT("已绑定", "Đã liên kết")}</small>
                         </li>
@@ -1634,9 +1651,9 @@ export default function QuickAccessWizard({
                         <HarnessIcon name="workflow" size={16} />
                       </span>
                       <span className="qa-action-copy">
-                        <strong>{chatT("查看或修改 SOP", "Xem hoặc sửa SOP")}</strong>
+                        <strong>{chatT("查看或修改 LOOP", "Xem hoặc sửa LOOP")}</strong>
                         <small>
-                          {chatT("在流程模板里查看默认 SOP，或复制到项目自由调整", "Xem SOP mặc định trong mẫu quy trình hoặc sao chép vào dự án để tùy chỉnh")}
+                          {chatT("在流程模板里查看默认 LOOP，或复制到项目自由调整", "Xem LOOP mặc định trong mẫu quy trình hoặc sao chép vào dự án để tùy chỉnh")}
                         </small>
                       </span>
                       <HarnessIcon
@@ -1901,7 +1918,7 @@ export default function QuickAccessWizard({
                                   ? chatT("旧项目可直接追加新仓库，复用已有流程与角色；留空则沿用现有仓库", "Dự án cũ có thể thêm trực tiếp kho mã mới, dùng lại quy trình và vai trò hiện có; để trống để dùng kho hiện tại")
                                   : chatT("沿用项目现有仓库与流程", "Dùng kho mã và quy trình hiện có của dự án")
                                 : bindRepoNow
-                                  ? chatT("粘贴 Git HTTPS 链接或 Git SSH 地址，自动设为项目默认仓库", "Dán liên kết Git HTTPS hoặc địa chỉ Git SSH, tự đặt làm kho mã mặc định của dự án")
+                                  ? chatT("粘贴 Git HTTP(S) 链接或 Git SSH 地址，自动设为项目默认仓库", "Dán liên kết Git HTTP(S) hoặc địa chỉ Git SSH, tự đặt làm kho mã mặc định của dự án")
                                   : chatT("已跳过，可在派发需求或项目配置中再绑定", "Đã bỏ qua; có thể liên kết khi điều phối yêu cầu hoặc trong Cài đặt dự án")}
                             </span>
                           </div>
@@ -1957,7 +1974,7 @@ export default function QuickAccessWizard({
                                     {projectMode === "existing" &&
                                     projectRepos.length
                                       ? chatT("新增仓库地址（可选）", "Địa chỉ kho mã mới (tùy chọn)")
-                                      : chatT("Git HTTPS 链接或 Git SSH 地址", "Liên kết Git HTTPS hoặc địa chỉ Git SSH")}
+                                      : chatT("Git HTTP(S) 链接或 Git SSH 地址", "Liên kết Git HTTP(S) hoặc địa chỉ Git SSH")}
                                   </span>
                                   <input
                                     className="qa-input qa-mono"
@@ -2004,7 +2021,7 @@ export default function QuickAccessWizard({
                                 </p>
                               ) : (
                                 <p key="help" className="qa-hint">
-                                  {chatT("支持 Git HTTPS 链接或 Git SSH 地址，例如", "Hỗ trợ liên kết Git HTTPS hoặc địa chỉ Git SSH, ví dụ")} <code>git@gitlab.com:group/repo.git</code>。
+                                  {chatT("支持 Git HTTP(S) 链接或 Git SSH 地址，例如", "Hỗ trợ liên kết Git HTTP(S) hoặc địa chỉ Git SSH, ví dụ")} <code>git@gitlab.com:group/repo.git</code>。
                                 </p>
                               )}
                               {selectedRepo?.provider === "ssh" && sshKeysLoaded && !repoAccess.ready ? (
@@ -2022,12 +2039,12 @@ export default function QuickAccessWizard({
                   {activeStep.id === "workflow" ? (
                     <div className="qa-pane">
                       <div className="qa-field">
-                        <span className="qa-label">{chatT("默认交付 SOP", "SOP bàn giao mặc định")}</span>
+                        <span className="qa-label">{chatT("默认交付 LOOP", "LOOP bàn giao mặc định")}</span>
                         <HarnessSelect
                           value={activeWorkflow?.id || DEFAULT_SOP_ID}
                           options={sopSelectOptions}
                           onChange={setSelectedWorkflowId}
-                          ariaLabel={chatT("默认交付 SOP", "SOP bàn giao mặc định")}
+                          ariaLabel={chatT("默认交付 LOOP", "LOOP bàn giao mặc định")}
                         />
                       </div>
 
@@ -2068,7 +2085,7 @@ export default function QuickAccessWizard({
                           <div
                             key="stages"
                             className="qa-flow-track qa-stagger"
-                            aria-label={chatT("SOP 阶段预览", "Xem trước giai đoạn SOP")}
+                            aria-label={chatT("LOOP 阶段预览", "Xem trước giai đoạn LOOP")}
                           >
                             <div
                               className="qa-flow-node is-edge"
@@ -2161,11 +2178,11 @@ export default function QuickAccessWizard({
                             </dd>
                           </div>
                           <div>
-                            <dt>{chatT("默认 SOP", "SOP mặc định")}</dt>
+                            <dt>{chatT("默认 LOOP", "LOOP mặc định")}</dt>
                             <dd>
                               <span className="qa-dot is-ok" />
                               <span>
-                                {chatT(`${builtinDisplay(activeWorkflow?.name || "通用后端交付 SOP")}（${roles.length} 个默认角色）`, `${builtinDisplay(activeWorkflow?.name || "通用后端交付 SOP")} (${roles.length} vai trò mặc định)`)}
+                                {chatT(`${builtinDisplay(activeWorkflow?.name || "通用后端交付 LOOP")}（${roles.length} 个默认角色）`, `${builtinDisplay(activeWorkflow?.name || "通用后端交付 LOOP")} (${roles.length} vai trò mặc định)`)}
                               </span>
                             </dd>
                           </div>

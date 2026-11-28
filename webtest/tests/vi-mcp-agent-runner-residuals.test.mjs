@@ -41,7 +41,8 @@ function runnerPoolLabel({ defaultId = '', machines = [], pool = null, lang = 'v
   assert.ok(start >= 0 && end > start, 'runner pool label logic missing');
   const ctx = {
     runners: machines,
-    defaultId,
+    defaultId, projectMode: '', projectDefaultId: '', platform: null,
+    lfT: (zh,en,vi) => lang === 'vi' ? (vi ?? en ?? zh) : lang === 'en' ? en : zh,
     state: { cloudPool: pool },
     runnerUICopy: (zh, vi) => lang === 'vi' ? vi : zh,
     result: null

@@ -93,12 +93,20 @@ export function operationSummary(
   const existingProject =
     draft.tool === "projects_save" && projects.some((p) => p.id === target);
   // Mirrors saveProject: a new project without a workflowId is bound to the
-  // generic backend SOP, so the card says so instead of showing nothing.
-  const sop = body.workflowId
-    ? named("sop", body.workflowId)
-    : draft.tool === "projects_save" && !existingProject
-      ? `${references.find((r) => r.type === "sop" && r.id === DEFAULT_PROJECT_WORKFLOW)?.name || chatT("通用后端交付 SOP", "SOP bàn giao backend dùng chung")}${chatT("（默认）", " (mặc định)")}`
-      : "";
+  // generic backend LOOP, so the card says so instead of showing nothing.
+  // A requirement that opts out of LOOP drops its workflowId on save.
+  const withoutSOP =
+    draft.tool === "issues_save" &&
+    String(body.sopMode ?? "")
+      .trim()
+      .toLowerCase() === "none";
+  const sop = withoutSOP
+    ? chatT("不使用 LOOP", "Không dùng LOOP")
+    : body.workflowId
+      ? named("sop", body.workflowId)
+      : draft.tool === "projects_save" && !existingProject
+        ? `${references.find((r) => r.type === "sop" && r.id === DEFAULT_PROJECT_WORKFLOW)?.name || chatT("通用后端交付 LOOP", "LOOP bàn giao backend dùng chung")}${chatT("（默认）", " (mặc định)")}`
+        : "";
   const fields = [
     [
       chatT("项目", "Dự án"),
@@ -113,7 +121,7 @@ export function operationSummary(
         .map((id) => named("repository", id))
         .join("、"),
     ],
-    ["SOP", sop],
+    ["LOOP", sop],
     [chatT("节点", "Nút"), body.nodeId],
     [chatT("说明", "Mô tả"), body.description || body.reason],
   ].filter(
@@ -123,10 +131,10 @@ export function operationSummary(
     {
       issues_import_tapd:
         chatT("从 TAPD 导入需求并关联所选仓库，导入后继续当前对话。", "Nhập yêu cầu từ TAPD và liên kết kho mã đã chọn, sau đó tiếp tục hội thoại hiện tại."),
-      issues_dispatch: chatT("为这条需求派发 SOP，创建新的运行。", "Điều phối SOP cho yêu cầu này và tạo lượt chạy mới."),
-      runs_start: chatT("启动一次新的 SOP 运行。", "Khởi tạo lượt chạy SOP mới."),
+      issues_dispatch: chatT("为这条需求派发 LOOP，创建新的运行。", "Điều phối LOOP cho yêu cầu này và tạo lượt chạy mới."),
+      runs_start: chatT("启动一次新的 LOOP 运行。", "Khởi tạo lượt chạy LOOP mới."),
       runs_approve: chatT("批准此节点，流程将继续执行后续节点。", "Phê duyệt nút này để quy trình tiếp tục thực thi các nút sau."),
-      runs_reject: chatT("退回此节点，流程将按 SOP 的退回路径继续。", "Trả lại nút này; quy trình tiếp tục theo đường quay lại của SOP."),
+      runs_reject: chatT("退回此节点，流程将按 LOOP 的退回路径继续。", "Trả lại nút này; quy trình tiếp tục theo đường quay lại của LOOP."),
       issues_clarification_save: chatT("保存澄清结果，并回写需求的外部来源。", "Lưu kết quả làm rõ và ghi lại vào nguồn yêu cầu bên ngoài."),
       projects_save: existingProject
         ? chatT("修改这个项目的设置。", "Thay đổi cài đặt dự án này.")

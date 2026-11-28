@@ -5,10 +5,10 @@ import vm from 'node:vm';
 const source=path=>fs.readFileSync(new URL('../../web/app/'+path,import.meta.url),'utf8');
 test('Runner concurrency labels use Vietnamese and preserve limits',()=>{
  const s=source('runners.js'),part=s.slice(s.indexOf('function runnerUICopy('),s.indexOf('function runnerRunLimitHTML('));
- const c=vm.createContext({window:{lfLang:()=>'vi'}});
+ const c=vm.createContext({window:{lfLang:()=>'vi'},lfT:(zh,en,vi)=>vi??en??zh});
  vm.runInContext(part,c);
- assert.equal(vm.runInContext('runnerConcurrencyLabel({ownerUserId:3,runLimit:7})',c),'Máy cá nhân · chạy đồng thời tối đa 7 SOP (không chịu giới hạn 10 SOP của dự án)');
- assert.equal(vm.runInContext('runnerConcurrencyLabel({ownerUserId:0})',c),'Máy thực thi dùng chung của dự án');
+ assert.equal(vm.runInContext('runnerConcurrencyLabel({ownerUserId:3,runLimit:7})',c),'Tối đa 7 lượt chạy đồng thời');
+ assert.equal(vm.runInContext('runnerConcurrencyLabel({ownerUserId:0})',c),'Không giới hạn số lượt chạy đồng thời');
 });
 test('SOP KPI quantities localize before DOM, without touching metric values',()=>{
  const s=source('sops.js'),part=s.slice(s.indexOf('function sopVI('),s.indexOf('function sopRunCardBody('));

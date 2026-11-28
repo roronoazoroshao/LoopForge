@@ -38,7 +38,7 @@ test("existing Chinese/English display conventions remain unchanged", () => {
       assert.equal(messageTimeLabel(stamp, new Date(2026, 10, 23, 12)), "11-22 09:04");
       assert.equal(messageTimeLabel(stamp, new Date(2027, 0, 1, 12)), "2026-11-22 09:04");
       assert.equal(formatTokens(1234567), "1,234,567");
-      assert.equal(chatDateTime(stamp), stamp.toLocaleString("zh-CN", { hour12: false }));
+      assert.equal(chatDateTime(stamp), stamp.toLocaleString(lang === "en" ? "en-US" : "zh-CN", { hour12: false }));
     }
   } finally {
     if (previous === null) localStorage.removeItem("loopforge.lang");

@@ -12,9 +12,9 @@ const state = {
   selectedAgent:null, selectedRun:null, selectedRunNode:null, runFilter:'all', runQuery:'', runWorkflowFilter:'',
   selectedIssue:null, projectFilter:'', projectDraft:null, requirementIssueId:null, sourceFilter:'',
   projectAdminDetailId:null, projectAdminTab:'basic', projectAdminQuery:'', projectAdminFilter:'all', projectDraftFor:'', projectDraftBase:null, projectIdentCustom:false, projectIdentSeed:'', projectAdminErrors:{},
-  sopScope:'project', agentScope:'project', ruleScope:'project', skillScope:'project', dockerfileScope:'project', environmentScope:'project', sandboxScope:'project',
+  sopScope:'project', agentScope:'project', ruleScope:'project', skillScope:'project', sandboxScope:'project',
   issueRunFilter:'', issueStatusFilter:'', issueAssigneeFilter:'', issueQuery:'', issueView:localStorage.getItem('agentflow.issueView')||'table',
-  assetType:'dockerfiles', selectedAsset:null, assetQuery:'', assetDirty:false, mcpTab:'installed', mcpScope:'project', mcpMarket:[], mcpQuery:'', editingMCPId:'', poll:null, runStream:null,
+  assetType:'sandboxes', selectedAsset:null, assetQuery:'', assetDirty:false, mcpTab:'installed', mcpScope:'project', mcpMarket:[], mcpQuery:'', editingMCPId:'', poll:null, runStream:null,
   obsTab:'overview', obsDeliveryFilter:'all', obsTraceRunId:null, obsTraceAdapter:'live', obsScope:localStorage.getItem('agentflow.obsScope')==='project'?'project':'user', obsUserFilter:'', obsSourceFilter:'', obsUserFilterReady:false, obsTrendGrain:['day','week','month','all'].includes(localStorage.getItem('agentflow.obsTrendGrain'))?localStorage.getItem('agentflow.obsTrendGrain'):'all', obsPeriodKey:'', obsTrendMetric:['runs','issues','cost'].includes(localStorage.getItem('agentflow.obsTrendMetric'))?localStorage.getItem('agentflow.obsTrendMetric'):'tokens', obsCrossProject:null, drawerOpen:false, issueDetailTab:'overview', issueDetailData:null, propTab:'basic',
   uiScroll:{runId:'', nodeId:'', graphLeft:0, feedTop:0, telTop:0, feedStick:true, telStick:true},
   runLogs:null, runTelemetry:null, runTelemetryAdapter:'live', runWorkspace:null,
@@ -116,8 +116,9 @@ function toast(message, type='info', duration=2600, messageLocalized=false){
     legacy.textContent=message;
     legacy.className=`toast show toast-${kind}`;
     clearTimeout(toastTimer);
-    toastTimer=setTimeout(()=>legacy.classList.remove('show'), 2200);
-    return;
+    const hide=()=>{if(legacy.textContent===message)legacy.classList.remove('show')};
+    if(duration>0)toastTimer=setTimeout(hide,2200);
+    return hide;
   }
   if(!container)return;
   const kind=['ok','err','warn','info'].includes(type)?type:'info';
@@ -135,14 +136,18 @@ function toast(message, type='info', duration=2600, messageLocalized=false){
   window.AgentFlowHarnessIcons?.hydrate?.(item);
   let timer=null;
   const remove=()=>{
+    clearTimeout(timer);
     if(item.classList.contains('leaving'))return;
     item.classList.add('leaving');
     setTimeout(()=>{try{item.remove()}catch{}}, 200);
   };
-  timer=setTimeout(remove, duration);
-  item.onmouseenter=()=>clearTimeout(timer);
-  item.onmouseleave=()=>{timer=setTimeout(remove, 1400)};
+  if(duration>0){
+    timer=setTimeout(remove,duration);
+    item.onmouseenter=()=>clearTimeout(timer);
+    item.onmouseleave=()=>{timer=setTimeout(remove,1400)};
+  }
   item.querySelector('.toast-item-close').onclick=remove;
+  return remove;
 }
 
 // Platform dialogs (#confirmModal) replace window.confirm/prompt/alert. Calls
@@ -209,6 +214,9 @@ function afNextDialog(){
   if(rerunFields)rerunFields.hidden=true;
   const okBtn=$('#confirmOkBtn'),cancelBtn=$('#confirmCancelBtn');
   cancelBtn.hidden=false;
+  // afConfirm({messageData}) marks the shared message node for one dialog; clear it first so afPrompt,
+  // afAlert and other setups that write #confirmMessage directly translate normally.
+  $('#confirmMessage')?.removeAttribute('data-i18n-data');
   let opened;
   for(const id of ['#confirmTitle','#confirmMessage','#confirmPromptLabel'])$(id)?.removeAttribute?.('data-i18n-skip');
   try{opened=job.setup(modal)||{}}catch(err){job.resolve(null);console.error(err);return afNextDialog()}
@@ -278,7 +286,10 @@ function afConfirm(options){
     const danger=!!opt.danger;
     $('#confirmTitle').textContent=opt.title||(danger?'危险操作确认':'操作确认');
     if(opt.messageLocalized)$('#confirmMessage').setAttribute('data-i18n-skip','');
-    $('#confirmMessage').textContent=opt.message||'确定要继续吗？';
+    // messageData: the message quotes user data (a name), so English mode only takes whole-message dictionary hits.
+    const message=$('#confirmMessage');
+    if(opt.messageData)message.setAttribute('data-i18n-data','');
+    message.textContent=opt.message||'确定要继续吗？';
     const okBtn=$('#confirmOkBtn');
     okBtn.textContent=opt.confirmText||(danger?'确定执行':'确定');
     okBtn.className=`button ${danger?'danger-btn':'primary'}`;
@@ -403,9 +414,11 @@ function highlightJSON(src){
   return html;
 }
 
-function renderMarkdown(md){
+function renderMarkdown(md, options={}){
   if(!md)return '';
   const text=String(md).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const inline=text=>parseInlineMarkdown(text,options.images);
+  const copyButton=options.copyCode===false?'':'<button type="button" class="md-code-copy">复制</button>';
   const lines=text.split('\n');
   const out=[];
   let inCode=false, codeLang='', codeLines=[];
@@ -424,10 +437,10 @@ function renderMarkdown(md){
     const parseRow=(r)=>r.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c=>c.trim());
     const headers=parseRow(tableRows[0]);
     const bodyRows=tableRows.slice(2);
-    const thead=`<thead><tr>${headers.map(h=>`<th>${parseInlineMarkdown(h)}</th>`).join('')}</tr></thead>`;
+    const thead=`<thead><tr>${headers.map(h=>`<th>${inline(h)}</th>`).join('')}</tr></thead>`;
     const tbody=`<tbody>${bodyRows.map(row=>{
       const cells=parseRow(row);
-      return `<tr>${headers.map((_,idx)=>`<td>${parseInlineMarkdown(cells[idx]||'')}</td>`).join('')}</tr>`;
+      return `<tr>${headers.map((_,idx)=>`<td>${inline(cells[idx]||'')}</td>`).join('')}</tr>`;
     }).join('')}</tbody>`;
     out.push(`<table>${thead}${tbody}</table>`);
     inTable=false;tableRows=[];
@@ -440,7 +453,7 @@ function renderMarkdown(md){
       if(inCode){
         const rawCode=codeLines.join('\n');
         const highlighted=highlightCode(rawCode, codeLang);
-        out.push(`<div class="md-code-block"><div class="md-code-header"><span class="md-code-lang">${escapeHTML(codeLang||'TEXT')}</span><button type="button" class="md-code-copy">复制</button></div><pre><code>${highlighted}</code></pre></div>`);
+        out.push(`<div class="md-code-block"><div class="md-code-header"><span class="md-code-lang">${escapeHTML(codeLang||'TEXT')}</span>${copyButton}</div><pre><code>${highlighted}</code></pre></div>`);
         inCode=false;codeLang='';codeLines=[];
       } else {
         flushList();
@@ -489,7 +502,7 @@ function renderMarkdown(md){
       }
       const titleIcons={note:'ℹ️ NOTE', tip:'💡 TIP', important:'🟣 IMPORTANT', warning:'⚠️ WARNING', caution:'🛑 CAUTION'};
       const titleText=titleIcons[kind]||kind.toUpperCase();
-      out.push(`<div class="md-alert md-alert-${kind}"><div class="md-alert-title">${titleText}</div><div class="md-alert-content">${renderMarkdown(alertLines.join('\n'))}</div></div>`);
+      out.push(`<div class="md-alert md-alert-${kind}"><div class="md-alert-title">${titleText}</div><div class="md-alert-content">${renderMarkdown(alertLines.join('\n'),options)}</div></div>`);
       continue;
     }
 
@@ -500,7 +513,7 @@ function renderMarkdown(md){
         i++;
         bqLines.push(lines[i].replace(/^>\s?/, ''));
       }
-      out.push(`<blockquote>${renderMarkdown(bqLines.join('\n'))}</blockquote>`);
+      out.push(`<blockquote>${renderMarkdown(bqLines.join('\n'),options)}</blockquote>`);
       continue;
     }
 
@@ -514,7 +527,7 @@ function renderMarkdown(md){
     if(hMatch){
       flushList();
       const level=hMatch[1].length;
-      out.push(`<h${level}>${parseInlineMarkdown(hMatch[2])}</h${level}>`);
+      out.push(`<h${level}>${inline(hMatch[2])}</h${level}>`);
       continue;
     }
 
@@ -525,7 +538,7 @@ function renderMarkdown(md){
         inList=true;listType='ul';
       }
       const checked=taskMatch[1].toLowerCase()==='x';
-      listItems.push(`<li class="task-list-item"><input type="checkbox" class="task-checkbox" disabled ${checked?'checked':''}><span>${parseInlineMarkdown(taskMatch[2])}</span></li>`);
+      listItems.push(`<li class="task-list-item"><input type="checkbox" class="task-checkbox" disabled ${checked?'checked':''}><span>${inline(taskMatch[2])}</span></li>`);
       continue;
     }
 
@@ -535,7 +548,7 @@ function renderMarkdown(md){
         flushList();
         inList=true;listType='ul';
       }
-      listItems.push(`<li>${parseInlineMarkdown(ulMatch[1])}</li>`);
+      listItems.push(`<li>${inline(ulMatch[1])}</li>`);
       continue;
     }
 
@@ -545,12 +558,12 @@ function renderMarkdown(md){
         flushList();
         inList=true;listType='ol';
       }
-      listItems.push(`<li>${parseInlineMarkdown(olMatch[1])}</li>`);
+      listItems.push(`<li>${inline(olMatch[1])}</li>`);
       continue;
     }
 
     flushList();
-    out.push(`<p>${parseInlineMarkdown(line)}</p>`);
+    out.push(`<p>${inline(line)}</p>`);
   }
 
   flushList();
@@ -562,19 +575,41 @@ function renderMarkdown(md){
   return out.join('');
 }
 
-function parseInlineMarkdown(text){
-  let s=escapeHTML(text);
-  s=s.replace(/`([^`]+)`/g, '<code>$1</code>');
+function renderRequirementMarkdown(text){
+  return renderMarkdown(text,{images:true,copyCode:false});
+}
+
+function parseInlineMarkdown(text, allowImages=false){
+  if(allowImages){
+    const parts=[];
+    let offset=0;
+    for(const match of text.matchAll(/`[^`]+`|!\[([^\]]*)\]\(([^()\s]+)\)/g)){
+      const [,alt,src]=match;
+      if(!src)continue;
+      parts.push(parseInlineMarkdown(text.slice(offset,match.index)));
+      const url=safeURL(src);
+      if(url==='#')parts.push(escapeHTML(match[0]));
+      else if(new URL(url).origin===location.origin)parts.push(`<img src="${escapeHTML(url)}" alt="${escapeHTML(alt)}" loading="lazy">`);
+      else parts.push(`<a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(alt||src)}</a>`);
+      offset=match.index+match[0].length;
+    }
+    if(parts.length)return parts.join('')+parseInlineMarkdown(text.slice(offset));
+  }
+  // Inline code is literal: hold each span aside so emphasis syntax inside it
+  // (snake_case identifiers such as `todo_id`) is not rewritten.
+  const codeSpans=[];
+  let s=escapeHTML(text).replace(/`([^`]+)`/g,(match,code)=>{codeSpans.push(code);return `\u0000${codeSpans.length-1}\u0000`});
   s=s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  s=s.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+  // Emphasis underscores must sit on word boundaries; intraword `_` is literal.
+  s=s.replace(/(^|[^A-Za-z0-9_])__([^_\n]+?)__(?![\w])/g, '$1<strong>$2</strong>');
   s=s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  s=s.replace(/_([^_]+)_/g, '<em>$1</em>');
+  s=s.replace(/(^|[^A-Za-z0-9_])_([^_\n]+?)_(?![\w])/g, '$1<em>$2</em>');
   s=s.replace(/~~([^~]+)~~/g, '<del>$1</del>');
   s=s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, label, url)=>{
     const cleanUrl=safeURL(url.trim());
     return `<a href="${escapeHTML(cleanUrl)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
   });
-  return s;
+  return s.replace(/\u0000(\d+)\u0000/g,(match,i)=>`<code>${codeSpans[Number(i)]}</code>`);
 }
 
 function isMarkdownArtifact(artifact, content){
@@ -680,6 +715,15 @@ function clarifyQuestionOptions(q){
 }
 function safeURL(value){try{const url=new URL(String(value||''),location.origin);return ['http:','https:'].includes(url.protocol)?url.href:'#'}catch{return '#'}}
 function safeColor(value){return /^#[0-9a-f]{3,8}$/i.test(String(value||''))?value:'#74829a'}
+// Mirrors domain.ValidateResourceID: a project or role id is a path segment of
+// its API, so it must fit the 64-character column and avoid URL delimiters.
+function resourceIdProblem(id){
+  const value=String(id||'');
+  if(!value)return '标识不能为空';
+  if([...value].length>64)return '标识不能超过 64 个字符';
+  if(/[\s\/\\?#%\u0000-\u001f\u007f]/.test(value))return '标识不能包含空格或 / \\ ? # % 字符';
+  return '';
+}
 function uid(prefix){return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,6)}`}
 const PRODUCTION_SOPS=new Set(['issue-fix-production','requirement-development-production']);
 function catalogOwned(projectId){return !!state.projectFilter&&projectId===state.projectFilter}
@@ -771,9 +815,12 @@ function agentWizardSubject(){
   if(catalogGeneric(state.workflow))return (state.genericTemplateAgents||[]).find(x=>x.id===state.selectedAgent)||state.agentDraft||{};
   return (state.data.agents||[]).find(x=>x.id===state.selectedAgent)||state.agentDraft||{};
 }
+// Platform roles (no project) are used by every project; like platform rules
+// and skills only administrators may change them. Others copy them first.
+function agentPlatformLocked(a){return !!a?.id&&!a.projectId&&(state.data.agents||[]).some(x=>x.id===a.id)&&!isPlatformAdmin()}
 function agentWizardForeign(a){
   if(catalogGeneric(state.workflow))return !isPlatformAdmin();
-  return catalogForeign(a?.projectId);
+  return catalogForeign(a?.projectId)||agentPlatformLocked(a);
 }
 function genericTemplateMCPOptions(selected){
   const wanted=['github'];
@@ -806,7 +853,7 @@ function genericMCPChecked(id,selected){
 }
 function assetVisible(item){return !item?.projectId||item.projectId===state.projectFilter}
 function catalogWorkflows(){return (state.data?.workflows||[]).filter(w=>!catalogGeneric(w)&&catalogVisible(w.projectId,w.shared))}
-// Runnable options = stored SOPs + platform generic templates (run by reference).
+// Runnable options = stored LOOPs + platform generic templates (run by reference).
 function runnableWorkflowOptions(){return catalogWorkflows().concat((state.data?.workflows||[]).filter(catalogGeneric).map(w=>({...w,name:`通用 · ${w.name}`})))}
 function scopedWorkflows(){
   const all=state.data?.workflows||[];
@@ -879,9 +926,9 @@ function runProjectId(r){
   return '';
 }
 function scopedRuns(runs){const pid=state.projectFilter,list=runs||[];return pid?list.filter(r=>runProjectId(r)===pid):list}
-// Conversation workspaces (Run.kind=workspace) are the chat's sandbox, not SOP
+// Conversation workspaces (Run.kind=workspace) are the chat's sandbox, not LOOP
 // runs: they have no nodes and stay "waiting" until reclaimed. They are reached
-// from the conversation and the requirement, never from SOP run lists or counts.
+// from the conversation and the requirement, never from LOOP run lists or counts.
 function isSOPRun(r){return r?.kind!=='workspace'}
 function sopRuns(runs){return (runs||[]).filter(isSOPRun)}
 function preferredWorkflow(){
@@ -938,7 +985,7 @@ function shouldAutoSSORedirect({isGuest, hostname, bypassAutoAuth, authErr, logi
 }
 
 async function boot(){
-  state.data = {runs:[],issues:[],tasks:[],workflowMetrics:[],syncLogs:[],agents:[],workflows:[],projects:[],repositories:[],users:[],rules:[],skills:[],mcpServers:[],executors:[],dockerfiles:[],environments:[],sandboxes:[]};
+  state.data = {runs:[],issues:[],tasks:[],workflowMetrics:[],syncLogs:[],agents:[],workflows:[],projects:[],repositories:[],users:[],rules:[],skills:[],mcpServers:[],executors:[],sandboxes:[]};
   bind(); renderProjectSwitcher(); updateApprovalBadge();
 
   // 1. 检查 URL 中是否有 SSO 回调的 code
@@ -1003,6 +1050,17 @@ async function boot(){
   if(isGuest&&state.authRequired){location.replace('/login.html');return}
   renderUserBadge();
 
+  // Home opens the chatbot while the rest of the shell catalog is still loading.
+  if(restoredView()==='collaboration'){
+    const earlyProject=urlParams.get('projectId')||localStorage.getItem('agentflow.activeProject')||'';
+    if(earlyProject)state.projectFilter=earlyProject;
+    document.body.classList.add('chat-next-active');
+    $$('.view').forEach(view=>view.classList.remove('active'));
+    $('#collaborationView')?.classList.add('active');
+    state.currentView='collaboration';
+    mountNativeChat();
+  }
+
   const shell = await api('/api/bootstrap', {silent: restoredView()==='runs'});
   state.data = Object.assign(state.data, shell);
   const savedProject=urlParams.get('projectId')||localStorage.getItem('agentflow.activeProject');
@@ -1035,6 +1093,7 @@ async function boot(){
       return;
     }
     if(name==='flow')applyFlowRoute();
+    if(name==='evolution'&&typeof evoApplyRoute==='function')evoApplyRoute();
     if(name==='agents')applyAgentRoute();
     if(isProjectSharedAsset(name))applyAssetRoute();
     if(name==='projects')applyProjectAdminRoute();
@@ -1067,6 +1126,7 @@ function finishBootLoader(){
   setTimeout(remove,250);
 }
 function settleBootLoader(){
+  if(!document.body.classList.contains('booting'))return;
   if(!document.body.classList.contains('chat-next-active')||nativeChatReady){finishBootLoader();return}
   clearTimeout(bootLoaderTimer);
   bootLoaderTimer=setTimeout(finishBootLoader,BOOT_LOADER_CHAT_TIMEOUT_MS);
@@ -1099,15 +1159,17 @@ function bind(){
   $('#settingsSidebarToggle')?.addEventListener('click',()=>{cancelSettingsRouteTransition();setSettingsSidebarExpanded(!settingsSidebarExpanded())});
   $('#settingsSidebarExpand')?.addEventListener('click',()=>{
     cancelSettingsRouteTransition();
-    setSettingsSidebarExpanded(true);
-    requestAnimationFrame(()=>{
-      // Wait for the sidebar's descendants to inherit the restored visibility.
-      requestAnimationFrame(()=>{
-        if(settingsSidebarExpanded()&&(document.activeElement===document.body||document.activeElement===$('#settingsSidebarExpand'))){
-          $('#settingsSidebarToggle')?.focus({preventScroll:true});
-        }
-      });
+    setSettingsSidebarExpanded(true,document.activeElement===document.body);
+    // Focus normally moves before the opener hides. If the toggle cannot take
+    // focus yet, focus falls back to the body; retry for a few frames.
+    let frames=0;
+    const focusToggle=()=>requestAnimationFrame(()=>{
+      if(!settingsSidebarExpanded()||document.activeElement!==document.body)return;
+      const toggle=$('#settingsSidebarToggle');
+      toggle?.focus({preventScroll:true});
+      if(toggle&&document.activeElement!==toggle&&++frames<30)focusToggle();
     });
+    if(document.activeElement!==$('#settingsSidebarToggle'))focusToggle();
   });
   document.addEventListener('click',event=>{
     if(document.body.classList.contains('management-mode')&&event.target instanceof Element&&event.target.closest('.collab-rail-toggle')){
@@ -1120,7 +1182,7 @@ function bind(){
   $('#workflowSelect').onchange=e=>switchFlowWorkflow(e.target.value);
   $('#workflowName').oninput=e=>{if(!state.workflow)return;state.workflow.name=e.target.value;dirty()};
   $('#workflowOwner').oninput=e=>{if(!state.workflow)return;state.workflow.owner=e.target.value;dirty()};
-  $('#workflowSandbox').onchange=e=>{if(!state.workflow)return;state.workflow.sandboxProfileId=e.target.value;dirty()};
+  $('#workflowSandbox').onchange=e=>{if(!state.workflow)return;setSOPSandboxChoice(state.workflow,e.target.value);dirty()};
   $('#workflowStatus').onchange=e=>{if(!state.workflow)return;state.workflow.status=e.target.value;dirty()};
   $('#workflowTags').oninput=e=>{if(!state.workflow)return;state.workflow.tags=e.target.value.split(',').map(x=>x.trim()).filter(Boolean);dirty()};
   $('#workflowMetricCategory').onchange=e=>{if(!state.workflow)return;state.workflow.metricCategory=e.target.value;dirty()};
@@ -1349,6 +1411,8 @@ function bind(){
   $('#reqWorkflow')&&($('#reqWorkflow').onchange=()=>{renderReqFooter();persistRequirementComposer()});
   $('#reqBaseBranch')?.addEventListener('input',onReqBaseBranchInput);
   $('#chatInput').addEventListener('input',onReqDescriptionInput);
+  $('#chatInput').addEventListener('paste',onReqDescriptionPaste);
+  $('#reqPreviewToggle').onclick=()=>setReqPreview($('#reqMarkdownPreview').hidden);
   window.addEventListener('beforeunload',()=>persistRequirementComposer());
   if($('#sopCreateForm')){$('#sopCreateForm').onsubmit=createSOPFromWizard;$('#sopPrev').onclick=()=>setSOPWizardStep(state.sopWizardStep-1);$('#sopNext').onclick=()=>setSOPWizardStep(state.sopWizardStep+1);$$('[data-wizard-steps="sop"] [data-step-target]').forEach(b=>b.onclick=()=>setSOPWizardStep(Number(b.dataset.stepTarget)));$$('.sop-create-close').forEach(b=>b.onclick=()=>$('#sopCreateModal').classList.remove('open'))}
   $('#newSOP')&&($('#newSOP').onclick=openSOPWizard);
@@ -1368,6 +1432,8 @@ function bind(){
   $('#syncNowBtn').onclick=syncNow;
   $('#saveSyncConfig').onclick=saveSyncConfig;
   $('#scheduleJobForm').onsubmit=saveScheduleJob;
+  const scheduleSaveAndRun=$('#scheduleSaveAndRun');
+  if(scheduleSaveAndRun)scheduleSaveAndRun.onclick=()=>saveScheduleJob({preventDefault(){},currentTarget:$('#scheduleJobForm')},{runNow:true});
   $('#scheduleTimingTabs')?.addEventListener('click',e=>{
     const tab=e.target.closest('[data-schedule-tab]');
     if(!tab)return;
@@ -1461,8 +1527,10 @@ function bind(){
     closeScheduleJobModal();
     state.projectFilter=e.target.value;state.selectedIssue=null;
     if(state.currentView==='aiSchedules')refreshAISchedules();
+    if(state.currentView==='runners')refreshRunners(true);
     localStorage.setItem('agentflow.activeProject',state.projectFilter);
     if($('#botsView')?.classList.contains('active'))loadBots();
+    if(state.currentView==='projectCredentials')loadProjectCredentialsPage();
     resetListPages();
     syncWorkflowToProject();
     renderProjectSwitcher();renderIssues();renderSync();renderProjectAdmin();
@@ -1471,6 +1539,7 @@ function bind(){
     renderObsTabs();
     if($('#dashboardView').classList.contains('active'))renderDashboard();
     if($('#observabilityView').classList.contains('active'))refreshObs();
+    if($('#evolutionView')?.classList.contains('active')&&typeof renderEvolutionView==='function')renderEvolutionView();
     if($('#sopsView').classList.contains('active'))refreshWorkflowMetrics();
   };
   document.querySelectorAll('[data-scope-for]').forEach(bar=>{
@@ -1581,7 +1650,7 @@ function nativeChatProjectId(){
   return chosen?($('#projectSwitcher')?.value||state.projectFilter||''):'';
 }
 function postNativeChatProject(frame){
-  frame.contentWindow?.postMessage({type:'agentflow-project-context',projectId:nativeChatProjectId()},location.origin);
+  frame.contentWindow?.postMessage({type:'agentflow-project-context',projectId:nativeChatProjectId(),initial:true},location.origin);
   frame.contentWindow?.postMessage({type:'agentflow-environments-changed'},location.origin);
 }
 // A requirement handed to the chat opens a new conversation with the
@@ -1612,9 +1681,32 @@ function postPendingChatIssueMention(frame){
   frame.contentWindow?.postMessage({type:'agentflow-chat-mention-issue',...pendingChatIssueMention},location.origin);
   pendingChatIssueMention=null;
 }
-function openIssueInChat(issue){
+function openChatSessionInWorkbench(sessionId,projectId){
+  if(!sessionId)return;
+  if(projectId){
+    state.projectFilter=projectId;
+    localStorage.setItem('agentflow.activeProject',projectId);
+    const select=$('#projectSwitcher');
+    if(select&&[...select.options].some(o=>o.value===projectId))select.value=projectId;
+  }
+  const url=new URL(location.href);
+  if(projectId)url.searchParams.set('projectId',projectId);
+  url.searchParams.set('chatSession',sessionId);
+  url.searchParams.delete('chatIssue');
+  history.replaceState({},'',url.pathname+url.search+'#/collaboration/'+encodeURIComponent(sessionId));
+  const frame=$('#chatNextFrame');
+  if(nativeChatReady&&frame?.dataset.src==='native'&&frame.contentWindow){
+    frame.contentWindow.postMessage({type:'agentflow-chat-open-session',sessionId,projectId:projectId||''},location.origin);
+    switchView('collaboration');
+    return;
+  }
+  if(frame)frame.dataset.src='';
+  switchView('collaboration');
+}
+function openIssueInChat(issue,opts){
   if(!issue?.id||!issue.projectId)return;
-  pendingChatIssueMention={issueId:issue.id,projectId:issue.projectId};
+  const intent=String(opts?.intent||'').trim();
+  pendingChatIssueMention={issueId:issue.id,projectId:issue.projectId,...(intent?{intent}:{})};
   localStorage.setItem('agentflow.activeProject',issue.projectId);
   const url=new URL(location.href);
   ['chatSession','chatIssue'].forEach(key=>url.searchParams.delete(key));
@@ -1629,6 +1721,20 @@ function openIssueInChat(issue){
 function reloadShellProjects(){
   return api('/api/bootstrap',{silent:true}).then(shell=>{Object.assign(state.data,shell);renderAll();return state.data.projects||[]});
 }
+// Adopting a built-in template copies its roles, rules, skills and default MCPs
+// into the project on the server. Reload the catalog lists the designer and the
+// role editor read from: otherwise every node of the new SOP shows an
+// unavailable role, and saving one of the new roles drops the project rules it
+// cannot see. The adopted SOP is kept even if the reload fails.
+async function reloadCatalogAfterAdoption(adopted){
+  try{
+    const shell=await api('/api/bootstrap',{silent:true});
+    for(const key of ['workflows','agents','rules','skills','mcpServers'])if(Array.isArray(shell?.[key]))state.data[key]=shell[key];
+  }catch{}
+  const workflows=state.data.workflows||(state.data.workflows=[]);
+  const index=workflows.findIndex(w=>w.id===adopted?.id);
+  if(index>=0)workflows[index]=adopted;else if(adopted?.id)workflows.unshift(adopted);
+}
 function mountNativeChat(){
   const frame=$('#chatNextFrame');
   if(!frame)return;
@@ -1638,12 +1744,17 @@ function mountNativeChat(){
     window.addEventListener('message',event=>{
       if(event.origin!==location.origin||event.source!==frame.contentWindow)return;
       const message=event.data||{};
+      if(message.type==='agentflow-chat-visible'&&document.body.classList.contains('chat-next-active'))finishBootLoader();
       if(message.type==='agentflow-chat-ready'){
         nativeChatReady=true;
         postPendingChatIssueMention(frame);
         postNativeChatProject(frame);
         postQuickAccessReturn(frame);
         finishBootLoader();
+      }
+      if(message.type==='agentflow-chat-layout'){
+        const view=$('#collaborationView');
+        if(view)view.dataset.chatLayout=message.layout==='home'?'home':'conversation';
       }
       if(message.type==='agentflow-chat-session'){
         const id=message.sessionId||'';
@@ -1689,7 +1800,7 @@ function mountNativeChat(){
           renderAll();
         }).catch(()=>{});
       }
-      if(message.type==='agentflow-chat-open-view'&&['settings','runners','sops','projects','runs','agents','environments','dockerfiles','sandboxes','flow','mcp'].includes(message.view)){
+      if(message.type==='agentflow-chat-open-view'&&['settings','runners','sops','projects','runs','agents','sandboxes','flow','mcp','knowledge','aiSchedules'].includes(message.view)){
         if(message.view==='settings'&&message.credential){
           if(message.credential==='executors'&&message.returnToQuickAccess===true&&activeViewName()==='collaboration'&&location.hash!==QUICK_ACCESS_EXECUTOR_SETTINGS){
             history.pushState({quickAccessExecutorReturn:true},'',QUICK_ACCESS_EXECUTOR_SETTINGS);
@@ -1698,6 +1809,26 @@ function mountNativeChat(){
         }
         else if(message.view==='sandboxes'&&message.action==='create')createConversationSandbox(message.projectId).catch(error=>toast(error.message));
         else if(message.view==='runs'&&/^run-[\w-]+$/.test(message.runId||''))location.hash='#/runs/'+encodeURIComponent(message.runId);
+        else if(message.view==='aiSchedules'){
+          if(message.projectId&&state.projectFilter!==message.projectId&&(state.data.projects||[]).some(p=>p.id===message.projectId)){
+            state.projectFilter=message.projectId;
+            localStorage.setItem('agentflow.activeProject',message.projectId);
+            const select=$('#projectSwitcher');
+            if(select&&[...select.options].some(o=>o.value===message.projectId))select.value=message.projectId;
+          }
+          if(message.action==='executions'&&typeof openScheduleExecutions==='function'){
+            openScheduleExecutions(message.jobId||'');
+          }else{
+            switchView('aiSchedules');
+            if(message.action==='create'&&typeof openScheduleJobModal==='function'){
+              openScheduleJobModal('assistant');
+            }else if(message.action==='edit'&&message.jobId&&typeof openScheduleJobModal==='function'){
+              const job=(state.data.scheduleJobs||[]).find(j=>j.id===message.jobId);
+              if(job)openScheduleJobModal('assistant',job);
+              else refreshAISchedules().then(()=>{const found=(state.data.scheduleJobs||[]).find(j=>j.id===message.jobId);if(found)openScheduleJobModal('assistant',found)}).catch(()=>{});
+            }
+          }
+        }
         else switchView(message.view);
       }
     });
@@ -1707,8 +1838,8 @@ function mountNativeChat(){
     nativeChatReady=false;
     const topParams=new URL(location.href).searchParams;
     const projectId=nativeChatProjectId();
-    const sessionId=topParams.get('chatSession')||'';
     const issueId=topParams.get('chatIssue')||'';
+    const sessionId=topParams.get('chatSession')||(issueId?'':collaborationRouteId());
     const quickAccess=topParams.get('quickAccess')==='1';
     if(quickAccess||topParams.get('gongfeng')==='ok'){
       // renderPersonalSettings still owes the OAuth return toast after the URL is cleaned.
@@ -1721,7 +1852,7 @@ function mountNativeChat(){
     const mention=pendingChatIssueMention;
     pendingChatIssueMention=null;
     frame.src=mention
-      ?'/chatbot/?projectId='+encodeURIComponent(mention.projectId)+'&mentionIssue='+encodeURIComponent(mention.issueId)
+      ?'/chatbot/?projectId='+encodeURIComponent(mention.projectId)+'&mentionIssue='+encodeURIComponent(mention.issueId)+(mention.intent?'&mentionIntent='+encodeURIComponent(mention.intent):'')
       :'/chatbot/?projectId='+encodeURIComponent(projectId)+(sessionId?'&session='+encodeURIComponent(sessionId):issueId?'&issueId='+encodeURIComponent(issueId):'')+(quickAccess?'&quickAccess=1':'');
   }
   postNativeChatProject(frame);
@@ -1731,7 +1862,7 @@ function settingsSidebarExpanded(){
 }
 let settingsSidebarEntryFrame=0;
 let settingsSidebarWasManaged=false;
-const settingsManagementViews=['settings','assistant','projects','bots','sops','flow','runs','aiSchedules','agents','mcp','rules','skills','runners','dockerfiles','environments','sandboxes','guide','platform'];
+const settingsManagementViews=['settings','assistant','projects','bots','projectCredentials','sops','flow','runs','aiSchedules','agents','mcp','rules','skills','knowledge','runners','sandboxes','evolution','guide','platform'];
 const settingsRouteMotion=matchMedia('(prefers-reduced-motion: reduce)');
 let settingsRouteTransition=null;
 let settingsRouteApplying=false;
@@ -1853,7 +1984,7 @@ settingsRouteMotion.addEventListener('change',()=>{
   if(pending)switchView(pending);
   setSettingsSidebarExpanded(settingsSidebarExpanded());
 });
-function setSettingsSidebarExpanded(expanded){
+function setSettingsSidebarExpanded(expanded,focusToggle=false){
   const managing=document.body.classList.contains('management-mode');
   const open=managing&&expanded;
   const entering=managing&&!settingsSidebarWasManaged;
@@ -1880,7 +2011,7 @@ function setSettingsSidebarExpanded(expanded){
     toggle.title=open?'收起设置导航':'展开设置导航';
   }
   const reopen=$('#settingsSidebarExpand');
-  if(reopen)reopen.hidden=!managing||open;
+  if(reopen&&!open)reopen.hidden=!managing;
   const mobileToggle=$('.collab-rail-toggle');
   if(mobileToggle){
     mobileToggle.setAttribute('aria-expanded',String(open));
@@ -1897,6 +2028,11 @@ function setSettingsSidebarExpanded(expanded){
     if(managing&&!open)sidebar.setAttribute('aria-hidden','true');
     else sidebar.removeAttribute('aria-hidden');
   }
+  if(reopen&&open){
+    // Transfer focus before hiding the expand button.
+    if(focusToggle||document.activeElement===reopen)toggle?.focus({preventScroll:true});
+    reopen.hidden=true;
+  }
   if(animateEntry){
     // Keep the mounted panel at its closed geometry for one layout before reveal.
     settingsSidebarEntryFrame=requestAnimationFrame(()=>{
@@ -1906,11 +2042,10 @@ function setSettingsSidebarExpanded(expanded){
     });
   }
 }
-function viewTitles(){return {management:'设置',collaboration:'AI 工作台',issues:'需求列表',aiSchedules:'定时任务',bots:'通道管理',assistant:'AI 助手',runs:'运行记录',approvals:'待我确认',sops:'流程模板',flow:'流程设计',agents:'角色定义',mcp:'能力资产',rules:'能力资产',skills:'能力资产',dockerfiles:'环境资产',environments:'环境资产',sandboxes:'环境资产',observability:'统计',projects:'项目配置',platform:'平台管理',runners:'执行机器',settings:'个人配置',access:'访问密钥',guide:'访问密钥'}}
-// 设置侧栏只列一级入口；被合并进同一页的子视图（能力资产、环境资产的类型 Tab，
+function viewTitles(){return {management:'设置',collaboration:'AI 工作台',issues:'需求列表',aiSchedules:'定时任务',bots:'通道管理',assistant:'AI 助手',runs:'运行记录',approvals:'待我确认',sops:'流程模板',flow:'流程设计',agents:'角色定义',mcp:'能力资产',rules:'能力资产',skills:'能力资产',knowledge:'我的知识库',sandboxes:'沙箱管理',observability:'统计',projects:'项目配置',projectCredentials:'凭据管理',platform:'平台管理',runners:'执行机器',settings:'个人配置',access:'访问密钥',guide:'访问密钥',evolution:'RSI工作台'}}
 // 从流程模板打开的流程设计）按 data-nav-match 高亮它们所属的入口。
 function settingsNavMatches(btn,name){return btn.dataset.view===name||String(btn.dataset.navMatch||'').split(/\s+/).includes(name)}
-const assetTypeGroups={capability:['mcp','rules','skills'],environment:['dockerfiles','environments','sandboxes']};
+const assetTypeGroups={capability:['mcp','rules','skills']};
 function assetTypeGroup(name){return Object.keys(assetTypeGroups).find(key=>assetTypeGroups[key].includes(name))||''}
 function syncAssetTypeTabs(name){
   const group=assetTypeGroup(name);
@@ -1922,7 +2057,7 @@ function restoredView(){
   const titles=viewTitles();
   const hash=(location.hash||'').replace(/^#\/?/,'').split(/[/?]/)[0];
   if(hash==='access')return 'guide';
-  if(hash==='assets')return 'dockerfiles';
+  if(['assets','dockerfiles','environments'].includes(hash))return 'sandboxes';
   if(hash==='playbooks')return 'sops';
   if(hash==='management')return 'settings';
   if(titles[hash])return hash;
@@ -1941,6 +2076,7 @@ function routePart(index){
 function runRouteId(){
   return routePart(0)==='runs'?routePart(1):'';
 }
+function collaborationRouteId(){return routePart(0)==='collaboration'?routePart(1):''}
 function flowRouteId(){
   return routePart(0)==='flow'?routePart(1):'';
 }
@@ -1982,8 +2118,8 @@ async function applyAgentRoute(){
   }catch(error){if(agentRouteId()===id)toast(error.message,'err')}
 }
 // Restore project-visible workflows and public built-in templates. The template
-// switcher already allows opening generic SOPs; direct links and reloads must
-// follow the same access rule without exposing other projects' private SOPs.
+// switcher already allows opening generic LOOPs; direct links and reloads must
+// follow the same access rule without exposing other projects' private LOOPs.
 function openableWorkflow(id){
   if(!id)return null;
   return catalogWorkflows().find(w=>w.id===id)||
@@ -2034,14 +2170,12 @@ function persistView(name,push=false){
     if(linked)next=runViewHash(linked);
   }
   if(name==='flow')next=flowViewHash();
+  if(name==='evolution'&&routePart(0)==='evolution')next=location.hash;
   if(name==='agents'&&agentRouteId())next=`#/agents/${encodeURIComponent(agentRouteId())}${routePart(2)==='gov'?'/gov':''}`;
   if(isProjectSharedAsset(name)&&routePart(0)===name&&assetRouteId())next=`#/${name}/${encodeURIComponent(assetRouteId())}`;
   if(name==='projects')next=projectAdminHash(state.projectAdminDetailId||'',state.projectAdminTab);
   if(name==='collaboration'){
-    const current=(location.hash||'').replace(/^#\/?/,'').split('?')[0].split('/').filter(Boolean);
-    let fromHash=current[0]==='collaboration'?current[1]||'':'';
-    try{fromHash=decodeURIComponent(fromHash)}catch{}
-    const id=new URL(location.href).searchParams.get('chatSession')||fromHash;
+    const id=new URL(location.href).searchParams.get('chatSession')||collaborationRouteId();
     if(id)next='#/collaboration/'+encodeURIComponent(id);
   }
   if(location.hash===next)return;
@@ -2055,15 +2189,16 @@ function switchView(name){
   const titles=viewTitles();
   if(name==='dashboard')name='collaboration';
   if(name==='access')name='guide';
-  if(name==='assets')name='dockerfiles';
+  if(['assets','dockerfiles','environments'].includes(name))name='sandboxes';
   if(name==='playbooks')name='sops';
   if(name==='management')name='settings';
-  const assetViews=['rules','skills','dockerfiles','environments','sandboxes'];
+  const assetViews=['rules','skills','sandboxes'];
   const targetView=assetViews.includes(name)?'assets':name;
   if(!titles[name]||!$(`#${targetView}View`)){name='collaboration'}
   // 手敲 #/platform 或者从别的账号留下的 localStorage 恢复进来，都要挡住。
   if(name==='platform'&&!isPlatformAdmin())name='collaboration';
   const previous=activeViewName();
+  if(previous==='projectCredentials'&&name!=='projectCredentials')closeProjectCredentialsPage();
   if(name!=='settings')cancelCredentialFocus();
   if(previous==='settings'&&name!=='settings'){
     window.HuiPopover?.closeAll?.();
@@ -2082,6 +2217,7 @@ function switchView(name){
   const staying=activeViewName()===name;
   const prevView=state.currentView;
   if(previous==='observability'&&name!=='observability'&&typeof obsDisposeCharts==='function'){obsCollapse?.({silent:true});obsDisposeCharts();obsDisposeSelects?.()}
+  if(previous==='evolution'&&name!=='evolution'&&typeof evoDispose==='function')evoDispose();
   state.currentView=name;
   if(name!=='runs')stopQueuedRunRefresh();
   $$('.nav[data-view]').forEach(n=>n.classList.toggle('active',settingsNavMatches(n,name)));
@@ -2148,6 +2284,7 @@ function switchView(name){
   if(name==='aiSchedules'){renderScheduleJobs();refreshAISchedules()}
   if(name==='bots')loadBots();
   if(name==='assistant')loadAssistantSettings();
+  if(name==='evolution'&&typeof renderEvolutionView==='function')renderEvolutionView();
   if(name==='sops'){if(!staying&&state.data){sopCatalogMotion.reset();renderSOPCatalog()}refreshWorkflowMetrics()}
   if(name==='dashboard')refreshDashboard()
   if(name==='approvals')renderApprovals(false)
@@ -2156,6 +2293,7 @@ function switchView(name){
   if(name==='settings')renderPersonalSettings();
   if(name==='platform')renderPlatformAdminPanel();
   if(name==='projects')renderProjectAdmin();
+  if(name==='projectCredentials')loadProjectCredentialsPage();
   if(assetViews.includes(name)){
     if(staying&&state.assetType===name){if(state.selectedAsset)closeAssetDetail({force:true});else renderAssets()}
     else{
@@ -2165,8 +2303,9 @@ function switchView(name){
     }
   }
   if(name==='mcp')loadMCPMarket();
+  if(name==='knowledge'&&typeof loadKnowledgeView==='function')loadKnowledgeView();
   if(name==='runners')refreshRunners();
   if(name==='guide')renderGuide();
   if(name==='flow'){if(!state.workflow?.nodes?.some(n=>n.id===state.selectedNode))state.selectedNode=null;renderWorkflowMeta();renderCanvas();renderProperties();setFlowView('canvas');refreshGenericWorkflowRoles()}
 }
-function renderAll(){renderUserBadge();renderPlatformNav();renderObsTabs();renderProjectSwitcher();renderIssues();renderSOPCatalog();renderWorkflowMeta();renderCanvas();renderProperties();renderAgents();renderAssets();renderMCPManagement();renderRuns();renderSync();renderProjectAdmin();renderDashboard();renderGuide();updateApprovalBadge();showDirectRunButton($('#flowView').classList.contains('active'))}
+function renderAll(){renderUserBadge();renderPlatformNav();renderObsTabs();renderProjectSwitcher();renderIssues();renderSOPCatalog();renderWorkflowMeta();renderCanvas();renderProperties();renderAgents();renderAssets();renderMCPManagement();renderRuns();renderSync();renderProjectAdmin();renderDashboard();renderGuide();updateApprovalBadge();if($('#knowledgeView')?.classList.contains('active')&&typeof loadKnowledgeView==='function')loadKnowledgeView();showDirectRunButton($('#flowView').classList.contains('active'))}

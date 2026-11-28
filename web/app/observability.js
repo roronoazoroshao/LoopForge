@@ -85,7 +85,7 @@ function obsPeriodKey(){
   if(obsTrendGrain()==='all')return '';
   const key=String(state.obsPeriodKey||'').trim();
   if(key)return key;
-  const dates=[...(state.analytics?.trend||[]),...(state.analytics?.activityTrend||[])].map(p=>p.date).filter(Boolean).sort();
+  const dates=[...(state.analytics?.trend||[]),...(state.analytics?.activityTrend||[]),...(state.analytics?.dashboard?.trend||[])].map(p=>p.date).filter(Boolean).sort();
   return dates.length?dates[dates.length-1]:obsDefaultPeriodKey();
 }
 function obsPeriodRange(key,grain){
@@ -129,10 +129,14 @@ function obsStepPeriodKey(key,grain,delta){
   day.setUTCDate(day.getUTCDate()+delta);
   return day.toISOString().slice(0,10);
 }
+// 进行中（运行中 / 等待审批）的执行 finishedAt 是 Go 零值 0001-01-01，不算结束时间，
+// 按创建时间归入时段，和服务端趋势点的口径一致；否则日 / 周 / 月视图会漏掉它们的用量和费用。
 function obsTraceEventAt(t){
-  const raw=t?.finishedAt||t?.createdAt;
-  const at=raw?new Date(raw):null;
-  return at&&!Number.isNaN(at.getTime())?at:null;
+  for(const raw of [t?.finishedAt,t?.createdAt]){
+    const at=raw?new Date(raw):null;
+    if(at&&!Number.isNaN(at.getTime())&&at.getUTCFullYear()>1)return at;
+  }
+  return null;
 }
 function obsTraceInRange(t,range){
   if(!range)return true;
@@ -224,7 +228,7 @@ function obsShiftPeriod(step){
   setObsPeriod(next);
 }
 function obsPeriodChoices(){
-  const keys=new Set([...(state.analytics?.trend||[]),...(state.analytics?.activityTrend||[])].map(t=>t.date).filter(Boolean));
+  const keys=new Set([...(state.analytics?.trend||[]),...(state.analytics?.activityTrend||[]),...(state.analytics?.dashboard?.trend||[])].map(t=>t.date).filter(Boolean));
   keys.add(obsPeriodKey()||obsDefaultPeriodKey());
   keys.add(obsDefaultPeriodKey());
   return [...keys].sort();
@@ -274,6 +278,8 @@ function obsTrendChart(points,metric){
   }).join('');
   return `<svg class="obs-trend-svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${obsUi('用量趋势','Xu hướng sử dụng')}">${yTicks}<path class="obs-chart-area" d="${area}"></path><path class="obs-chart-line" d="${line}"></path>${dots}${labels}</svg>`;
 }
+function obsCostUnknown(value){return Number(value?.costUnknownRuns||0)+Number(value?.conversationCostUnknownWorkspaces||0)}
+function obsCostKnown(value){return obsCostUnknown(value)===0}
 function obsScopedView(){
   const summary=state.analytics?.summary||{};
   const demo=state.analytics?.demo||{};
@@ -281,9 +287,9 @@ function obsScopedView(){
   if(obsTrendGrain()==='all'){
     return {
       period:false,traces:all,total:summary.totalRuns||0,succeeded:summary.succeededRuns||0,failed:summary.failedRuns||0,cancelled:summary.cancelledRuns||0,
-      reworked:summary.reworkedRuns||0,uniqueIssues:summary.uniqueIssues||0,tokens:summary.totalTokens||0,sopTokens:Math.max(0,(summary.totalTokens||0)-(summary.conversationTokens||0)),conversationTokens:summary.conversationTokens||0,conversationCost:summary.conversationCostCny||0,
+      reworked:summary.reworkedRuns||0,uniqueIssues:summary.uniqueIssues||0,tokens:summary.totalTokens||0,sopTokens:Math.max(0,(summary.totalTokens||0)-(summary.conversationTokens||0)),conversationTokens:summary.conversationTokens||0,conversationCost:summary.conversationCostCny||0,conversationCostKnown:!summary.conversationCostUnknownWorkspaces,
       conversationIssues:summary.conversationIssues||0,conversationWorkspaces:summary.conversationWorkspaces||0,conversationLinked:summary.conversationLinkedWorkspaces,inputTokens:summary.inputTokens||0,outputTokens:summary.outputTokens||0,
-      cost:summary.totalCostCny||0,costKnown:summary.costUnknownRuns===0,active:summary.activeRuns||0,p95:summary.executionP95DurationMs||0,
+      cost:summary.totalCostCny||0,costKnown:obsCostKnown(summary),active:summary.activeRuns||0,p95:summary.executionP95DurationMs||0,
       avgExec:summary.executionAverageDurationMs||0,wait:summary.waitAverageDurationMs||0,runsPerIssue:summary.runsPerIssue,firstPass:summary.qualityRuns?summary.firstPassRate:null,
       successRate:summary.successRate,demo:demo||{}
     };
@@ -316,7 +322,7 @@ function obsScopedView(){
   return {
     period:true,traces,total,succeeded,failed,cancelled,reworked:null,uniqueIssues:issues.size,tokens:tokens+conversationTokens,sopTokens:tokens,conversationTokens,conversationCost,
     conversationIssues:Number(point.conversationIssues||0),conversationWorkspaces:Number(point.conversationWorkspaces||0),conversationLinked:null,inputTokens:null,outputTokens:null,
-    cost:cost+conversationCost,costKnown,active,p95:obsPercentile(durations,95),avgExec:durations.length?Math.round(durations.reduce((a,b)=>a+b,0)/durations.length):0,
+    cost:cost+conversationCost,costKnown:costKnown&&obsCostKnown(point),conversationCostKnown:!point.conversationCostUnknownWorkspaces,active,p95:obsPercentile(durations,95),avgExec:durations.length?Math.round(durations.reduce((a,b)=>a+b,0)/durations.length):0,
     wait:0,runsPerIssue:issues.size?traces.filter(t=>t.issueId).length/issues.size:null,firstPass:null,successRate:attempts?succeeded*100/attempts:0,
     demo:{
       coveredRuns:covered.length,coveredSucceededRuns:coveredSucceeded,averageTokensPerRun:total?tokens/total:0,toolCallsObserved:observed,toolCallsSucceeded:toolOk,toolCallsFailed:toolBad,
@@ -342,42 +348,44 @@ function setObsScope(scope){
     state.obsUserFilter=state.obsUserSaved||(state.currentUser&&!state.currentUser.isGuest&&state.currentUser.id?String(state.currentUser.id):'');
   }
   resetListPages('obs-');
-  applyObsFilter();
+  return applyObsFilter();
 }
 async function switchObsTab(tab){
-  tab=obsNormalizeTab(tab);
-  state.obsTab=tab;
-  $$('#obsTabs .obs-tab').forEach(x=>x.classList.toggle('active',x.dataset.obsTab===tab));
-  if(tab==='delivery'&&!state.obsAnalyticsFull){
-    const host=$('#obsBody');
-    if(host)host.innerHTML=`<div class="obs-pane active"><div class="detail-empty">正在加载交付数据…</div></div>`;
-    try{
-      state.analytics=await api('/api/analytics'+analyticsQuery({overview:false}),{silent:true});
-      state.obsAnalyticsFull=true;
-    }catch(e){toast(e.message)}
-  }
+  state.obsTab=obsNormalizeTab(tab);
+  if(state.obsTab==='delivery'&&(!state.obsAnalyticsFull||!obsAnalyticsMatchesCurrent()||state.obsAnalyticsLoading))return obsLoadAnalytics();
   renderObservability();
 }
-async function refreshObs(){
-  if(refreshObsPending)return refreshObsPending;
-  refreshObsPending=(async()=>{
-    ensureObsUserFilter();
-    const host=$('#obsBody');
-    if(host)host.innerHTML=`<div class="obs-pane active"><div class="detail-empty">正在加载用量数据…</div></div>`;
-    state.obsAnalyticsFull=false;
-    try{
-      const opt={silent:true};
-      const overview=state.obsTab!=='delivery';
-      const analytics=await api('/api/analytics'+analyticsQuery({overview}),opt);
-      state.analytics=analytics;
-      if(!overview)state.obsAnalyticsFull=true;
-    }catch(e){toast(e.message)}
-    finally{refreshObsPending=null}
-    renderObservability();
-    refreshObsCrossProject().then(()=>{if(activeViewName()==='observability')renderObservability()});
-  })();
-  return refreshObsPending;
+function obsAnalyticsContext(query){
+  const params=new URLSearchParams(String(query||'').replace(/^\?/,''));
+  params.delete('scope');params.delete('dashboard');params.sort();
+  return params.toString();
 }
+function obsAnalyticsMatchesCurrent(){
+  return state.obsAnalyticsDataContext==null||state.obsAnalyticsDataContext===obsAnalyticsContext(analyticsQuery());
+}
+let obsAnalyticsRequest=0;
+async function obsLoadAnalytics(){
+  ensureObsUserFilter();
+  const request=++obsAnalyticsRequest,overview=state.obsTab!=='delivery',query=analyticsQuery({overview}),context=obsAnalyticsContext(query);
+  state.obsAnalyticsLoading=true;state.obsAnalyticsError='';
+  renderObservability();
+  try{
+    const snapshot=await api('/api/analytics'+query,{silent:true});
+    if(request!==obsAnalyticsRequest||context!==obsAnalyticsContext(analyticsQuery()))return;
+    if(snapshot.dataErrors?.length)throw new Error(lfT('统计数据加载失败','Unable to load analytics'));
+    state.analytics=snapshot;state.obsAnalyticsFull=!overview;state.obsAnalyticsDataContext=context;
+  }catch(e){
+    if(request===obsAnalyticsRequest){state.obsAnalyticsError=e.message||lfT('统计加载失败','Unable to load analytics');toast(state.obsAnalyticsError)}
+  }finally{
+    if(request===obsAnalyticsRequest){
+      state.obsAnalyticsLoading=false;renderObservability();
+      const captured=obsAnalyticsContext(analyticsQuery({overview:true,crossProject:true}));
+      refreshObsCrossProject().then(()=>{if(request===obsAnalyticsRequest&&captured===obsAnalyticsContext(analyticsQuery({overview:true,crossProject:true}))&&activeViewName()==='observability')renderObservability()});
+    }
+  }
+}
+async function refreshObs(){return obsLoadAnalytics()}
+
 function runCost(r){return Number((state.analytics?.runTraces||[]).find(t=>t.runId===r.id)?.costCny||0)}
 function runTokens(r){return Number(r.usage?.totalTokens||0)}
 function runArtifactCount(r){return Number(r?.artifactCount??r?.artifacts?.length??0)}
@@ -390,6 +398,7 @@ function analyticsQuery(opts){
     if(base)parts.push(base);
   }
   if(opts.overview)parts.push('scope=overview');
+  if(!opts.crossProject)parts.push('dashboard=1');
   if(obsScope()==='user'&&state.obsUserFilter)parts.push('userId='+encodeURIComponent(state.obsUserFilter));
   if(state.obsOriginFilter)parts.push('origin='+encodeURIComponent(state.obsOriginFilter));
   if(state.obsSourceFilter)parts.push('issueSource='+encodeURIComponent(state.obsSourceFilter));
@@ -400,22 +409,15 @@ function analyticsQuery(opts){
 }
 async function refreshObsCrossProject(){
   if(obsScope()!=='user'||!state.obsUserFilter){state.obsCrossProject=null;return}
+  const query=analyticsQuery({overview:true,crossProject:true});
   try{
-    state.obsCrossProject=await api('/api/analytics'+analyticsQuery({overview:true,crossProject:true}),{silent:true});
-  }catch(e){state.obsCrossProject=null}
+    const snapshot=await api('/api/analytics'+query,{silent:true});
+    if(obsScope()==='user'&&query===analyticsQuery({overview:true,crossProject:true}))state.obsCrossProject=snapshot;
+  }catch(e){if(query===analyticsQuery({overview:true,crossProject:true}))state.obsCrossProject=null}
 }
-async function applyObsFilter(){
-  try{
-    const overview=state.obsTab!=='delivery';
-    const [analytics]=await Promise.all([
-      api('/api/analytics'+analyticsQuery({overview}),{silent:true}),
-    ]);
-    state.analytics=analytics;
-    state.obsAnalyticsFull=!overview;
-  }catch(e){toast(e.message)}
-  renderObservability();
-  refreshObsCrossProject().then(()=>{if(activeViewName()==='observability')renderObservability()});
-}
+
+async function applyObsFilter(){return obsLoadAnalytics()}
+
 function obsUserName(id){
   if(!id||id==='unassigned')return '未分配';
   const user=userById(id);
@@ -473,7 +475,6 @@ function obsFilterBar(){
   const sourceChoices=[['',obsUi('全部来源','Tất cả nguồn')],['local',obsUi('本地','Cục bộ')],['github','GitHub']];
   const sources=sourceChoices.map(([v,l])=>`<option value="${v}" ${(state.obsSourceFilter||'')===v?'selected':''}>${l}</option>`).join('');
   const grain=obsTrendGrain();
-  const hint=obsScopeHintText(scope,projectName,grain);
   const userFilter=scope==='user'?`<select id="obsUserFilter" data-obs-select data-icon="user" aria-label="${obsUi('责任人','Người phụ trách')}">${userOptions.join('')}</select>`:'';
   const originFilter=`<select id="obsOriginFilter" data-obs-select data-icon="run-live" aria-label="${obsUi('执行','Lượt chạy')}">${originChoices.map(([v,l])=>`<option value="${v}" ${(state.obsOriginFilter||'')===v?'selected':''}>${l}</option>`).join('')}</select>`;
   const sourceFilter=`<select id="obsSourceFilter" data-obs-select data-icon="connector" aria-label="${obsUi('需求来源','Nguồn yêu cầu')}">${sources}</select>`;
@@ -489,7 +490,7 @@ function obsFilterBar(){
     chips.push(`<span class="obs-chip">${escapeHTML(range?range.label:obsRangeCaption())}${clear('period',obsUi('回到全部','Xem toàn bộ'))}</span>`);
   }
   const manage=obsCanManageSources()?`<button class="obs-btn ghost" id="obsManageSources" type="button" title="${obsUi('外部数据源','Nguồn dữ liệu bên ngoài')}" aria-label="${obsUi('外部数据源','Nguồn dữ liệu bên ngoài')}">${obsIcon('integration')}<span>${obsUi('外部数据源','Nguồn dữ liệu bên ngoài')}</span></button>`:'';
-  return `<div class="obs-fbar"><div class="obs-fbar-row">${obsSeg('data-obs-scope',[['user',obsUi('个人','Cá nhân'),0,'','user'],['project',obsUi('项目','Dự án'),0,'','users']],scope)}${userFilter}${originFilter}${sourceFilter}<span class="obs-sp"></span>${obsSeg('data-obs-grain',[['all',obsUi('全部','Tất cả')],['day',obsUi('日','Ngày')],['week',obsUi('周','Tuần')],['month',obsUi('月','Tháng')]],grain)}${obsPeriodPicker()}${manage}</div><div class="obs-scopeline"><span>${obsUi('统计范围','Phạm vi thống kê')}</span>${chips.join('')}<span class="obs-info" tabindex="0">${obsIcon('info',13)}${obsUi('口径说明','Giải thích cách tính')}<span class="obs-tip" role="tooltip"${obsUi("", " data-i18n-data")}>${escapeHTML(hint)}</span></span></div></div>`;
+  return `<div class="obs-fbar"><div class="obs-fbar-row">${obsSeg('data-obs-scope',[['user',obsUi('个人','Cá nhân'),0,'','user'],['project',obsUi('项目','Dự án'),0,'','users']],scope)}${userFilter}${originFilter}${sourceFilter}<span class="obs-sp"></span>${obsSeg('data-obs-grain',[['all',obsUi('全部','Tất cả')],['day',obsUi('日','Ngày')],['week',obsUi('周','Tuần')],['month',obsUi('月','Tháng')]],grain)}${obsPeriodPicker()}${manage}</div><div class="obs-scopeline">${chips.join('')}</div></div>`;
 }
 function obsFilteredRuns(){
   let runs=scopedRuns(state.data.runs||[]);
@@ -563,10 +564,13 @@ function renderObservability(){
   const host=$('#obsBody');if(!host)return;
   state.obsTab=obsNormalizeTab(state.obsTab);
   $$('#obsTabs .obs-tab').forEach(b=>b.classList.toggle('active',b.dataset.obsTab===state.obsTab));
-  const summary=state.analytics?.summary||{};
+  const compatible=obsAnalyticsMatchesCurrent();
+  const summary=compatible?(state.analytics?.summary||{}):{};
   $('#obsLiveState').classList.toggle('active',((summary.activeRuns||0)+(summary.waitingRuns||0))>0);
+  $('#obsLiveState').classList.toggle('is-error',!!state.obsAnalyticsError);
+  $('#obsLiveState').innerHTML='<i></i>'+escapeHTML(state.obsAnalyticsError?lfT('加载失败','Load failed'):state.obsAnalyticsLoading?lfT('加载中','Loading'):lfT('数据就绪','Data ready'));
   const badge=$('#obsDeliveryCount');
-  if(badge){const n=state.analytics?.delivery?.issues||0;badge.hidden=!n;badge.textContent=n?obsUi(`${n} 单`,`${n} yêu cầu`):''}
+  if(badge){const n=compatible?(state.analytics?.delivery?.issues||0):0;badge.hidden=!n;badge.textContent=n?obsUi(`${n} 单`,`${n} yêu cầu`):''}
   const reopen=obsExpandState?.key||'';
   if(reopen)obsCollapse({silent:true});
   obsDisposeCharts(host);
@@ -574,7 +578,8 @@ function renderObservability(){
   obsCardBuilders={};
   const tab=state.obsTab;
   {
-    const html=tab==='delivery'?obsDelivery():obsOverview();
+    const ready=compatible&&state.analytics&&(tab!=='delivery'||state.obsAnalyticsFull);
+    const html=state.obsAnalyticsError||!ready?`<div class="detail-empty"${state.obsAnalyticsError?' role="alert"':''}>${escapeHTML(state.obsAnalyticsError||(state.obsAnalyticsLoading?lfT('正在加载统计数据…','Loading analytics…'):lfT('暂无统计数据','No analytics available')))}</div>`:(tab==='delivery'?obsDelivery():obsOverview());
     host.innerHTML=`<div class="obs-pane active">${obsFilterBar()}${html}</div>`;
     state.obsSelects=obsEnhanceSelects(host);
     host.querySelectorAll('[data-obs-scope]').forEach(b=>b.onclick=()=>setObsScope(b.dataset.obsScope));
@@ -588,6 +593,9 @@ function renderObservability(){
     const sourceButton=host.querySelector('#obsManageSources');if(sourceButton)sourceButton.onclick=openObsSources;
     const obsSourceSel=host.querySelector('#obsSourceFilter');if(obsSourceSel)obsSourceSel.onchange=()=>{state.obsSourceFilter=obsSourceSel.value;resetListPages('obs-');applyObsFilter()};
   }
+  const exportButton=$('#exportObsReport');
+  if(exportButton)exportButton.disabled=!compatible||!state.analytics||!!state.obsAnalyticsLoading||!!state.obsAnalyticsError;
+  host.setAttribute('aria-busy',String(!!state.obsAnalyticsLoading));
   obsBindActions(host);
   bindPager(host);
   obsHydrateIcons(host);
@@ -596,6 +604,9 @@ function renderObservability(){
 }
 // obsBindActions 绑定卡片内的交互；卡片局部重渲染后会对新节点重新调用。
 function obsBindActions(root){
+  if(typeof obsBindHumanTrendActions==='function')obsBindHumanTrendActions(root);
+  if(typeof obsBindTokenActions==='function')obsBindTokenActions(root);
+  if(typeof obsBindVibeActions==='function')obsBindVibeActions(root);
   root.querySelectorAll('[data-obs-metric]').forEach(b=>b.onclick=()=>setObsTrendMetric(b.dataset.obsMetric));
   root.querySelectorAll('[data-obs-period]').forEach(el=>el.onclick=e=>{e.stopPropagation();const key=el.dataset.obsPeriod;if(key)obsSelectTrendPeriod(key)});
   root.querySelectorAll('[data-open-run]').forEach(b=>b.onclick=e=>{if(e.target.closest&&e.target.closest('a'))return;obsCollapse();openRunFromId(b.dataset.openRun)});
@@ -772,11 +783,11 @@ function obsInsights(view,kind){
     }
     const top=[...bag.entries()].sort((x,y)=>Math.abs(y[1])-Math.abs(x[1]))[0];
     const sameDir=top&&Math.sign(top[1])===Math.sign(tokenDelta.delta);
-    items.push({text:obsUi(`Token 环比 <b>${obsSignedPct(tokenDelta.pct)}</b>${sameDir?`，主要来自 ${escapeHTML(top[0])}（${obsSignedTokens(top[1])}）`:''}`,`Token thay đổi so với kỳ trước <b>${obsSignedPct(tokenDelta.pct)}</b>${sameDir?`; chủ yếu từ ${escapeHTML(top[0])} (${obsSignedTokens(top[1])})`:''}`),action:'data-obs-jump="sops"',label:obsUi('SOP 明细','Chi tiết SOP')});
+    items.push({text:obsUi(`Token 环比 <b>${obsSignedPct(tokenDelta.pct)}</b>${sameDir?`，主要来自 ${escapeHTML(top[0])}（${obsSignedTokens(top[1])}）`:''}`,`Token thay đổi so với kỳ trước <b>${obsSignedPct(tokenDelta.pct)}</b>${sameDir?`; chủ yếu từ ${escapeHTML(top[0])} (${obsSignedTokens(top[1])})`:''}`),action:'data-obs-jump="sops"',label:obsUi('LOOP 明细','Chi tiết LOOP')});
   }else{
     const flows=[...(a.workflows||[])].filter(w=>w.tokens>0).sort((x,y)=>y.tokens-x.tokens);
     const total=flows.reduce((n,w)=>n+w.tokens,0);
-    if(flows.length>=2&&total)items.push({text:obsUi(`<b>${escapeHTML(flows[0].name||flows[0].key)}</b> 占 Token ${(flows[0].tokens*100/total).toFixed(0)}%，共 ${flows.length} 个 SOP`,`<b>${escapeHTML(flows[0].name||flows[0].key)}</b> chiếm ${(flows[0].tokens*100/total).toFixed(0)}% tổng token, trong ${flows.length} SOP`),action:'data-obs-jump="sops"',label:obsUi('SOP 明细','Chi tiết SOP')});
+    if(flows.length>=2&&total)items.push({text:obsUi(`<b>${escapeHTML(flows[0].name||flows[0].key)}</b> 占 Token ${(flows[0].tokens*100/total).toFixed(0)}%，共 ${flows.length} 个 LOOP`,`<b>${escapeHTML(flows[0].name||flows[0].key)}</b> chiếm ${(flows[0].tokens*100/total).toFixed(0)}% tổng token, trong ${flows.length} LOOP`),action:'data-obs-jump="sops"',label:obsUi('LOOP 明细','Chi tiết LOOP')});
   }
   const cache=obsCacheStats(view);
   const models=[...(a.models||[])].filter(m=>m.tokens>0).sort((x,y)=>y.tokens-x.tokens);
@@ -953,7 +964,7 @@ function obsExpandExtra(key){
   const list=obsTrendWindow(state.analytics?.trend||[]);
   if(!list.length)return '';
   const sel=obsPeriodKey();
-  const rows=list.slice().reverse().map(p=>{const rate=obsTrendModeValue(p,'rate'),hit=obsTrendCacheHit(p);return `<tr class="run-row${p.date===sel?' obs-row-hl':''}" data-obs-period="${escapeHTML(p.date||'')}"><td>${escapeHTML(obsTrendLabel(p))}</td><td>${formatTokens(p.tokens)}</td><td>${costLabel(p.costCny,!p.costUnknownRuns)}</td><td>${p.runs||0}</td><td>${p.issues||0}</td><td>${rate==null?'—':rate.toFixed(0)+'%'}</td><td>${hit==null?'—':hit.toFixed(0)+'%'}</td></tr>`}).join('');
+  const rows=list.slice().reverse().map(p=>{const rate=obsTrendModeValue(p,'rate'),hit=obsTrendCacheHit(p);return `<tr class="run-row${p.date===sel?' obs-row-hl':''}" data-obs-period="${escapeHTML(p.date||'')}"><td>${escapeHTML(obsTrendLabel(p))}</td><td>${formatTokens(p.tokens)}</td><td>${costLabel(p.costCny,obsCostKnown(p))}</td><td>${p.runs||0}</td><td>${p.issues||0}</td><td>${rate==null?'—':rate.toFixed(0)+'%'}</td><td>${hit==null?'—':hit.toFixed(0)+'%'}</td></tr>`}).join('');
   return `<h4>${obsUi(`逐${obsGrainCaption()}数据`,`Dữ liệu theo ${obsGrainCaption()}`)}<span>${obsUi('点一行等同点图','Nhấp một dòng để chọn kỳ tương ứng trên biểu đồ')}</span></h4><div class="obs-tw"><table class="obs-table"><thead><tr><th>${obsGrainCaption()}</th><th>Token</th><th>成本</th><th>运行</th><th>需求</th><th>成功率</th><th>缓存命中</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function obsRenderExpandExtra(){
@@ -1040,16 +1051,8 @@ function obsSourceLabel(s){return s==='gongfeng'?obsUi('工蜂','Gongfeng'):s===
 function obsCategoryLabel(k){return (obsUi({requirement:'需求开发',bugfix:'Bug 修复',refactor:'技术优化',other:'其他'},{requirement:'Phát triển yêu cầu',bugfix:'Sửa lỗi',refactor:'Tối ưu kỹ thuật',other:'Khác'})[k])||k||obsUi('未分类','Chưa phân loại')}
 function obsTraceLabel(t){return [t.origin==='external'?'外部 · '+t.workflowName:obsSourceLabel(t.issueSource||'local'),t.externalId||t.issueId||t.runId].filter(Boolean).join(' ')}
 function obsOverview(){
-  const view=obsScopedView();
-  obsCardBuilders={trend:obsTrendCard,breakdown:obsBreakdownCard,quality:obsQualityCard,heat:obsHeatCard,detail:obsDetailCard};
-  const heat=obsHeatCard();
-  return `${obsInsights(view,'usage')}
-  ${obsActivityKpis()}
-  ${obsUsageKpis(view)}
-  ${obsTrendCard()}
-  <div class="obs-grid2">${obsBreakdownCard()}${obsQualityCard()}</div>
-  ${heat}
-  ${obsDetailCard()}`;
+  obsCardBuilders={summary:obsSummaryCard,vibe:obsVibeCard,human:obsHumanTrendCard,cost:obsSummaryCostCard};
+  return `<div class="obs-summary-layout">${obsSummaryCard()}<div class="obs-summary-pair">${obsVibeCard()}${obsHumanTrendCard()}</div>${obsSummaryCostCard()}</div>`;
 }
 function obsActivityView(){
   const a=state.analytics||{};
@@ -1071,7 +1074,7 @@ function obsActivityUsageCard(a,collaborative){
     value:!usage?'—':(!reported&&missing?lfT('未采集','Not recorded','Chưa thu thập'):formatTokens(usage.tokens||0)),
     foot:!usage?lfT('暂无用量统计','No usage recorded','Chưa có dữ liệu sử dụng'):foot,
     tip:[
-      collaborative?'当前至少两位用户实际发言的普通会话所消耗的 Token，包含在会话 Token 中，不要重复相加。':'普通会话中已保存回复的模型用量，按回复时间统计；不含 SOP 执行，分支继承的历史回复不重复计入。',
+      collaborative?'当前至少两位用户实际发言的普通会话所消耗的 Token，包含在会话 Token 中，不要重复相加。':'普通会话中已保存回复的模型用量，按回复时间统计；不含 LOOP 执行，分支继承的历史回复不重复计入。',
       '总量沿用模型上报的 totalTokens，缺少总量时按输入 + 输出计算；缓存读写单独列出。个人范围展示本人创建或参与的会话整体用量。',
       ['已记录回复',String(reported)],['未采集回复',String(missing)],
       ['缓存读',usage?formatTokens(usage.cacheReadTokens||0):'—'],['缓存写',usage?formatTokens(usage.cacheWriteTokens||0):'—'],
@@ -1085,9 +1088,9 @@ function obsActivityKpis(){
   const sessions=a?.sessions||0,collaborative=a?.collaborativeSessions||0;
   const rate=sessions?collaborative*100/sessions:0;
   return obsKpiGroups([obsKpiGroup('Vibe Coding 与协作',[
-    {label:'会话数',value:n('sessions'),foot:'普通对话 · 含已归档会话',tip:['按会话 ID 去重，排除 SOP 自动讨论会话；已删除会话不计入。个人范围包含本人创建或实际参与的会话。']},
-    {label:'创建需求',value:n('requirements'),foot:'按需求 ID 去重',tip:['当前范围内创建的需求，含同步需求，不要求已启动 SOP。个人范围按需求责任人筛选；不推断需求由会话创建。']},
-    {label:'需求 SOP',value:n('sopRuns'),foot:'已发起的 SOP 执行次数',tip:['仅计关联需求的顶层 SOP 运行；重复发起分别计数，排除对话工作区和子运行。个人范围沿用运行责任人口径。']},
+    {label:'会话数',value:n('sessions'),foot:'普通对话 · 含已归档会话',tip:['按会话 ID 去重，排除 LOOP 自动讨论会话；已删除会话不计入。个人范围包含本人创建或实际参与的会话。']},
+    {label:'创建需求',value:n('requirements'),foot:'按需求 ID 去重',tip:['当前范围内创建的需求，含同步需求，不要求已启动 LOOP。个人范围按需求责任人筛选；不推断需求由会话创建。']},
+    {label:'需求 LOOP',value:n('sopRuns'),foot:'已发起的 LOOP 执行次数',tip:['仅计关联需求的顶层 LOOP 运行；重复发起分别计数，排除对话工作区和子运行。个人范围沿用运行责任人口径。']},
     {label:'多人协作会话',value:n('collaborativeSessions'),foot:a?(sessions?obsUi(`占会话 ${rate.toFixed(1)}%`,`Chiếm ${rate.toFixed(1)}% số cuộc trò chuyện`):'暂无会话'):obsUi('暂无统计数据','Chưa có dữ liệu thống kê'),meter:rate,tip:['同一普通会话中至少两位不同用户实际发送过消息。机器人回复、定时触发、系统回执和项目成员数不算参与人数。协作占比 = 多人协作会话 ÷ 会话数。']},
     obsActivityUsageCard(a,false),obsActivityUsageCard(a,true),
   ],lfT('数量按创建时间，Token 按回复时间','Counts by creation time, tokens by reply time')+' · '+escapeHTML(obsRangeCaption()))]);
@@ -1101,6 +1104,7 @@ function obsUsageKpis(view){
   const rangeName=obsRangeCaption();
   const total=view.total||0,succeeded=view.succeeded||0,failed=view.failed||0,reworked=view.reworked;
   const totalTokens=view.tokens||0,totalCost=view.cost||0;
+  const tokenTotal=formatTokens(totalTokens);
   const d=metric=>all?null:obsPeriodDelta(trend,metric);
   const dl=(delta,invert)=>delta?obsDelta(delta.current,delta.previous,invert):'';
   const prevLabel=d('tokens')?.previousLabel||'';
@@ -1110,35 +1114,36 @@ function obsUsageKpis(view){
   const tokenFoot=view.inputTokens!=null
     ?lfT(`入 ${formatTokens(view.inputTokens)} / 出 ${formatTokens(view.outputTokens)}`,`Input ${formatTokens(view.inputTokens)} / Output ${formatTokens(view.outputTokens)}`,`Đầu vào ${formatTokens(view.inputTokens)} / đầu ra ${formatTokens(view.outputTokens)}`)
     :view.period
-      ?lfT(`该${obsGrainCaption()} ${formatTokens(totalTokens)}`,`${formatTokens(totalTokens)} this ${({day:'day',week:'week',month:'month',all:'month'})[obsTrendGrain()]}`,`Kỳ ${obsGrainCaption()}: ${formatTokens(totalTokens)}`)
-      :lfT(`累计 ${formatTokens(totalTokens)}`,`All-time ${formatTokens(totalTokens)}`,`Lũy kế ${formatTokens(totalTokens)}`);
-  const successFoot=obsUi(`${succeeded} 成功 / ${failed} 失败${view.firstPass!=null?` · 一次通过 ${total?percent(view.firstPass):'—'}`:''}`,`${succeeded} thành công / ${failed} thất bại${view.firstPass!=null?` · Thành công ngay lần đầu ${total?percent(view.firstPass):'—'}`:''}`);
-  const costFoot=obsUi('人民币 · Hy 上报 / 其他公价','CNY · Hy báo cáo / mô hình khác theo giá niêm yết');
-  const deltaTip=prevLabel?[obsUi(`环比对象：${escapeHTML(prevLabel)}`,`So với kỳ trước: ${escapeHTML(prevLabel)}`)]:[];
+      ?lfT(`该${obsGrainCaption()} ${tokenTotal}`,`${tokenTotal} this ${obsTrendGrain()}`,`Kỳ ${obsGrainCaption()}: ${tokenTotal}`)
+      :lfT(`累计 ${tokenTotal}`,`${tokenTotal} all time`,`Lũy kế ${tokenTotal}`);
+  const successFoot=obsUi(`${succeeded} 成功 / ${failed} 失败${view.firstPass!=null?` · 一次通过 ${total?percent(view.firstPass):'—'}`:''}`,`${succeeded} thành công / ${failed} thất bại${view.firstPass!=null?` · Thành công lần đầu ${total?percent(view.firstPass):'—'}`:''}`);
+  const costFoot=lfT('人民币 · 上报优先，缺失按公价估算','CNY · reported first, public rates when missing','CNY · ưu tiên chi phí được báo cáo, thiếu thì ước tính theo giá công khai');
+  const costTip=lfT('优先使用执行器有效上报的美元费用（含明确的 0），按 1 USD = 7 CNY 折算。CodeBuddy 的兼容占位 0 按缺失处理。未上报时才按模型公开价估算；无法估算时标为未识别。积分不当作美元或人民币。','Prefer valid executor-reported USD amounts, including explicit zero, at 1 USD = 7 CNY. CodeBuddy’s compatibility zero is treated as missing. Missing reports use public model rates; unavailable estimates remain unknown. Credits are not currency.');
+  const deltaTip=prevLabel?[`环比对象：${escapeHTML(prevLabel)}`]:[];
   const convTokens=view.conversationTokens||0,convCost=view.conversationCost||0;
   const convTip=convTokens?[[obsUi('其中对话改代码','Trong đó, sửa mã qua hội thoại'),formatTokens(convTokens)]]:[];
-  const usage=obsKpiGroup(obsUi('投入 · SOP + 对话改代码','Mức sử dụng · SOP + sửa mã qua hội thoại'),[
+  const usage=obsKpiGroup(obsUi('投入 · LOOP + 对话改代码','Mức sử dụng · LOOP + sửa mã qua hội thoại'),[
     {label:`${rangeName} Token`,value:formatTokens(totalTokens),delta:dl(d('tokens'),true),spark:spark('tokens'),foot:tokenFoot,tip:[['输入',view.inputTokens!=null?formatTokens(view.inputTokens):'—'],['输出',view.outputTokens!=null?formatTokens(view.outputTokens):'—'],['缓存读',formatTokens(cache.read||0)],['缓存写',formatTokens(cache.write||0)],...convTip,...(view.period?[['累计',formatTokens(summary.totalTokens)]]:[]),...deltaTip]},
-    {label:lfT(`${rangeName}成本`,`${rangeName} cost`,`${rangeName} · Chi phí`),value:costLabel(totalCost,view.costKnown),delta:dl(d('cost'),true),spark:spark('cost'),foot:costFoot+cum(` · 累计 ${costLabel(summary.totalCostCny,summary.costUnknownRuns===0)}`),tip:[...(convCost?[['其中对话改代码',costLabel(convCost,true)]]:[]),'人民币统计：Hy 保留上报金额；其他模型按公开标准单价测算。优先人民币定价，美元按 1 USD = 7 CNY 折算。缺少模型或 Token 分项时标为未识别；不代表实际结算账单。',...deltaTip]},
+    {label:lfT(`${rangeName}成本`,`${rangeName} cost`,`${rangeName} · Chi phí`),value:costLabel(totalCost,view.costKnown),delta:dl(d('cost'),true),spark:spark('cost'),foot:costFoot+cum(` · 累计 ${costLabel(summary.totalCostCny,obsCostKnown(summary))}`),tip:[...(convCost?[['其中对话改代码',costLabel(convCost,view.conversationCostKnown!==false)]]:[]),costTip,...deltaTip]},
     {label:'缓存命中',value:cache.rate==null?'—':cache.rate.toFixed(0),unit:cache.rate==null?'':'%',delta:cache.rate!=null&&cache.prevRate!=null?obsDelta(cache.rate,cache.prevRate,false,'pt'):'',meter:cache.rate==null?0:cache.rate,foot:obsUi(`缓存读 ${formatTokens(cache.read||0)}`,`Đọc cache ${formatTokens(cache.read||0)}`),tip:['缓存命中 = 缓存读 ÷（输入 + 缓存读）。越高越省。']},
   ]);
-  const output=obsKpiGroup(obsUi('SOP 产出与质量','Kết quả và chất lượng SOP'),[
-    {label:lfT(`${rangeName}运行`,`${rangeName} runs`,`${rangeName} · Lượt chạy`),value:String(total),delta:dl(d('runs')),spark:spark('runs'),foot:obsUi(`${view.active||0} 进行中${cum(` · 累计 ${summary.totalRuns||0}`)}`,`${view.active||0} đang chạy${cum(` · Lũy kế ${summary.totalRuns||0}`)}`),tip:['只统计 SOP 运行，对话工作区不算运行。',['成功',String(succeeded)],['失败',String(failed)],['取消',String(view.cancelled||0)],...deltaTip]},
-    {label:lfT(`${rangeName}需求`,`${rangeName} requirements`,`${rangeName} · Yêu cầu`),value:String(view.uniqueIssues||0),delta:dl(d('issues')),spark:spark('issues'),foot:obsUi(`每单 ${view.runsPerIssue!=null?Number(view.runsPerIssue).toFixed(1):'—'} 次${cum(` · 累计 ${summary.uniqueIssues||0}`)}`,`Mỗi yêu cầu ${view.runsPerIssue!=null?Number(view.runsPerIssue).toFixed(1):'—'} lượt${cum(` · Tổng ${summary.uniqueIssues||0}`)}`),tip:['有 SOP 运行的需求，按关联的 Issue / TAPD 单去重；对话改代码的需求见下方「对话改代码」。',...deltaTip]},
+  const output=obsKpiGroup(obsUi('LOOP 产出与质量','Kết quả và chất lượng LOOP'),[
+    {label:lfT(`${rangeName}运行`,`${rangeName} runs`,`${rangeName} · Lượt chạy`),value:String(total),delta:dl(d('runs')),spark:spark('runs'),foot:obsUi(`${view.active||0} 进行中${cum(` · 累计 ${summary.totalRuns||0}`)}`,`${view.active||0} đang chạy${cum(` · Lũy kế ${summary.totalRuns||0}`)}`),tip:['只统计 LOOP 运行，对话工作区不算运行。',['成功',String(succeeded)],['失败',String(failed)],['取消',String(view.cancelled||0)],...deltaTip]},
+    {label:lfT(`${rangeName}需求`,`${rangeName} requirements`,`${rangeName} · Yêu cầu`),value:String(view.uniqueIssues||0),delta:dl(d('issues')),spark:spark('issues'),foot:obsUi(`每单 ${view.runsPerIssue!=null?Number(view.runsPerIssue).toFixed(1):'—'} 次${cum(` · 累计 ${summary.uniqueIssues||0}`)}`,`Mỗi yêu cầu ${view.runsPerIssue!=null?Number(view.runsPerIssue).toFixed(1):'—'} lượt${cum(` · Tổng ${summary.uniqueIssues||0}`)}`),tip:['有 LOOP 运行的需求，按关联的 Issue / TAPD 单去重；对话改代码的需求见下方「对话改代码」。',...deltaTip]},
     {label:'成功率',value:total?percent(view.successRate):'—',meter:total?view.successRate:0,foot:successFoot,tip:['成功率 = 成功 ÷（成功 + 失败），不含取消与进行中。']},
     {label:obsUi('P95 执行','Thời gian thực thi P95'),value:view.p95?duration(view.p95):'—',foot:obsUi(`平均 ${view.avgExec?duration(view.avgExec):'—'}${view.wait?` · 等待 ${duration(view.wait)}`:''}`,`Trung bình ${view.avgExec?duration(view.avgExec):'—'}${view.wait?` · Chờ ${duration(view.wait)}`:''}`),tip:['P95：95% 的执行在这个时间内完成。外部工作流按其上报的执行耗时统计。']},
   ],escapeHTML(rangeName));
   const conv=obsConversationKpis(view,rangeName,totalTokens,totalCost);
   const loop=obsKpiGroup(obsUi('Loop 自动化','Tự động hóa Loop'),[
-    {label:'平均 Token / Run',value:total?formatTokens(demo.averageTokensPerRun):'—',foot:obsUi(`SOP ${formatTokens(view.sopTokens??totalTokens)} ÷ ${total} 次运行`,`SOP ${formatTokens(view.sopTokens??totalTokens)} ÷ ${total} lượt chạy`)},
+    {label:'平均 Token / Run',value:total?formatTokens(demo.averageTokensPerRun):'—',foot:obsUi(`LOOP ${formatTokens(view.sopTokens??totalTokens)} ÷ ${total} 次运行`,`LOOP ${formatTokens(view.sopTokens??totalTokens)} ÷ ${total} lượt chạy`)},
     {label:'工具调用成功率',value:demo.toolCallsObserved?percent(demo.toolSuccessRate):'—',meter:demo.toolCallsObserved?demo.toolSuccessRate:0,foot:obsUi(`${demo.toolCallsSucceeded||0} 成功 / ${demo.toolCallsFailed||0} 失败 · 仅统计完成事件`,`${demo.toolCallsSucceeded||0} thành công / ${demo.toolCallsFailed||0} thất bại · Chỉ tính sự kiện hoàn tất`)},
     {label:'平均人工干预',value:demo.coveredRuns?Number(demo.averageHumanInterventions||0).toFixed(2):'—',foot:obsUi(`${demo.humanInterventions||0} 次人工决策 ÷ ${demo.coveredRuns||0} 平台内 runs · 不含暂停/恢复`,`${demo.humanInterventions||0} quyết định thủ công ÷ ${demo.coveredRuns||0} lượt chạy trong nền tảng · Không tính tạm dừng/tiếp tục`)},
     {label:'自动完成率',value:demo.coveredSucceededRuns?percent(demo.automationRate):'—',meter:demo.coveredSucceededRuns?demo.automationRate:0,foot:obsUi(`${demo.automatedSucceededRuns||0} 个全自动成功 / ${demo.coveredSucceededRuns||0} 个平台内成功`,`${demo.automatedSucceededRuns||0} lượt hoàn tất tự động / ${demo.coveredSucceededRuns||0} lượt thành công trong nền tảng`)},
-  ],`<span class="obs-info" tabindex="0">口径<span class="obs-tip" role="tooltip">${view.period?`仅统计 ${escapeHTML(rangeName)} 内的 Run，可点趋势换时段。`:'所有数字均可下钻到 workflow_task_id、run_id、trace_id 和原始事件。'}只统计 SOP 运行，不含对话改代码。自动完成率仅统计有平台事件的执行；外部汇总不推断人工干预。</span></span>`);
+  ],`<span class="obs-info" tabindex="0">口径<span class="obs-tip" role="tooltip">${view.period?`仅统计 ${escapeHTML(rangeName)} 内的 Run，可点趋势换时段。`:'所有数字均可下钻到 workflow_task_id、run_id、trace_id 和原始事件。'}只统计 LOOP 运行，不含对话改代码。自动完成率仅统计有平台事件的执行；外部汇总不推断人工干预。</span></span>`);
   return obsKpiGroups([output,usage])+(conv?obsKpiGroups([conv],'is-loop'):'')+obsKpiGroups([loop],'is-loop');
 }
 // obsConversationKpis groups everything done by changing code directly in a
-// conversation, without an SOP. Empty when there is none.
+// conversation, without a LOOP. Empty when there is none.
 function obsConversationKpis(view,rangeName,totalTokens,totalCost){
   const summary=state.analytics?.summary||{};
   if(!(summary.conversationWorkspaces||summary.conversationIssues||summary.conversationTokens))return '';
@@ -1146,12 +1151,12 @@ function obsConversationKpis(view,rangeName,totalTokens,totalCost){
   const share=(part,whole)=>whole>0?Math.min(100,part*100/whole):0;
   const pct=v=>v>0&&v<1?obsUi('不到 1%','Dưới 1%'):Math.round(v)+'%';
   const tokenShare=share(tokens,totalTokens),costShare=share(cost,totalCost);
-  return obsKpiGroup(obsUi('对话改代码 · 不走 SOP','Sửa mã qua hội thoại · Không dùng SOP'),[
+  return obsKpiGroup(obsUi('对话改代码 · 不走 LOOP','Sửa mã qua hội thoại · Không dùng LOOP'),[
     {label:lfT(`${rangeName}需求`,`${rangeName} requirements`,`${rangeName} · Yêu cầu`),value:String(view.conversationIssues||0),foot:obsUi(`${view.period?`累计 ${summary.conversationIssues||0} 个，`:'其中 '}${summary.conversationIssuesWithMr||0} 个已提 PR · ${summary.conversationIssuesDelivered||0} 个已交付`,`${view.period?`Lũy kế ${summary.conversationIssues||0} yêu cầu; `:'Trong đó, '}${summary.conversationIssuesWithMr||0} yêu cầu có PR · ${summary.conversationIssuesDelivered||0} yêu cầu đã bàn giao`),tip:['在对话里识别出、关联到对话工作区的需求，按需求去重。','只在对话里完成的需求，在「交付」页标为「对话直接交付」，PR 合入默认分支即算已交付。']},
     {label:`${rangeName} Token`,value:formatTokens(tokens),meter:tokenShare,foot:obsUi(`占全部 Token ${pct(tokenShare)}`,`Chiếm ${pct(tokenShare)} tổng số token`),tip:['已算进上方「投入」的 Token 合计。']},
-    {label:lfT(`${rangeName}成本`,`${rangeName} cost`,`${rangeName} · Chi phí`),value:costLabel(cost,true),meter:costShare,foot:obsUi(`占全部成本 ${pct(costShare)}`,`Chiếm ${pct(costShare)} tổng chi phí`),tip:['已算进上方「投入」的成本合计。']},
-    {label:lfT(`${rangeName}工作区`,`${rangeName} workspaces`,`${rangeName} · Không gian làm việc`),value:String(spaces),foot:obsUi(view.conversationLinked!=null?`${view.conversationLinked} 个已关联需求 · ${Math.max(0,spaces-view.conversationLinked)} 个未关联`:'按创建时间统计',view.conversationLinked!=null?`${view.conversationLinked} đã liên kết yêu cầu · ${Math.max(0,spaces-view.conversationLinked)} chưa liên kết`:'Thống kê theo thời điểm tạo'),tip:['对话里每打开一个代码工作区计 1 个。工作区不是 SOP 运行，不计入运行数、成功率和耗时。']},
-  ],`<span class="obs-info" tabindex="0">口径<span class="obs-tip" role="tooltip">在对话里直接改代码、不走 SOP 的部分。Token 和成本已算进「投入」合计；工作区和需求不计入「SOP 产出与质量」和「Loop 自动化」。</span></span>`);
+    {label:lfT(`${rangeName}成本`,`${rangeName} cost`,`${rangeName} · Chi phí`),value:costLabel(cost,view.conversationCostKnown!==false),meter:costShare,foot:obsUi(`占全部成本 ${pct(costShare)}`,`Chiếm ${pct(costShare)} tổng chi phí`),tip:['已算进上方「投入」的成本合计。']},
+    {label:lfT(`${rangeName}工作区`,`${rangeName} workspaces`,`${rangeName} · Không gian làm việc`),value:String(spaces),foot:obsUi(view.conversationLinked!=null?`${view.conversationLinked} 个已关联需求 · ${Math.max(0,spaces-view.conversationLinked)} 个未关联`:'按创建时间统计',view.conversationLinked!=null?`${view.conversationLinked} đã liên kết yêu cầu · ${Math.max(0,spaces-view.conversationLinked)} chưa liên kết`:'Thống kê theo thời điểm tạo'),tip:['对话里每打开一个代码工作区计 1 个。工作区不是 LOOP 运行，不计入运行数、成功率和耗时。']},
+  ],`<span class="obs-info" tabindex="0">口径<span class="obs-tip" role="tooltip">在对话里直接改代码、不走 LOOP 的部分。Token 和成本已算进「投入」合计；工作区和需求不计入「LOOP 产出与质量」和「Loop 自动化」。</span></span>`);
 }
 
 // ---------- 趋势 ----------
@@ -1179,7 +1184,7 @@ function obsTrendCard(){
 }
 
 // ---------- Token 去向 ----------
-const OBS_BREAKDOWN_DIMS=[['sop','SOP'],['model','模型'],['node','节点'],['src','来源'],['origin','执行'],['cat','类型']];
+const OBS_BREAKDOWN_DIMS=[['sop','LOOP'],['model','模型'],['node','节点'],['src','来源'],['origin','执行'],['cat','类型']];
 function obsBreakdownRowsFor(dim){
   const a=state.analytics||{};
   if(dim==='model')return (a.models||[]).map(m=>({key:m.key,name:m.name||m.key,tokens:m.tokens,costCny:m.costCny}));
@@ -1193,7 +1198,7 @@ function obsBreakdownRowsFor(dim){
   }
   return (a.workflows||[]).map(w=>({key:w.key,name:w.name||w.key,tokens:w.tokens,costCny:w.costCny}));
 }
-// Conversation workspaces are not SOP runs, so the SOP-based dimensions miss
+// Conversation workspaces are not LOOP runs, so the LOOP-based dimensions miss
 // them; one slice keeps every ring equal to the Token / cost totals. Sources
 // already carry the usage of conversations that are linked to a requirement.
 function obsBreakdownConversationRow(dim){
@@ -1336,16 +1341,16 @@ function obsUsageDetailGroups(view){
   const maxTrend=Math.max(1,...trend.map(t=>t.tokens||0));
   const traceTable={headers:['TAPD / 需求','workflow_task_id','Run / Trace','状态','耗时','Tokens','成本','工具','人工','错误位置'],rows:obsTraceRows(traces),pageKey:'obs-traces',empty:'暂无运行'};
   const recent={headers:['需求 / 流程','状态','耗时','Tokens','成本'],rows:traces.slice(0,8).map(t=>obsRow([escapeHTML(obsTraceLabel(t)),`<span class="status ${escapeHTML(t.status||'')}">${runStatus(t.status)}</span>`,t.durationMs?duration(t.durationMs):'—',formatTokens(t.tokens),costLabel(t.costCny,t.costKnown)],t.origin==='external'?'':`data-open-run="${escapeHTML(t.runId||'')}"`,'run-row')),empty:'暂无运行'};
-  const trendTable={headers:[grainName,'运行','需求','成功','失败','Tokens','输入 / 输出','成本','执行耗时',''],rows:trend.slice().reverse().map(t=>obsRow([escapeHTML(obsTrendLabel(t)),String(t.runs),String(t.issues||0),String(t.succeeded),String(t.failed||0),formatTokens(t.tokens),`${formatTokens(t.inputTokens)} / ${formatTokens(t.outputTokens)}`,costLabel(t.costCny,!t.costUnknownRuns),t.executionDurationMs?duration(t.executionDurationMs):'—',`<span class="obs-mini-bar"><i style="width:${Math.round((t.tokens||0)*100/maxTrend)}%"></i></span>`],`data-obs-period="${escapeHTML(t.date||'')}"`,`run-row${t.date===selectedPeriod?' obs-period-active':''}`)),empty:'暂无趋势'};
-  const sopTable={headers:['SOP','运行','成功率','返工率','取消率','Tokens','输入 / 输出','Token 占比','成本','成本占比','均执行'],rows:stats.map(w=>obsRow([`<b>${escapeHTML(w.name)}</b>`,String(w.runs),percent(w.successRate),w.qualityUnknownRuns===w.runs?'—':percent(w.reworkRate),percent(w.cancelRate),formatTokens(w.tokens),`${formatTokens(w.inputTokens)} / ${formatTokens(w.outputTokens)}`,w.tokenSharePct!=null?w.tokenSharePct.toFixed(1)+'%':'—',costLabel(w.costCny,!w.costUnknownRuns),w.costSharePct!=null?w.costSharePct.toFixed(1)+'%':'—',w.averageExecutionDurationMs?duration(w.averageExecutionDurationMs):'—']))};
+  const trendTable={headers:[grainName,'运行','需求','成功','失败','Tokens','输入 / 输出','成本','执行耗时',''],rows:trend.slice().reverse().map(t=>obsRow([escapeHTML(obsTrendLabel(t)),String(t.runs),String(t.issues||0),String(t.succeeded),String(t.failed||0),formatTokens(t.tokens),`${formatTokens(t.inputTokens)} / ${formatTokens(t.outputTokens)}`,costLabel(t.costCny,obsCostKnown(t)),t.executionDurationMs?duration(t.executionDurationMs):'—',`<span class="obs-mini-bar"><i style="width:${Math.round((t.tokens||0)*100/maxTrend)}%"></i></span>`],`data-obs-period="${escapeHTML(t.date||'')}"`,`run-row${t.date===selectedPeriod?' obs-period-active':''}`)),empty:'暂无趋势'};
+  const sopTable={headers:['LOOP','运行','成功率','返工率','取消率','Tokens','输入 / 输出','Token 占比','成本','成本占比','均执行'],rows:stats.map(w=>obsRow([`<b>${escapeHTML(w.name)}</b>`,String(w.runs),percent(w.successRate),w.qualityUnknownRuns===w.runs?'—':percent(w.reworkRate),percent(w.cancelRate),formatTokens(w.tokens),`${formatTokens(w.inputTokens)} / ${formatTokens(w.outputTokens)}`,w.tokenSharePct!=null?w.tokenSharePct.toFixed(1)+'%':'—',costLabel(w.costCny,!w.costUnknownRuns),w.costSharePct!=null?w.costSharePct.toFixed(1)+'%':'—',w.averageExecutionDurationMs?duration(w.averageExecutionDurationMs):'—']))};
   const modelTable={headers:['模型','调用','Tokens','输入 / 输出','Token 占比','成本','成本占比','成功率','均执行'],rows:(a.models||[]).map(m=>obsRow([`<span class="mono">${escapeHTML(m.name||m.key)}</span>`,String(m.runs),formatTokens(m.tokens),`${formatTokens(m.inputTokens)} / ${formatTokens(m.outputTokens)}`,m.tokenSharePct!=null?m.tokenSharePct.toFixed(1)+'%':'—',costLabel(m.costCny,!m.costUnknownRuns),m.costSharePct!=null?m.costSharePct.toFixed(1)+'%':'—',m.qualityUnknownRuns===m.runs?'—':percent(m.successRate),m.averageExecutionDurationMs?duration(m.averageExecutionDurationMs):'—']))};
   const memberTable={title:'成员汇总',sub:'当前项目全部责任人，按 Token 排序',headers:['成员','运行','成功','失败','Tokens','输入 / 输出','成本','执行耗时'],rows:obsUserTotals().map(u=>obsRow([`<b>${escapeHTML(obsUserName(u.userId))}</b>`,String(u.runs),String(u.success||0),String(u.failed||0),formatTokens(u.tokens),`${formatTokens(u.inputTokens)} / ${formatTokens(u.outputTokens)}`,costLabel(u.costCny,u.costKnown),u.executionDurationMs?duration(u.executionDurationMs):'—']))};
   const userTable={title:obsScope()==='project'?'每人每日用量':'',headers:['日期','成员','运行','Tokens','输入 / 输出','成本','执行耗时'],rows:(a.userUsage||[]).map(u=>obsRow([escapeHTML(u.date),`<b>${escapeHTML(obsUserName(u.userId))}</b>`,String(u.runs),formatTokens(u.tokens),`${formatTokens(u.inputTokens)} / ${formatTokens(u.outputTokens)}`,costLabel(u.costCny,u.costKnown),u.executionDurationMs?duration(u.executionDurationMs):'—'])),pageKey:'obs-users'};
-  const srcTable={title:'需求类型分布',sub:'按需求来源聚合，已完成数按需求去重',headers:['来源','关联执行','SOP 成功','已交付需求','Tokens','成本','平均执行'],rows:(a.issueSources||[]).map(s=>obsRow([`<b>${obsSourceLabel(s.key)}</b>`,String(s.runs),String(s.succeeded||0),String(s.completedIssues||0),formatTokens(s.tokens),costLabel(s.costCny,!s.costUnknownRuns),s.averageExecutionDurationMs?duration(s.averageExecutionDurationMs):'—']))};
-  const catTable={title:'编排类型分布',sub:'按 SOP 统计标签归类，完成需求数已按需求去重',headers:['统计标签','执行','成功','完成需求','Tokens','成本'],rows:(a.categories||[]).map(c=>obsRow([`<b>${escapeHTML(obsCategoryLabel(c.key))}</b>`,String(c.runs),String(c.succeeded||0),String(c.completedIssues||0),formatTokens(c.tokens),costLabel(c.costCny,!c.costUnknownRuns)]))};
-  const versionTable={title:'SOP 版本对比',sub:'同一 SOP 不同版本的执行效果；样本 < 5 标注样本不足',headers:['SOP','版本','运行','成功率','均执行耗时','Tokens','成本','提示'],rows:(a.workflowVersions||[]).map(v=>obsRow([`<b>${escapeHTML(v.name||v.workflowId)}</b>`,`<span class="mono">v${v.version}</span>`,String(v.runs),percent(v.successRate),v.averageExecutionDurationMs?duration(v.averageExecutionDurationMs):'—',formatTokens(v.tokens),costLabel(v.costCny,!v.costUnknownRuns),v.insufficientSample?'<span class="muted">样本不足</span>':'—']))};
+  const srcTable={title:'需求类型分布',sub:'按需求来源聚合，已完成数按需求去重',headers:['来源','关联执行','LOOP 成功','已交付需求','Tokens','成本','平均执行'],rows:(a.issueSources||[]).map(s=>obsRow([`<b>${obsSourceLabel(s.key)}</b>`,String(s.runs),String(s.succeeded||0),String(s.completedIssues||0),formatTokens(s.tokens),costLabel(s.costCny,!s.costUnknownRuns),s.averageExecutionDurationMs?duration(s.averageExecutionDurationMs):'—']))};
+  const catTable={title:'编排类型分布',sub:'按 LOOP 统计标签归类，完成需求数已按需求去重',headers:['统计标签','执行','成功','完成需求','Tokens','成本'],rows:(a.categories||[]).map(c=>obsRow([`<b>${escapeHTML(obsCategoryLabel(c.key))}</b>`,String(c.runs),String(c.succeeded||0),String(c.completedIssues||0),formatTokens(c.tokens),costLabel(c.costCny,!c.costUnknownRuns)]))};
+  const versionTable={title:'LOOP 版本对比',sub:'同一 LOOP 不同版本的执行效果；样本 < 5 标注样本不足',headers:['LOOP','版本','运行','成功率','均执行耗时','Tokens','成本','提示'],rows:(a.workflowVersions||[]).map(v=>obsRow([`<b>${escapeHTML(v.name||v.workflowId)}</b>`,`<span class="mono">v${v.version}</span>`,String(v.runs),percent(v.successRate),v.averageExecutionDurationMs?duration(v.averageExecutionDurationMs):'—',formatTokens(v.tokens),costLabel(v.costCny,!v.costUnknownRuns),v.insufficientSample?'<span class="muted">样本不足</span>':'—']))};
   const profileRows=stats.filter(w=>w.nodeCount>0).map(w=>obsRow([`<b>${escapeHTML(w.name)}</b>`,String(w.nodeCount),Object.entries(w.nodeTypes||{}).map(([k,v])=>`${escapeHTML(k)}×${v}`).join('，')||'—',escapeHTML(obsCategoryLabel(w.category)),String(w.runs)]));
-  const profileTable={title:'SOP 编排画像',sub:'节点数、节点类型构成与受控统计标签',headers:['SOP','节点数','节点类型构成','统计标签','使用频次'],rows:profileRows};
+  const profileTable={title:'LOOP 编排画像',sub:'节点数、节点类型构成与受控统计标签',headers:['LOOP','节点数','节点类型构成','统计标签','使用频次'],rows:profileRows};
   const nodeTable={title:'节点质量明细',sub:'按失败节点数排序；重试率 = 重试节点 ÷ 节点执行次数',headers:['节点','执行','成功','失败','返工','重试率','均执行耗时','Tokens','工具调用'],rows:[...nodeStats].sort((x,y)=>(y.failedNodes||0)-(x.failedNodes||0)).map(n=>obsRow([escapeHTML(n.name||n.key),String(n.runs),String(n.succeeded||0),String(n.failedNodes||0),String(n.reworkNodes||0),n.retryRate!=null?percent(n.retryRate):'—',n.averageExecutionDurationMs?duration(n.averageExecutionDurationMs):'—',formatTokens(n.tokens),String(n.toolCalls||0)]))};
   const slowTable={title:'慢节点',sub:'按平均执行耗时排序',headers:['节点','执行','均耗时','P95','成功率','Tokens'],rows:[...nodeStats].filter(n=>n.averageExecutionDurationMs>0).sort((x,y)=>y.averageExecutionDurationMs-x.averageExecutionDurationMs).slice(0,10).map(n=>obsRow([escapeHTML(n.name||n.key),String(n.runs),duration(n.averageExecutionDurationMs),n.p95ExecutionDurationMs?duration(n.p95ExecutionDurationMs):'—',percent(n.successRate),formatTokens(n.tokens)]))};
   const failReasonTable={title:'失败原因',sub:'节点错误归一化后的高频原因',headers:['节点','错误','次数'],rows:(a.failures||[]).map(f=>obsRow([escapeHTML(f.nodeId||'—'),`<span title="${escapeHTML(f.code||'')}">${escapeHTML((f.code||'').slice(0,80))}</span>`,String(f.count)])),empty:'没有失败记录'};
@@ -1358,15 +1363,15 @@ function obsUsageDetailGroups(view){
     ]},
     {group:'用量拆解',items:[
       {key:'trend',title:'趋势明细',sub:obsUi(`按${grainName}；点一行查看该时段`,`Theo ${grainName}; nhấp một dòng để xem kỳ đó`),tables:[trendTable]},
-      {key:'sops',title:'SOP 一览',sub:'成功率、返工、取消和各流程占了多少 Token / 成本',tables:[sopTable]},
+      {key:'sops',title:'LOOP 一览',sub:'成功率、返工、取消和各流程占了多少 Token / 成本',tables:[sopTable]},
       {key:'models',title:'各模型用量',sub:'每个模型花了多少 Token 和钱',tables:[modelTable]},
       {key:'users',title:obsScope()==='project'?'成员':'每人每日用量',sub:'责任人 × 自然日',tables:obsScope()==='project'?[memberTable,userTable]:[userTable],count:(a.userUsage||[]).length},
-      {key:'dist',title:'类型分布',sub:'需求来源与 SOP 统计标签',tables:[srcTable,catTable]},
+      {key:'dist',title:'类型分布',sub:'需求来源与 LOOP 统计标签',tables:[srcTable,catTable]},
     ]},
     {group:'质量',items:[
       {key:'nodes',title:'节点',sub:'节点质量与慢节点',tables:[nodeTable,slowTable],count:nodeStats.length},
       {key:'fails',title:'失败',sub:'失败原因与最近失败的运行',tables:[failReasonTable,failRunTable],count:(a.failures||[]).length},
-      {key:'versions',title:'SOP 版本',sub:'版本对比与编排画像',tables:profileRows.length?[versionTable,profileTable]:[versionTable],count:(a.workflowVersions||[]).length},
+      {key:'versions',title:'LOOP 版本',sub:'版本对比与编排画像',tables:profileRows.length?[versionTable,profileTable]:[versionTable],count:(a.workflowVersions||[]).length},
     ]},
     cross?{group:'人与项目',items:[cross]}:null,
   ].filter(Boolean);
@@ -1384,7 +1389,7 @@ function obsCrossProjectTable(){
     :obsUi('该责任人目前只在当前项目有执行记录，个人与项目切换不会把其他项目加进来。','Người phụ trách hiện chỉ có lượt chạy trong dự án này; chuyển giữa Cá nhân và Dự án không cộng thêm dự án khác.');
   return {key:'projects',title:'该责任人在各项目',sub:note,tables:[{headers:['项目','运行','需求','Tokens','成本'],rows:rows.map(r=>obsRow([`<b>${escapeHTML(obsProjectName(r.projectId))}</b>${r.projectId===current?'<span class="obs-pill">当前</span>':''}`,String(r.runs||0),String(r.uniqueIssues||0),formatTokens(r.tokens),costLabel(r.costCny,r.costKnown)],'',r.projectId===current?'obs-current-project':''))}]};
 }
-const OBS_DELIVERY_FILTERS=[['all',obsUi('全部','Tất cả')],['delivered',obsUi('已交付','Đã bàn giao')],['sop',obsUi('SOP 成功','SOP thành công')],['direct',obsUi('对话改代码','Sửa mã qua hội thoại')],['withmr',obsUi('有 PR','Có PR')],['mr',obsUi('PR 已合入','PR đã hợp nhất')],['baseline',obsUi('已合入基线','Đã vào baseline')],['github','GitHub'],['local',obsUi('本地','Cục bộ')]];
+const OBS_DELIVERY_FILTERS=[['all',obsUi('全部','Tất cả')],['delivered',obsUi('已交付','Đã bàn giao')],['sop',obsUi('LOOP 成功','LOOP thành công')],['direct',obsUi('对话改代码','Sửa mã qua hội thoại')],['withmr',obsUi('有 PR','Có PR')],['mr',obsUi('PR 已合入','PR đã hợp nhất')],['baseline',obsUi('已合入基线','Đã vào baseline')],['github','GitHub'],['local',obsUi('本地','Cục bộ')]];
 function obsDeliveryMRs(it){
   const list=it.mrs?.length?it.mrs:it.mrUrl?[{url:it.mrUrl,project:it.mrProject,iid:it.mrIid,state:it.mrState}]:[];
   const seen=new Map();
@@ -1406,7 +1411,7 @@ function obsDeliveryMatches(it,filter){
 }
 function obsDeliveryStages(){
   const d=state.analytics?.delivery||{};
-  return [{key:'all',name:obsUi('有执行的单','Yêu cầu có lượt chạy'),value:d.issues||0},{key:'done',name:d.directIssues?obsUi('SOP 成功 / 对话已提 PR','SOP thành công / hội thoại đã gửi PR'):obsUi('SOP 成功','SOP thành công'),value:(d.sopSucceeded||0)+(d.directWithMr||0)},{key:'withmr',name:obsUi('有 PR 的单','Yêu cầu có PR'),value:d.withMr||0},{key:'mr',name:obsUi('有 PR 合入的单','Yêu cầu có PR đã hợp nhất'),value:d.issuesWithMergedMr??d.mrMerged??0},{key:'delivered',name:obsUi('已交付','Đã bàn giao'),value:d.delivered||0}];
+  return [{key:'all',name:obsUi('有执行的单','Yêu cầu có lượt chạy'),value:d.issues||0},{key:'done',name:d.directIssues?obsUi('LOOP 成功 / 对话已提 PR','LOOP thành công / hội thoại đã gửi PR'):obsUi('LOOP 成功','LOOP thành công'),value:(d.sopSucceeded||0)+(d.directWithMr||0)},{key:'withmr',name:obsUi('有 PR 的单','Yêu cầu có PR'),value:d.withMr||0},{key:'mr',name:obsUi('有 PR 合入的单','Yêu cầu có PR đã hợp nhất'),value:d.issuesWithMergedMr??d.mrMerged??0},{key:'delivered',name:obsUi('已交付','Đã bàn giao'),value:d.delivered||0}];
 }
 function obsSetDeliveryFilter(filter,scroll){
   state.obsDeliveryFilter=filter||'all';
@@ -1426,11 +1431,11 @@ function obsDelivery(){
   const kpis=obsKpiGroups([
     obsKpiGroup(obsUi('交付结果','Kết quả bàn giao'),[
       {label:obsUi('已交付','Đã bàn giao'),value:String(d.delivered||0),meter:d.issues?d.delivered*100/d.issues:0,
-        foot:obsUi(`SOP 成功或对话直接交付，且已在默认分支 · ${d.issues||0} 个有执行的单${d.directIssues?`（含 ${d.directIssues} 个只在对话里改）`:''}`,
-          `SOP thành công hoặc bàn giao trực tiếp qua hội thoại, đã có trên nhánh mặc định · ${d.issues||0} yêu cầu có lượt chạy${d.directIssues?` (gồm ${d.directIssues} yêu cầu chỉ sửa qua hội thoại)`:''}`),
+        foot:obsUi(`LOOP 成功或对话直接交付，且已在默认分支 · ${d.issues||0} 个有执行的单${d.directIssues?`（含 ${d.directIssues} 个只在对话里改）`:''}`,
+          `LOOP thành công hoặc bàn giao trực tiếp qua hội thoại, đã có trên nhánh mặc định · ${d.issues||0} yêu cầu có lượt chạy${d.directIssues?` (gồm ${d.directIssues} yêu cầu chỉ sửa qua hội thoại)`:''}`),
         tip:[obsUi('「已合入 / 已交付」只统计默认分支。','“Đã hợp nhất / Đã bàn giao” chỉ tính trên nhánh mặc định.'),
-          obsUi('对话直接改代码的需求没有 SOP，PR 合入默认分支即算交付。','Yêu cầu sửa mã trực tiếp qua hội thoại không có SOP; được coi là bàn giao khi PR hợp nhất vào nhánh mặc định.')]},
-      {label:obsUi('完成需求 / Bug','Yêu cầu / lỗi đã hoàn tất'),value:`${d.requirementCount||0} / ${d.bugFixCount||0}`,foot:obsUi('按 SOP 统计标签归类，需求去重','Phân loại theo nhãn thống kê SOP; không đếm trùng yêu cầu')},
+          obsUi('对话直接改代码的需求没有 LOOP，PR 合入默认分支即算交付。','Yêu cầu sửa mã trực tiếp qua hội thoại không có LOOP; được coi là bàn giao khi PR hợp nhất vào nhánh mặc định.')]},
+      {label:obsUi('完成需求 / Bug','Yêu cầu / lỗi đã hoàn tất'),value:`${d.requirementCount||0} / ${d.bugFixCount||0}`,foot:obsUi('按 LOOP 统计标签归类，需求去重','Phân loại theo nhãn thống kê LOOP; không đếm trùng yêu cầu')},
       {label:obsUi('PR 已合入','PR đã hợp nhất'),value:String(d.mrMerged||0),meter:(d.totalMrs??d.withMr)?d.mrMerged*100/(d.totalMrs??d.withMr):0,
         foot:obsUi(`按 PR 计数 · 默认分支；${d.mrIntegrated||0} 个已合入基线`,`Đếm theo PR trên nhánh mặc định; ${d.mrIntegrated||0} PR đã hợp nhất vào baseline`)},
       ...(projectScope?[{label:obsUi('人均周吞吐','Số bàn giao hằng tuần mỗi người'),value:summary.weeklyActiveContributors?Number(summary.weeklyThroughputPerUser||0).toFixed(2):'—',
@@ -1439,7 +1444,7 @@ function obsDelivery(){
     obsKpiGroup(obsUi('耗时与返工','Thời lượng và làm lại'),[
       {label:obsUi('平均执行耗时','Thời gian thực thi trung bình'),value:d.averageExecutionDurationMs?duration(d.averageExecutionDurationMs):'—',
         foot:`P50 ${d.p50ExecutionDurationMs?duration(d.p50ExecutionDurationMs):'—'} · P95 ${d.p95ExecutionDurationMs?duration(d.p95ExecutionDurationMs):'—'}`,
-        tip:[obsUi('执行耗时 = 该需求全部执行按 SOP 节点求和。','Thời gian thực thi = tổng thời lượng các nút SOP của mọi lượt chạy thuộc yêu cầu.')]},
+        tip:[obsUi('执行耗时 = 该需求全部执行按 LOOP 节点求和。','Thời gian thực thi = tổng thời lượng các nút LOOP của mọi lượt chạy thuộc yêu cầu.')]},
       {label:obsUi('平均端到端耗时','Thời gian đầu-cuối trung bình'),value:d.averageDurationMs?duration(d.averageDurationMs):'—',
         foot:obsUi(`累计 ${formatTokens(d.totalTokens||0)} tokens`,`Tổng cộng ${formatTokens(d.totalTokens||0)} token`),
         tip:[obsUi('端到端 = 该需求最近一次执行的开始到结束，含等待。','Đầu-cuối = từ lúc bắt đầu đến khi kết thúc lượt chạy gần nhất của yêu cầu, bao gồm thời gian chờ.')]},
@@ -1495,7 +1500,7 @@ function obsOwnersCard(){
   return obsCard('owners',obsUi('按负责人','Theo người phụ trách'),obsUi('已交付 / 进行中 / 未交付；点一人筛选明细','Đã bàn giao / Đang thực hiện / Chưa bàn giao; nhấp tên một người để lọc chi tiết'),'',`<div class="obs-legend"><span><i style="background:var(--c1)"></i>已交付</span><span><i style="background:var(--c3)"></i>进行中</span><span><i style="background:var(--c4)"></i>未交付</span></div>${chart}${table}`,{expand:true});
 }
 function obsMrLabel(s){return s==='merged'?'<span class="obs-mr merged">已合入</span>':s==='integrated'?'<span class="obs-mr integrated">已合入基线</span>':({opened:'待合入',reopened:'重开',closed:'已关闭',none:'无 PR',unknown:'待查合入'}[s]||s||'—')}
-// A conversation requirement has no SOP status: its state is its MRs'.
+// A conversation requirement has no LOOP status: its state is its MRs'.
 function obsDirectDeliveryText(it){
   if(it.delivered)return obsUi('对话直接交付','Bàn giao trực tiếp qua hội thoại');
   const states=obsDeliveryMRs(it).map(mr=>mr.state);
@@ -1504,20 +1509,28 @@ function obsDirectDeliveryText(it){
   if(states.every(s=>s==='closed'))return obsUi('对话 · PR 已关闭','Hội thoại · PR đã đóng');
   return obsUi('对话 · PR 待合入','Hội thoại · PR chờ hợp nhất');
 }
-function obsDeliveryStatusText(it){return it.directDelivery?obsDirectDeliveryText(it):it.sopSucceeded?obsUi('SOP 成功','SOP thành công'):(runStatus(it.runStatus)||it.runStatus||'—')}
+function obsDeliveryStatusText(it){return it.directDelivery?obsDirectDeliveryText(it):it.sopSucceeded?obsUi('LOOP 成功','LOOP thành công'):(runStatus(it.runStatus)||it.runStatus||'—')}
 function obsDeliveryStatusHTML(it){return `<span class="status ${escapeHTML(it.directDelivery?'':(it.runStatus||''))}">${escapeHTML(obsDeliveryStatusText(it))}</span>`}
+// 单号：外部单据显示 #iid / TAPD ID；平台需求与需求列表同一规则显示「项目 Key-编号」，
+// 只有缺编号的旧数据才退回内部 ID。
+function obsDeliveryIssueKey(it){
+  if(Number(it?.externalIid)>0)return `#${it.externalIid}`;
+  if(it?.externalId)return String(it.externalId);
+  if(Number(it?.issueNumber)>0&&typeof issueKeyLabel==='function')return issueKeyLabel({source:'local',projectId:it.projectId,number:it.issueNumber});
+  return String(it?.issueId||'');
+}
 function obsDeliveryTableDef(all){
   const items=state.analytics?.deliveries||[];
   const filter=state.obsDeliveryFilter||'all';
   const visible=items.filter(it=>obsDeliveryMatches(it,filter));
   const rows=visible.map(it=>{
-    const issue=it.externalIid?`#${it.externalIid}`:(it.externalId||it.issueId);
+    const issue=obsDeliveryIssueKey(it);
     const mr=obsDeliveryMRHTML(it);
     const startedLanes=(it.lanes||[]).filter(l=>l.started);
     const sop=startedLanes.length?startedLanes.map(l=>`${l.label}${l.status==='succeeded'?'✓':''}`).join(' / '):(it.workflowName||it.workflowId);
     return obsRow([`${obsSourceLabel(it.source)} ${escapeHTML(issue)}`,`<b>${escapeHTML(it.title||it.issueId)}</b>`,escapeHTML(sop),obsDeliveryStatusHTML(it),duration(it.durationMs),it.executionDurationMs?duration(it.executionDurationMs):'—',it.cycleDurationMs?duration(it.cycleDurationMs):'—',it.directDelivery?obsUi('对话','Hội thoại'):obsUi(`${it.runCount||0} 次`,`${it.runCount||0} lượt`),escapeHTML(obsUserName(it.userId)||'—'),formatTokens(it.tokens),costLabel(it.costCny,it.costKnown),mr,it.delivered?obsUi('已交付','Đã bàn giao'):obsUi('未交付','Chưa bàn giao')],`data-edit-issue="${escapeHTML(it.issueId)}"`,'run-row');
   });
-  return {key:'deliveries',title:obsUi('需求交付明细','Chi tiết bàn giao yêu cầu'),tables:[{headers:['单号','标题','SOP','流程','端到端','执行耗时','周期','执行次数','负责人','Tokens','成本','PR','交付'],rows,pageKey:all?'':'obs-deliveries',empty:obsUi('还没有带需求上下文的运行','Chưa có lượt chạy gắn với yêu cầu')}],items,filter};
+  return {key:'deliveries',title:obsUi('需求交付明细','Chi tiết bàn giao yêu cầu'),tables:[{headers:['单号','标题','LOOP','流程','端到端','执行耗时','周期','执行次数','负责人','Tokens','成本','PR','交付'],rows,pageKey:all?'':'obs-deliveries',empty:obsUi('还没有带需求上下文的运行','Chưa có lượt chạy gắn với yêu cầu')}],items,filter};
 }
 function obsDeliveriesCard(){
   const def=obsDeliveryTableDef();
@@ -1525,7 +1538,7 @@ function obsDeliveriesCard(){
   const userFilter=filter.startsWith('user:')?filter:'';
   const chips=OBS_DELIVERY_FILTERS.map(([id,label])=>`<button type="button" data-obs-delivery="${id}" class="${filter===id?'active':''}">${label}<i>${items.filter(it=>obsDeliveryMatches(it,id)).length} ${obsUi('单','yêu cầu')}</i></button>`).join('')+(userFilter?`<button type="button" class="active" data-obs-delivery="all" title="${obsUi('清除负责人筛选','Bỏ lọc người phụ trách')}">${escapeHTML(obsUserName(userFilter.slice(5)))} ×</button>`:'');
   const body=`<div class="obs-chips">${chips}</div>${obsDetailTable(def.tables[0],'','')}`;
-  return obsCard('deliveries',obsUi('需求交付明细','Chi tiết bàn giao yêu cầu'),obsUi('耗时为该需求最近一次执行的端到端时间；执行耗时 = 该需求全部执行按 SOP 节点求和；周期为首次执行到最后一次执行。「已合入 / 已交付」只统计默认分支。','Thời lượng đầu-cuối của lượt chạy gần nhất; thời gian thực thi là tổng thời lượng các nút SOP qua mọi lượt chạy; chu kỳ tính từ lượt chạy đầu tiên đến lượt cuối cùng. Chỉ tính hợp nhất và bàn giao trên nhánh mặc định.'),`<button type="button" class="obs-btn" data-obs-export-csv="deliveries">${obsIcon('download')}CSV</button>`,body,{klass:'obs-deliveries'});
+  return obsCard('deliveries',obsUi('需求交付明细','Chi tiết bàn giao yêu cầu'),obsUi('耗时为该需求最近一次执行的端到端时间；执行耗时 = 该需求全部执行按 LOOP 节点求和；周期为首次执行到最后一次执行。「已合入 / 已交付」只统计默认分支。','Thời lượng đầu-cuối của lượt chạy gần nhất; thời gian thực thi là tổng thời lượng các nút LOOP qua mọi lượt chạy; chu kỳ tính từ lượt chạy đầu tiên đến lượt cuối cùng. Chỉ tính hợp nhất và bàn giao trên nhánh mặc định.'),`<button type="button" class="obs-btn" data-obs-export-csv="deliveries">${obsIcon('download')}CSV</button>`,body,{klass:'obs-deliveries'});
 }
 function obsPlain(v){return String(v==null?'':v).replace(/<[^>]+>/g,'')}
 function obsReportScope(){
@@ -1537,9 +1550,9 @@ function obsReportScope(){
 }
 const OBS_REPORT_COPY={
   '用量分析报告':'Báo cáo phân tích mức sử dụng',
-  'SOP 一览':'Tổng quan SOP','各模型用量':'Mức sử dụng theo mô hình',
+  'SOP 一览':'Tổng quan SOP','LOOP 一览':'Tổng quan LOOP','各模型用量':'Mức sử dụng theo mô hình',
   '成员汇总':'Tổng hợp thành viên','每人每日用量':'Mức sử dụng hằng ngày theo người',
-  '需求类型分布':'Phân bố loại yêu cầu','SOP 版本对比':'So sánh phiên bản SOP',
+  '需求类型分布':'Phân bố loại yêu cầu','SOP 版本对比':'So sánh phiên bản SOP','LOOP 版本对比':'So sánh phiên bản LOOP',
   '各项目用量':'Mức sử dụng theo dự án','交付明细':'Chi tiết bàn giao',
   '周期':'Kỳ','运行':'Lượt chạy','成功率':'Tỷ lệ thành công',
   '返工率':'Tỷ lệ làm lại','取消率':'Tỷ lệ hủy','成本':'Chi phí',
@@ -1547,12 +1560,12 @@ const OBS_REPORT_COPY={
   '输入 / 输出':'Đầu vào / Đầu ra','Token 占比':'Tỷ trọng token',
   '成员':'Thành viên','成功':'Thành công','失败':'Thất bại',
   '日期':'Ngày','来源':'Nguồn','关联执行':'Lượt thực thi liên quan',
-  'SOP 成功':'SOP thành công','已交付需求':'Yêu cầu đã bàn giao',
+  'SOP 成功':'SOP thành công','LOOP 成功':'LOOP thành công','已交付需求':'Yêu cầu đã bàn giao',
   '版本':'Phiên bản','需求':'Yêu cầu','执行耗时':'Thời gian thực thi',
   '项目':'Dự án','单号':'Mã yêu cầu','标题':'Tiêu đề',
   '流程':'Quy trình','责任人':'Người phụ trách','交付':'Bàn giao',
   '会话数':'Số cuộc trò chuyện','创建需求':'Yêu cầu đã tạo',
-  '需求 SOP':'SOP theo yêu cầu','多人协作会话':'Hội thoại cộng tác',
+  '需求 SOP':'SOP theo yêu cầu','需求 LOOP':'LOOP theo yêu cầu','多人协作会话':'Hội thoại cộng tác',
   '一次通过':'Thành công lần đầu','缓存命中':'Tỷ lệ trúng cache',
   'P95 执行':'Thực thi P95','对话改代码':'Sửa mã qua hội thoại',
   '已交付':'Đã bàn giao','未交付':'Chưa bàn giao','PR 已合入':'PR đã hợp nhất'
@@ -1560,14 +1573,17 @@ const OBS_REPORT_COPY={
 function obsReportText(zh){return obsUi(zh,OBS_REPORT_COPY[zh]||zh)}
 function obsReportTable(title,headers,rows){
   if(!rows)return `<section class="block"><h2>${obsReportText(title)}</h2><p class="empty">${obsUi('暂无数据','Chưa có dữ liệu')}</p></section>`;
-  return `<section class="block"><h2>${title}</h2><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></section>`;
+  return `<section class="block"><h2>${obsReportText(title)}</h2><table><thead><tr>${headers.map(h=>`<th>${obsReportText(h)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></section>`;
 }
 async function exportObsReport(){
   ensureObsUserFilter();
+  const context=obsAnalyticsContext(analyticsQuery()),period=obsPeriodKey();
   toast(obsUi('正在生成报告…','Đang tạo báo cáo…'));
   try{
     if(!state.obsAnalyticsFull){
-      state.analytics=await api('/api/analytics'+analyticsQuery({overview:false}),{silent:true});
+      const snapshot=await api('/api/analytics'+analyticsQuery({overview:false}),{silent:true});
+      if(context!==obsAnalyticsContext(analyticsQuery())||period!==obsPeriodKey()){toast(lfT('统计范围已切换，请重新导出','The analytics scope changed. Export again.'));return}
+      state.analytics=snapshot;state.obsAnalyticsDataContext=context;
       state.obsAnalyticsFull=true;
     }
     const html=buildObsReportHTML();
@@ -1593,14 +1609,14 @@ function buildObsReportHTML(){
   const memberRows=obsUserTotals().map(u=>`<tr><td>${escapeHTML(obsUserName(u.userId))}</td><td>${u.runs}</td><td>${u.success||0}</td><td>${u.failed||0}</td><td>${formatTokens(u.tokens)}</td><td>${formatTokens(u.inputTokens)} / ${formatTokens(u.outputTokens)}</td><td>${obsPlain(costLabel(u.costCny,u.costKnown))}</td></tr>`).join('');
   const srcRows=(state.analytics?.issueSources||[]).map(s=>`<tr><td>${obsSourceLabel(s.key)}</td><td>${s.runs}</td><td>${s.succeeded||0}</td><td>${s.completedIssues||0}</td><td>${formatTokens(s.tokens)}</td><td>${obsPlain(costLabel(s.costCny,!s.costUnknownRuns))}</td></tr>`).join('');
   const versionRows=(state.analytics?.workflowVersions||[]).map(v=>`<tr><td>${escapeHTML(v.name||v.workflowId)}</td><td>v${v.version}</td><td>${v.runs}</td><td>${percent(v.successRate)}</td><td>${formatTokens(v.tokens)}</td><td>${obsPlain(costLabel(v.costCny,!v.costUnknownRuns))}</td></tr>`).join('');
-  const trendRows=obsTrendWindow(state.analytics?.trend||[]).slice().reverse().map(t=>`<tr><td>${escapeHTML(obsTrendLabel(t))}</td><td>${t.runs}</td><td>${t.issues||0}</td><td>${t.succeeded}</td><td>${t.failed||0}</td><td>${formatTokens(t.tokens)}</td><td>${obsPlain(costLabel(t.costCny,!t.costUnknownRuns))}</td><td>${t.executionDurationMs?duration(t.executionDurationMs):'—'}</td></tr>`).join('');
+  const trendRows=obsTrendWindow(state.analytics?.trend||[]).slice().reverse().map(t=>`<tr><td>${escapeHTML(obsTrendLabel(t))}</td><td>${t.runs}</td><td>${t.issues||0}</td><td>${t.succeeded}</td><td>${t.failed||0}</td><td>${formatTokens(t.tokens)}</td><td>${obsPlain(costLabel(t.costCny,obsCostKnown(t)))}</td><td>${t.executionDurationMs?duration(t.executionDurationMs):'—'}</td></tr>`).join('');
   const projectRows=(state.obsCrossProject?.projectUsage||state.analytics?.projectUsage||[]).map(r=>`<tr><td>${escapeHTML(obsProjectName(r.projectId))}</td><td>${r.runs||0}</td><td>${r.uniqueIssues||0}</td><td>${formatTokens(r.tokens)}</td><td>${obsPlain(costLabel(r.costCny,r.costKnown))}</td></tr>`).join('');
-  const deliveryRows=(state.analytics?.deliveries||[]).slice(0,80).map(it=>`<tr><td>${obsSourceLabel(it.source)} ${escapeHTML(String(it.externalIid?('#'+it.externalIid):(it.externalId||it.issueId)))}</td><td>${escapeHTML(it.title||it.issueId)}</td><td>${escapeHTML(it.workflowName||it.workflowId)}</td><td>${escapeHTML(obsDeliveryStatusText(it))}</td><td>${escapeHTML(obsUserName(it.userId))}</td><td>${formatTokens(it.tokens)}</td><td>${obsPlain(costLabel(it.costCny,it.costKnown))}</td><td>${obsDeliveryMRHTML(it)}</td><td>${obsReportText(it.delivered?'已交付':'未交付')}</td></tr>`).join('');
+  const deliveryRows=(state.analytics?.deliveries||[]).slice(0,80).map(it=>`<tr><td>${obsSourceLabel(it.source)} ${escapeHTML(obsDeliveryIssueKey(it))}</td><td>${escapeHTML(it.title||it.issueId)}</td><td>${escapeHTML(it.workflowName||it.workflowId)}</td><td>${escapeHTML(obsDeliveryStatusText(it))}</td><td>${escapeHTML(obsUserName(it.userId))}</td><td>${formatTokens(it.tokens)}</td><td>${obsPlain(costLabel(it.costCny,it.costKnown))}</td><td>${obsDeliveryMRHTML(it)}</td><td>${obsReportText(it.delivered?'已交付':'未交付')}</td></tr>`).join('');
   const kpis=[
     ...(activity?[
       ['会话数',activity.sessions||0,obsUi('普通对话 · 按创建时间','Hội thoại thông thường · Theo thời điểm tạo')],
       ['创建需求',activity.requirements||0,obsUi('按需求 ID 去重 · 含同步需求','Không đếm trùng theo ID yêu cầu · Bao gồm yêu cầu đồng bộ')],
-      ['需求 SOP',activity.sopRuns||0,obsUi('顶层需求 SOP 执行次数','Số lượt chạy SOP cấp cao nhất của yêu cầu')],
+      ['需求 LOOP',activity.sopRuns||0,obsUi('顶层需求 LOOP 执行次数','Số lượt chạy LOOP cấp cao nhất của yêu cầu')],
       ['多人协作会话',activity.collaborativeSessions||0,activity.sessions?obsUi(`占会话 ${(Number(activity.collaborativeSessions||0)*100/activity.sessions).toFixed(1)}% · 至少两位用户发言`,`Chiếm ${(Number(activity.collaborativeSessions||0)*100/activity.sessions).toFixed(1)}% số cuộc trò chuyện · Có ít nhất hai người gửi tin nhắn`):obsUi('暂无会话','Chưa có hội thoại')],
       ...[false,true].map(collaborative=>{const card=obsActivityUsageCard(activity,collaborative);return [card.label,card.value,card.foot]}),
     ]:[]),
@@ -1608,10 +1624,10 @@ function buildObsReportHTML(){
     ['成功率',summary.totalRuns?percent(summary.successRate):'—',obsUi(`${summary.succeededRuns||0} 成功 / ${summary.failedRuns||0} 失败`,`${summary.succeededRuns||0} thành công / ${summary.failedRuns||0} thất bại`)],
     ['一次通过',summary.totalRuns?percent(summary.firstPassRate):'—',obsUi(`${summary.reworkedRuns||0} 次返工`,`${summary.reworkedRuns||0} lượt làm lại`)],
     ['Token',formatTokens(summary.totalTokens),obsUi(`入 ${formatTokens(summary.inputTokens)} / 出 ${formatTokens(summary.outputTokens)}`,`Đầu vào ${formatTokens(summary.inputTokens)} / đầu ra ${formatTokens(summary.outputTokens)}`)],
-    ['成本',obsPlain(costLabel(summary.totalCostCny,summary.costUnknownRuns===0)),summary.costUnknownRuns?obsUi(`${summary.costUnknownRuns} 次未识别`,`${summary.costUnknownRuns} lượt chưa xác định`):obsUi('已识别','Đã xác định')],
+    ['成本',obsPlain(costLabel(summary.totalCostCny,obsCostKnown(summary))),obsCostUnknown(summary)?obsUi(`${obsCostUnknown(summary)} 次未识别`,`${obsCostUnknown(summary)} lượt chưa xác định`):obsUi('已识别','Đã xác định')],
     ['缓存命中',(Number(summary.inputTokens||0)+Number(summary.cacheReadTokens||0))?Number(summary.cacheHitRate||0).toFixed(0)+'%':'—',obsUi(`缓存读 ${formatTokens(summary.cacheReadTokens||0)}`,`Đọc cache ${formatTokens(summary.cacheReadTokens||0)}`)],
     ['P95 执行',summary.executionP95DurationMs?duration(summary.executionP95DurationMs):'—',summary.executionAverageDurationMs?obsUi(`平均 ${duration(summary.executionAverageDurationMs)}`,`Trung bình ${duration(summary.executionAverageDurationMs)}`):'—'],
-    ['对话改代码',obsUi(`${summary.conversationIssues||0} 个需求`,`${summary.conversationIssues||0} yêu cầu`),obsUi(`${summary.conversationWorkspaces||0} 个工作区 · ${formatTokens(summary.conversationTokens||0)} · ${obsPlain(costLabel(summary.conversationCostCny||0,true))}`,`${summary.conversationWorkspaces||0} workspace · ${formatTokens(summary.conversationTokens||0)} · ${obsPlain(costLabel(summary.conversationCostCny||0,true))}`)],
+    ['对话改代码',obsUi(`${summary.conversationIssues||0} 个需求`,`${summary.conversationIssues||0} yêu cầu`),obsUi(`${summary.conversationWorkspaces||0} 个工作区 · ${formatTokens(summary.conversationTokens||0)} · ${obsPlain(costLabel(summary.conversationCostCny||0,!summary.conversationCostUnknownWorkspaces))}`,`${summary.conversationWorkspaces||0} workspace · ${formatTokens(summary.conversationTokens||0)} · ${obsPlain(costLabel(summary.conversationCostCny||0,!summary.conversationCostUnknownWorkspaces))}`)],
     ['已交付',d.delivered||0,obsUi(`${d.issues||0} 个有执行的单`,`${d.issues||0} yêu cầu có lượt chạy`)],
     ['PR 已合入',d.mrMerged||0,obsUi(`${d.mrIntegrated||0} 已合入基线`,`${d.mrIntegrated||0} PR đã hợp nhất vào baseline`)],
   ].map(([l,v,f])=>`<article><span>${obsReportText(l)}</span><b>${v}</b><small>${f}</small></article>`).join('');
@@ -1634,18 +1650,18 @@ th{text-align:left;color:var(--muted);font-size:11px;padding:8px;border-bottom:1
 @media print{body{background:#fff}.wrap{padding:0}.kpis article,.block{break-inside:avoid}}
 @media(max-width:800px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style></head><body><div class="wrap">
-<header><p class="eyebrow">LoopForge</p><h1>${obsReportText('用量分析报告')}</h1><p>${obsUi('效果看成功率和一次通过，投入看 Token、成本和执行耗时。交付看 SOP 是否跑完、PR 是否合入。','Chất lượng dựa trên tỷ lệ thành công và hoàn tất ngay lần đầu; mức sử dụng dựa trên token, chi phí và thời gian thực thi; bàn giao dựa trên kết quả SOP và PR đã hợp nhất.')}</p>
+<header><p class="eyebrow">LoopForge</p><h1>${obsReportText('用量分析报告')}</h1><p>${obsUi('效果看成功率和一次通过，投入看 Token、成本和执行耗时。交付看 LOOP 是否跑完、PR 是否合入。','Chất lượng dựa trên tỷ lệ thành công và hoàn tất ngay lần đầu; mức sử dụng dựa trên token, chi phí và thời gian thực thi; bàn giao dựa trên kết quả LOOP và PR đã hợp nhất.')}</p>
 <div class="meta"><span>${obsUi('项目','Dự án')} ${escapeHTML(scope.project)}</span><span>${obsUi('维度','Phạm vi thống kê')} ${escapeHTML(scope.dim)}</span><span>${obsScope()==='project'?obsUi('范围','Phạm vi'):obsUi('责任人','Người phụ trách')} ${escapeHTML(scope.who)}</span><span>${obsUi('来源','Nguồn')} ${escapeHTML(scope.source)}</span><span>${obsUi('生成于','Tạo lúc')} ${escapeHTML(scope.at)}</span></div></header>
 <section class="kpis">${kpis}</section>
-${obsReportTable('SOP 一览',['SOP','运行','成功率','返工率','Tokens','成本','均执行'],wfRows)}
+${obsReportTable('LOOP 一览',['LOOP','运行','成功率','返工率','Tokens','成本','均执行'],wfRows)}
 ${obsReportTable('各模型用量',['模型','调用','Tokens','输入 / 输出','Token 占比','成本'],modelRows)}
 ${obsScope()==='project'?obsReportTable('成员汇总',['成员','运行','成功','失败','Tokens','输入 / 输出','成本'],memberRows):''}
 ${obsReportTable('每人每日用量',['日期','成员','运行','Tokens','输入 / 输出','成本'],userRows)}
-${obsReportTable('需求类型分布',['来源','关联执行','SOP 成功','已交付需求','Tokens','成本'],srcRows)}
-${obsReportTable('SOP 版本对比',['SOP','版本','运行','成功率','Tokens','成本'],versionRows)}
+${obsReportTable('需求类型分布',['来源','关联执行','LOOP 成功','已交付需求','Tokens','成本'],srcRows)}
+${obsReportTable('LOOP 版本对比',['LOOP','版本','运行','成功率','Tokens','成本'],versionRows)}
 ${obsReportTable(obsUi(obsGrainCaption()+'趋势','Xu hướng theo '+obsGrainCaption()),['周期','运行','需求','成功','失败','Tokens','成本','执行耗时'],trendRows)}
 ${projectRows?obsReportTable('各项目用量',['项目','运行','需求','Tokens','成本'],projectRows):''}
-${obsReportTable('交付明细',['单号','标题','SOP','流程','责任人','Tokens','成本','PR','交付'],deliveryRows)}
+${obsReportTable('交付明细',['单号','标题','LOOP','流程','责任人','Tokens','成本','PR','交付'],deliveryRows)}
 <footer>${obsUi('由 LoopForge 用量分析导出。日志与 Trace 请在运行记录中查看。','Xuất từ phân tích mức sử dụng của LoopForge. Xem nhật ký và trace trong lịch sử chạy.')}</footer>
 </div></body></html>`;
 }

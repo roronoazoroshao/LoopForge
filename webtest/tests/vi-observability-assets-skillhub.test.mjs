@@ -44,7 +44,7 @@ test('delivery KPI footers and tooltips render VI at zero and nonzero counts, ZH
   ]){
     const vi=renderDelivery('vi',delivery,summary),zh=renderDelivery('zh',delivery,summary);
     assert.doesNotMatch(vi,/[\u3400-\u9fff]/u,vi);
-    assert.match(vi,/SOP thành công hoặc bàn giao trực tiếp/);
+    assert.match(vi,/LOOP thành công hoặc bàn giao trực tiếp/);
     assert.match(vi,/người đóng góp/);
     assert.match(zh,/交付结果/);
     assert.match(zh,/近 7 天/);
@@ -103,21 +103,22 @@ function renderSopCatalog(lang,scope='generic'){
 }
 
 test('SOP count uses Vietnamese whole phrase but keeps filter and counts',()=>{
-  assert.match(renderSopCatalog('vi').overview,/4 SOP dùng chung/);
+  assert.match(renderSopCatalog('vi').overview,/4 LOOP dùng chung/);
   assert.match(renderSopCatalog('vi').stats,/4 đã phát hành/);
-  assert.match(renderSopCatalog('vi','shared').overview,/4 SOP được chia sẻ/);
-  assert.match(renderSopCatalog('zh').overview,/4 条通用 SOP/);
+  assert.match(renderSopCatalog('vi','shared').overview,/4 LOOP được chia sẻ/);
+  assert.match(renderSopCatalog('zh').overview,/4 条通用 LOOP/);
 });
 
 const assetFunctions=take(assets,'function assetVI(){','function assetScopeKey(')+
-  take(assets,'function assetProjectName(','function assetIsBuiltin(')+
+  take(assets,'function assetOwnerProjectName(','function assetIsBuiltin(')+
   take(assets,'function assetStatusHTML(','function assetMetaHTML(')+
   take(assets,'function assetCardHTML(','function assetGridEmptyHTML(');
 function renderAsset(lang,asset,type='dockerfiles'){
-  const context={result:null,window:{lfLang:()=>lang},
+  const lfT=(zh,en,vi)=>lang==='vi'?(vi??en??zh):lang==='en'?en:zh;
+  const context={result:null,window:{lfLang:()=>lang,lfT},lfT,
     state:{assetType:type,data:{projects:[{id:'project-z',name:'当前项目'}]}},
     escapeHTML,catalogOwned:()=>false,assetKindLabel:()=>type,
-    assetUILabel:x=>x,assetIconName:()=>'',assetMetaHTML:()=>'',huiIcon:()=>''};
+    assetUILabel:x=>x,assetKindLabelEn:()=>type,assetIconName:()=>'',assetMetaHTML:()=>'',huiIcon:()=>''};
   runInNewContext(assetFunctions+'\nresult={name:assetDisplayName(asset),card:assetCardHTML(asset),status:assetStatusHTML(asset)};',
     {...context,asset});
   // eval with a single mutable context to get result
@@ -140,8 +141,8 @@ test('seed names are translated only with exact kind, ID and original seed name'
 
 test('platform attribution is UI text; a project name remains raw',()=>{
   assert.match(renderAsset('vi',{id:'generic-backend',name:'公共开发环境'}).status,/Từ nền tảng/);
-  assert.match(renderAsset('vi',{id:'custom',projectId:'project-z',name:'abc'}).status,/Từ dự án 当前项目/);
-  assert.match(renderAsset('zh',{id:'generic-backend',name:'公共开发环境'}).status,/来自平台/);
+  assert.match(renderAsset('vi',{id:'custom',projectId:'project-z',name:'abc'}).status,/Từ dự án <span data-i18n-skip>当前项目<\/span>/);
+  assert.match(renderAsset('zh',{id:'generic-backend',name:'公共开发环境'}).status,/来自 平台/);
 });
 
 test('SkillHub keeps external author data and translates its own UI',()=>{
@@ -187,7 +188,7 @@ function renderExportedReport(lang,summary={},delivery={},projectName='当前项
     obsPlain:x=>x,costLabel:()=>'$0',escapeHTML,percent:x=>String(x??0)+'%',
     formatTokens:x=>String(x??0),duration:x=>String(x)+'ms',
     obsGrainCaption:()=>lang==='vi'?'tháng':'月'};
-  const reportSource=take(obs,'function obsReportScope(){','async function exportObsReport(){')+
+  const reportSource=take(obs,'function obsCostUnknown(','function obsScopedView(){')+take(obs,'function obsDeliveryIssueKey(','function obsDeliveryTableDef(')+take(obs,'function obsReportScope(){','async function exportObsReport(){')+
     take(obs,'function buildObsReportHTML(){','function obsCanManageSources(){');
   runInNewContext(reportSource+'\nresult=buildObsReportHTML();',context);
   return context.result;
@@ -225,7 +226,7 @@ test('observability filters are Vietnamese in both personal and project modes wi
       obsIcon:()=>'',escapeHTML};
     runInNewContext(take(obs,'function obsUi(zh,vi)','function obsFilteredRuns(){')+
       '\nresult=obsFilterBar();',context);
-    assert.match(context.result,/Phạm vi thống kê/);
+    assert.match(context.result,scope==='project'?/Mọi thành viên của dự án “当前项目”/:/Dự án “当前项目” · Mọi thành viên/);
     assert.match(context.result,/Tất cả/);
     assert.match(context.result,/aria-label="Nguồn yêu cầu"/);
     assert.match(context.result,/当前项目/);

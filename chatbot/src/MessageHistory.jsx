@@ -3,7 +3,7 @@ import React, { useLayoutEffect, useRef, useState } from "react";
 
 const pageSize = 40;
 
-export default function MessageHistory({ messages, renderMessage, scroll, follow, loading, children }) {
+export default function MessageHistory({ messages, renderMessage, scroll, follow, loading, earlier, children }) {
   const [limit, setLimit] = useState(pageSize);
   const [readingFrom, setReadingFrom] = useState(null);
   const anchor = useRef(null);
@@ -42,6 +42,7 @@ export default function MessageHistory({ messages, renderMessage, scroll, follow
     <div className="message-scroll" ref={scroll} onScroll={onScroll}>
       <div className="message-column">
         {loading ? <div className="loading-session">{chatT("正在恢复对话…", "Đang khôi phục cuộc trò chuyện…")}</div> : null}
+        {earlier ? <div className="loading-session">{chatT("正在补齐更早的消息…", "Đang tải bổ sung tin nhắn trước đó…")}</div> : null}
         {first > 0 ? (
           <button type="button" className="message-history-more" onClick={showEarlier}>
             {chatT("显示更早的消息", "Hiện tin nhắn cũ hơn")}

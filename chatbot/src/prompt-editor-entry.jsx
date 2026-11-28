@@ -62,7 +62,7 @@ function PromptEditor({ value, onChange, onError }) {
         </footer>
       </div>
       <p id="schedule-prompt-hint" className="schedule-field-hint">
-        {chatT("到点以与主页 AI 对话相同的完全权限执行提示词，可按需读写平台、启动 SOP、操作工作区及浏览器。", "Theo lịch, trợ lý thực thi câu lệnh với đầy đủ quyền như cuộc trò chuyện AI chính; có thể đọc và chỉnh sửa dữ liệu, chạy SOP và thao tác trong môi trường làm việc hoặc trình duyệt.")}
+        {chatT("到点以与主页 AI 对话相同的完全权限执行提示词，可按需读写平台、启动 LOOP、操作工作区及浏览器。", "Theo lịch, trợ lý thực thi câu lệnh với đầy đủ quyền như cuộc trò chuyện AI chính; có thể đọc và chỉnh sửa dữ liệu, chạy LOOP và thao tác trong môi trường làm việc hoặc trình duyệt.")}
       </p>
     </div>
   );

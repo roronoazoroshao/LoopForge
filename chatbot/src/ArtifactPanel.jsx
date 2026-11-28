@@ -1,7 +1,7 @@
 import { chatT, artifactSourceLabel } from "./locale";
 import React, { useEffect, useRef, useState } from "react";
 import HarnessIcon from "./HarnessIcon";
-import { api } from "./api";
+import { api, messageOffset } from "./api";
 import { ArtifactPreview, RichContent } from "./RichContent";
 import { DraftCard } from "./SidePanel";
 import SopRunPanel, { runStatus } from "./SopRunPanel";
@@ -9,6 +9,7 @@ import ChangesPanel from "./ChangesPanel";
 import AgentBrowser from "./AgentBrowser";
 import WorkspaceIDE from "./WorkspaceIDE";
 import { SubagentSession, subagentName, subagentStatus } from "./SubagentSession";
+import { DeferredActivity } from "./ActivityTrace";
 import { collectSubagents, resumeMissed } from "./activity";
 import { IconButton } from "./ui";
 import { definitionTarget, actionName } from "./platform.js";
@@ -111,7 +112,7 @@ function DefinitionPreview({ artifact }) {
     <section className="definition-preview">
       <div className="definition-summary">
         <span className="artifact-type-label">
-          {artifact.kind === "sop" ? "SOP" : chatT("角色", "Vai trò")}
+          {artifact.kind === "sop" ? "LOOP" : chatT("角色", "Vai trò")}
         </span>
         <h2>{data.name || artifact.name}</h2>
         <p>{data.description}</p>
@@ -171,7 +172,7 @@ function OperationPreview({ artifact, runs }) {
     <section className="operation-preview">
       {run ? (
         <p>
-          {run.workflowSnapshot?.name || chatT("SOP 运行", "Lượt chạy SOP")}
+          {run.workflowSnapshot?.name || chatT("LOOP 运行", "Lượt chạy LOOP")}
           {node ? ` · ${node.name || node.id}` : ""}
         </p>
       ) : null}
@@ -208,6 +209,7 @@ export default function ArtifactPanel({
     chat?.session?.messages || [],
     live ? chat?.live?.activity || [] : [],
     chat?.model || "",
+    messageOffset(chat?.session),
   );
   // A new subagent is keyed by its dispatch until its agent ID arrives, so
   // an opened one is found by either.
@@ -248,7 +250,7 @@ export default function ArtifactPanel({
     }
   });
   // The browser shows a desktop-width page, so it widens the pane like an
-  // opened SOP node and restores the width afterwards.
+  // opened LOOP node and restores the width afterwards.
   const layout = useArtifactPanelLayout(
     root,
     onClose,
@@ -322,7 +324,7 @@ export default function ArtifactPanel({
     matchesArtifact(artifact, chatT("文件", "Tệp")),
   );
   const visibleDefinitions = definitions.filter((artifact) =>
-    matchesArtifact(artifact, chatT("SOP 与角色", "SOP và vai trò")),
+    matchesArtifact(artifact, chatT("LOOP 与角色", "LOOP và vai trò")),
   );
   const visibleOperations = operations.filter((artifact) =>
     matchesArtifact(artifact, chatT("待确认操作", "Thao tác chờ xác nhận")),
@@ -339,7 +341,7 @@ export default function ArtifactPanel({
         item.id,
         item.name,
       ]),
-      chatT("SOP 运行", "Lượt chạy SOP"),
+      chatT("LOOP 运行", "Lượt chạy LOOP"),
     ),
   );
   const visibleSubagents = subagents.filter((agent) =>
@@ -391,7 +393,7 @@ export default function ArtifactPanel({
           <strong>{artifact.name}</strong>
           <small>
             {target
-              ? `${artifact.kind === "sop" ? "SOP" : chatT("角色", "Vai trò")} · ${artifact.asset?.status === "published" ? chatT("已发布", "Đã phát hành") : chatT("已保存", "Đã lưu")}`
+              ? `${artifact.kind === "sop" ? "LOOP" : chatT("角色", "Vai trò")} · ${artifact.asset?.status === "published" ? chatT("已发布", "Đã phát hành") : chatT("已保存", "Đã lưu")}`
               : artifactSourceLabel(artifact.source)}
             {artifact.size
               ? ` · ${artifact.size < 1024 ? `${artifact.size} B` : `${Math.ceil(artifact.size / 1024)} KB`}`
@@ -648,6 +650,8 @@ export default function ArtifactPanel({
               onSelectNode={setNodeId}
               onClose={() => setSelected(null)}
             />
+          ) : selectedAgent?.deferredActivity ? (
+            <DeferredActivity {...selectedAgent.deferredActivity} sessionId={chat.session.id} loadActivity={chat.loadActivity} />
           ) : selectedAgent ? (
             <SubagentSession
               agent={selectedAgent}
@@ -667,7 +671,22 @@ export default function ArtifactPanel({
               ) : selected.kind === "operation" ? (
                 <OperationPreview artifact={selected} runs={runs} />
               ) : (
-                <ArtifactPreview artifact={selected} />
+                <ArtifactPreview
+                  artifact={selected}
+                  knowledgeReads={
+                    selected.knowledgeReads ||
+                    (selected.nodeId
+                      ? // Never borrow another run's reads for the same node.
+                        (selected.runId
+                          ? runs?.find((r) => r.id === selected.runId)
+                          : runs?.find(
+                              (r) => r.nodes?.[selected.nodeId]?.knowledgeReads?.length,
+                            )
+                        )?.nodes?.[selected.nodeId]?.knowledgeReads || []
+                      : [])
+                  }
+                  attempt={selected.attempt}
+                />
               )}
               {selected.draft ? (
                 <DraftCard
@@ -703,13 +722,13 @@ export default function ArtifactPanel({
               ) : null}
               {visibleDefinitions.length ? (
                 <section className="artifact-section">
-                  <h3>{chatT("SOP 与角色", "SOP và vai trò")}</h3>
+                  <h3>{chatT("LOOP 与角色", "LOOP và vai trò")}</h3>
                   {visibleDefinitions.map(row)}
                 </section>
               ) : null}
               {visibleRuns.length ? (
                 <section className="artifact-section">
-                  <h3>{chatT("SOP 运行", "Lượt chạy SOP")}</h3>
+                  <h3>{chatT("LOOP 运行", "Lượt chạy LOOP")}</h3>
                   {visibleRuns.map((run) => (
                     <button
                       type="button"
@@ -720,7 +739,7 @@ export default function ArtifactPanel({
                           kind: "run",
                           id: run.id,
                           runId: run.id,
-                          name: run.workflowSnapshot?.name || chatT("SOP 运行", "Lượt chạy SOP"),
+                          name: run.workflowSnapshot?.name || chatT("LOOP 运行", "Lượt chạy LOOP"),
                         })
                       }
                     >
@@ -729,7 +748,7 @@ export default function ArtifactPanel({
                       </span>
                       <span className="artifact-file-copy">
                         <strong>
-                          {run.workflowSnapshot?.name || chatT("SOP 运行", "Lượt chạy SOP")}
+                          {run.workflowSnapshot?.name || chatT("LOOP 运行", "Lượt chạy LOOP")}
                         </strong>
                         <small>
                           <i

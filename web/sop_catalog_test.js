@@ -13,7 +13,7 @@ const frames = [];
 const ctx = {
   state: {},
   admin: false,
-  window: {},
+  window: { lfT: zh => zh },
   escapeHTML: v => String(v ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c])),
   huiIcon: (name, cls = '') => `<svg class="agent-icon harness-icon${cls ? ` ${cls}` : ''}" data-icon="${name}"></svg>`,
   percent: n => `${Math.round(n || 0)}%`,

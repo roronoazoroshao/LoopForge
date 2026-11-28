@@ -7,8 +7,8 @@ function pwCopy(zh,vi){return pwVietnamese()?vi:zh}
 function pwProtected(){return pwVietnamese()?' data-i18n-skip':''}
 function pwData(value){const safe=escapeHTML(value);return pwVietnamese()?`<span data-i18n-skip>${safe}</span>`:safe}
 const PROJECT_WIZARD_STEPS=[
-  {id:'basic',title:pwCopy("基本信息","Thông tin cơ bản"),desc:pwCopy("名称与默认 SOP","Tên và SOP mặc định")},
-  {id:'repos',title:pwCopy("代码仓库","Kho mã"),desc:pwCopy("绑定 GitHub 仓库","Liên kết kho mã GitHub")},
+  {id:'basic',title:pwCopy("基本信息","Thông tin cơ bản"),desc:pwCopy("名称与默认 LOOP","Tên và LOOP mặc định")},
+  {id:'repos',title:pwCopy("代码仓库","Kho mã"),desc:pwCopy("绑定 Git 仓库","Liên kết kho mã Git")},
   {id:'members',title:pwCopy("项目成员","Thành viên dự án"),desc:pwCopy("Owner 与协作成员","Chủ dự án và thành viên")},
   {id:'tapd',title:pwCopy("TAPD 集成","Tích hợp TAPD"),desc:pwCopy("可选，导入 TAPD 需求","Tùy chọn: nhập yêu cầu TAPD")},
   {id:'done',title:pwCopy("完成","Hoàn tất"),desc:pwCopy("开始使用新项目","Bắt đầu sử dụng dự án mới")},
@@ -93,10 +93,7 @@ async function projectWizardCreate(){
   const value=buildProjectPayload(clone(d),{id:ident.id,key:ident.key,defaultRepositoryId:''});
   const invalid=validateProjectPayload(value,{creating:true,projects,workflows:state.data.workflows||[]});
   if(invalid)return projectWizardFail(invalid.field==='id'||invalid.field==='key'?pwCopy("无法根据名称生成可用的项目标识，请换个名称重试","Không thể tạo ID dự án từ tên này. Hãy thử tên khác."):invalid.message,['name','workflowId','ownerId'].includes(invalid.field)?invalid.field:'');
-  const stored=await projectWizardRequest(async()=>{
-    const result=await api('/api/projects',{method:'POST',body:JSON.stringify(value)});
-    return storeSavedProject(result,value);
-  },pwCopy("创建失败，可修改项目名称后重试：","Không thể tạo dự án. Hãy sửa tên rồi thử lại: "));
+  const stored=await projectWizardRequest(()=>persistProject(value,'POST'),pwCopy("创建失败，可修改项目名称后重试：","Không thể tạo dự án. Hãy sửa tên rồi thử lại: "));
   if(!stored||projectWizard!==w)return false;
   w.projectId=stored.id||value.id;
   if(!state.projectFilter){state.projectFilter=w.projectId;localStorage.setItem('agentflow.activeProject',w.projectId)}
@@ -109,9 +106,10 @@ async function projectWizardCreate(){
 async function projectWizardAddRepo(){
   const w=projectWizard,project=projectWizardProject();if(!w||w.saving||!project)return false;
   const url=String(w.repo.url||'').trim(),info=parseGongfengRepoURL(url);
-  if(!info)return projectWizardFail(url?pwCopy("请输入 GitHub 链接或有效的 Git SSH 地址。CNB 只支持 HTTPS + 访问令牌。","Nhập liên kết GitHub hoặc địa chỉ Git SSH hợp lệ. CNB chỉ hỗ trợ HTTPS và token truy cập."):pwCopy("请先粘贴 GitHub 链接或 Git SSH 地址","Trước tiên, hãy dán liên kết GitHub hoặc địa chỉ Git SSH"),'repoUrl');
-  if(projectWizardRepos().some(r=>info.provider==='ssh'?r.cloneUrl===info.cloneUrl:r.gongfengProjectId===info.project))return projectWizardFail(pwCopy(`仓库 ${info.project} 已经绑定到这个项目`,`Kho mã ${info.project} đã được liên kết với dự án này`),'repoUrl');
-  const payload={projectId:project.id,provider:info.provider||'gongfeng',name:info.name,gongfengProjectId:info.project,webUrl:info.webUrl,cloneUrl:info.cloneUrl,defaultBranch:String(w.repo.branch||'').trim()||'main',integrateBranch:String(w.repo.integrate||'').trim(),localPath:'',repoUrl:url};
+  if(!info)return projectWizardFail(url?pwCopy('请输入有效的 Git HTTP(S) 链接或 Git SSH 地址。','Nhập liên kết Git HTTP(S) hoặc Git SSH hợp lệ.'):pwCopy('请先粘贴 Git 仓库地址','Trước tiên hãy dán địa chỉ kho Git'),'repoUrl');
+  const transportOnly=['ssh','http','https'].includes(info.provider);
+  if(projectWizardRepos().some(r=>transportOnly?r.cloneUrl===info.cloneUrl:r.gongfengProjectId===info.project))return projectWizardFail(pwCopy(`仓库 ${info.project} 已经绑定到这个项目`,`Kho ${info.project} đã được liên kết với dự án này`),'repoUrl');
+  const payload={projectId:project.id,provider:info.provider||'gongfeng',name:info.name,gongfengProjectId:transportOnly?'':info.project,webUrl:info.webUrl,cloneUrl:info.cloneUrl,defaultBranch:String(w.repo.branch||'').trim()||'main',integrateBranch:String(w.repo.integrate||'').trim(),localPath:'',repoUrl:url};
   const makeDefault=projectNeedsDefaultRepository(project);
   let defaultError='';
   const repo=await projectWizardRequest(async()=>{
@@ -151,16 +149,35 @@ async function projectWizardRemoveRepo(repoId){
   renderAll();toast(notice,tone,2600,pwVietnamese());
   return true;
 }
+// The members step edits the roster it loaded, so it submits that roster's own token: the
+// server rejects the write when someone else changed members meanwhile, instead of letting
+// the step replace the list with one that predates an approved join request.
 async function projectWizardSaveProject(){
   const w=projectWizard,saved=projectWizardProject();
   if(!saved)return projectWizardFail(pwCopy("项目不存在或无权访问","Dự án không tồn tại hoặc bạn không có quyền truy cập"));
-  const d=w.draft,fields=w.step==='members'?{ownerId:d.ownerId,members:d.members}:{tapdWorkspaceId:d.tapdWorkspaceId,tapdIterationId:d.tapdIterationId};
+  const d=w.draft,fields=w.step==='members'?{ownerId:d.ownerId,members:d.members,membersVersion:d.membersVersion}:{tapdWorkspaceId:d.tapdWorkspaceId,tapdIterationId:d.tapdIterationId};
   const value=buildProjectPayload(clone(saved),fields);
   const invalid=validateProjectPayload(value,{creating:false,projects:state.data.projects||[],workflows:state.data.workflows||[],saved});
   if(invalid)return projectWizardFail(invalid.message);
-  const stored=await projectWizardRequest(async()=>storeSavedProject(await api('/api/projects',{method:'PUT',body:JSON.stringify(value)}),value));
+  const stored=await projectWizardRequest(async()=>{
+    const project=await persistProject(value);
+    if(project&&projectWizard===w){w.draft=projectDraftFrom(project);w.base=clone(w.draft)}
+    return project;
+  });
   if(stored)renderAll();
+  else if(w.step==='members')await reloadProjectWizardMembers(value.membersVersion);
   return !!stored;
+}
+// A rejected member save usually means the roster moved on; reload it so the step shows the
+// current members and the next save replaces that list rather than the outdated one.
+async function reloadProjectWizardMembers(token){
+  const w=projectWizard,id=w?.projectId;if(!id)return;
+  await refreshProjectJoinMembers(id);
+  const fresh=projectWizardProject();
+  if(projectWizard!==w||w.step!=='members'||w.saving||!fresh||fresh.membersVersion===token)return;
+  w.draft=projectDraftFrom(fresh);w.base=clone(w.draft);
+  w.error='项目成员已经变化，这里已载入最新名单，请确认后重新保存。';
+  renderProjectWizard();
 }
 async function projectWizardNext(){
   const w=projectWizard;if(!w||w.saving)return;
@@ -244,24 +261,24 @@ function projectWizardBasicHTML(w){
     +pwField(pwCopy("项目说明","Mô tả dự án"),`<textarea class="pw-input" id="pwDescription" name="description" rows="3" placeholder="${pwCopy("可选，这个项目负责什么？Agent 会把它作为上下文。","Tùy chọn: mô tả nhiệm vụ của dự án để agent dùng làm ngữ cảnh.")}">${escapeHTML(d.description||'')}</textarea>`,{for:'pwDescription'}));
   const owner=Number(state.currentUser?.id)?'':pwField(pwCopy("项目 Owner","Chủ dự án"),userCombobox('ownerId',d.ownerId,pwCopy("请选择项目 Owner","Chọn chủ dự án")),{required:true,hint:pwCopy("项目的默认责任人，创建后可在项目成员中调整。","Người chịu trách nhiệm mặc định; có thể thay đổi sau khi tạo dự án.")});
   const defaults=pwCard(pwCopy("默认设置","Cài đặt mặc định"),pwCopy("新建需求时自动带上的流程","Quy trình tự áp dụng khi tạo yêu cầu"),pwPill(pwCopy("已预选","Đã chọn sẵn"),'ok'),
-    `${pwField(pwCopy("默认 SOP","SOP mặc định"),pwSelect(projectDefaultSOPField(d)),{required:true})}${owner}`);
+    `${pwField(pwCopy("默认 LOOP","LOOP mặc định"),pwSelect(projectDefaultSOPField(d)),{required:true})}${owner}`);
   return projectWizardHeadHTML(w,pwCopy("基本信息","Thông tin cơ bản"),pwCopy("只需填写项目名称即可创建，其余都有默认值。","Chỉ cần nhập tên dự án; các mục khác đã có giá trị mặc định."))+`<div class="pw-pane">${identity}${defaults}</div>`;
 }
 function projectWizardRepoHint(url){
   const raw=String(url||'').trim(),info=raw?parseGongfengRepoURL(raw):null;
-  if(!raw)return pwCopy("例如 https://github.com/owner/repo 或 git@gitlab.com:group/repo.git","Ví dụ: https://github.com/owner/repo hoặc git@gitlab.com:group/repo.git");
+  if(!raw)return pwCopy("例如 https://github.com/owner/repo 或 git clone http://git.example.org/team/repo.git","Ví dụ: https://github.com/owner/repo hoặc git@gitlab.com:group/repo.git");
   if(info?.provider==='ssh')return pwCopy(`识别为 Git SSH · <b>${escapeHTML(info.name)}</b>。请平台管理员在「平台管理 → Git 主机信任」登记主机公钥，并在个人配置中添加 Git SSH 密钥。`,`Đã nhận diện Git SSH · <b data-i18n-skip>${escapeHTML(info.name)}</b>. Yêu cầu quản trị viên đăng ký khóa công khai của máy chủ trong mục Quản trị nền tảng → Tin cậy máy chủ Git, rồi thêm khóa Git SSH trong cấu hình cá nhân.`);
-  return info?pwCopy(`识别为 <b>${escapeHTML(info.name)}</b> · ${escapeHTML(repoDisplayPath(info,info.project))}`,`Đã nhận diện <b data-i18n-skip>${escapeHTML(info.name)}</b> · ${pwData(repoDisplayPath(info,info.project))}`):pwCopy("请输入 GitHub 链接或 Git SSH 地址","Nhập liên kết GitHub hoặc địa chỉ Git SSH");
+  return info?pwCopy(`识别为 <b>${escapeHTML(info.name)}</b> · ${escapeHTML(repoDisplayPath(info,info.project))}`,`Đã nhận diện <b data-i18n-skip>${escapeHTML(info.name)}</b> · ${pwData(repoDisplayPath(info,info.project))}`):pwCopy("请输入 Git HTTP(S) 链接或 Git SSH 地址","Nhập liên kết GitHub hoặc địa chỉ Git SSH");
 }
 function projectWizardReposHTML(w){
   const project=projectWizardProject()||{},repos=projectWizardRepos();
-  const list=repos.map(r=>{const path=r.cloneUrl||r.gongfengProjectId||'',name=r.name||path||r.id,shown=repoDisplayPath(parseGongfengRepoURL(r.provider==='ssh'?r.cloneUrl:r.webUrl||path),path);return `<div class="pw-repo" data-pw-repo="${escapeHTML(r.id)}"><span class="pw-repo-ic">${pwIcon('repo',14,1.9)}</span><b${pwProtected()} title="${escapeHTML(name)}">${escapeHTML(name)}</b><code title="${escapeHTML(shown)}">${escapeHTML(shown)}</code><small${pwProtected()}>${escapeHTML(r.defaultBranch||'main')}</small>${r.integrateBranch?`<small${pwProtected()} title="${pwCopy("集成分支","Nhánh tích hợp")}">${escapeHTML(r.integrateBranch)}</small>`:''}${r.id===project.defaultRepositoryId?pwCopy('<small class="is-def">默认</small>','<small class="is-def">Mặc định</small>'):''}<button type="button" class="pw-repo-rm" data-pw-repo-remove="${escapeHTML(r.id)}" title="${pwCopy("移除","Gỡ")}" aria-label="${pwCopy(`移除仓库 ${escapeHTML(name)}`,`Gỡ liên kết kho mã ${escapeHTML(name)}`)}"${pwProtected()}>${pwIcon('x',14)}</button></div>`}).join('');
+  const list=repos.map(r=>{const path=r.cloneUrl||r.gongfengProjectId||'',name=r.name||path||r.id,shown=repoDisplayPath(parseGongfengRepoURL(globalThis.LoopForgeGitRepositoryReference(r)),path);return `<div class="pw-repo" data-pw-repo="${escapeHTML(r.id)}"><span class="pw-repo-ic">${pwIcon('repo',14,1.9)}</span><b${pwProtected()} title="${escapeHTML(name)}">${escapeHTML(name)}</b><code title="${escapeHTML(shown)}">${escapeHTML(shown)}</code><small${pwProtected()}>${escapeHTML(r.defaultBranch||'main')}</small>${r.integrateBranch?`<small${pwProtected()} title="${pwCopy("集成分支","Nhánh tích hợp")}">${escapeHTML(r.integrateBranch)}</small>`:''}${r.id===project.defaultRepositoryId?pwCopy('<small class="is-def">默认</small>','<small class="is-def">Mặc định</small>'):''}<button type="button" class="pw-repo-rm" data-pw-repo-remove="${escapeHTML(r.id)}" title="${pwCopy("移除","Gỡ")}" aria-label="${pwCopy(`移除仓库 ${escapeHTML(name)}`,`Gỡ liên kết kho mã ${escapeHTML(name)}`)}"${pwProtected()}>${pwIcon('x',14)}</button></div>`}).join('');
   const body=(list?`<div class="pw-repo-list">${list}</div>`:'')
     +'<div data-github-repositories></div>'
-    +pwField(pwCopy("GitHub 链接或 Git SSH 地址","Liên kết GitHub hoặc địa chỉ Git SSH"),`<input class="pw-input pw-mono" id="pwRepoUrl" name="repoUrl" value="${escapeHTML(w.repo.url)}" placeholder="https://github.com/owner/repo" spellcheck="false" autocomplete="off">`,{for:'pwRepoUrl',hint:projectWizardRepoHint(w.repo.url),hintAttrs:' data-pw-repo-hint'})
+    +pwField(pwCopy("Git 仓库地址","Liên kết Git HTTP(S) hoặc địa chỉ Git SSH"),`<input class="pw-input pw-mono" id="pwRepoUrl" name="repoUrl" value="${escapeHTML(w.repo.url)}" placeholder="https://github.com/owner/repo" spellcheck="false" autocomplete="off">`,{for:'pwRepoUrl',hint:projectWizardRepoHint(w.repo.url),hintAttrs:' data-pw-repo-hint'})
     +`<div class="pw-row2">${pwField(pwCopy("主分支","Nhánh chính"),`<input class="pw-input pw-mono" id="pwRepoBranch" name="repoBranch" value="${escapeHTML(w.repo.branch)}" placeholder="main" spellcheck="false">`,{for:'pwRepoBranch'})}${pwField(pwCopy("集成分支","Nhánh tích hợp"),`<input class="pw-input pw-mono" id="pwRepoIntegrate" name="repoIntegrate" value="${escapeHTML(w.repo.integrate)}" placeholder="${pwCopy("可选","Tùy chọn")}" spellcheck="false">`,{for:'pwRepoIntegrate'})}</div>`
     +`<div><button type="button" class="pw-btn pw-btn-outline pw-btn-sm" data-pw-action="add-repo"${w.saving?' disabled':''}>${pwCopy("＋ 添加仓库","＋ Thêm kho mã")}</button></div>`;
-  return projectWizardHeadHTML(w,pwCopy("代码仓库","Kho mã"),pwCopy("Agent 执行 SOP 时会克隆这些仓库并在工作分支上提交。第一个仓库会自动设为默认。","Khi chạy SOP, agent sẽ clone các kho mã và commit trên nhánh làm việc. Kho mã đầu tiên tự động được đặt làm mặc định."))
+  return projectWizardHeadHTML(w,pwCopy("代码仓库","Kho mã"),pwCopy("Agent 执行 LOOP 时会克隆这些仓库并在工作分支上提交。第一个仓库会自动设为默认。","Khi chạy SOP, agent sẽ clone các kho mã và commit trên nhánh làm việc. Kho mã đầu tiên tự động được đặt làm mặc định."))
     +`<div class="pw-pane"><p class="pw-note is-ok"${pwProtected()}>${pwCopy(`✓ 项目「${escapeHTML(project.name||'')}」已创建。仓库添加后立即生效，也可以先跳过。`,`✓ Đã tạo dự án “${escapeHTML(project.name||'')}”. Kho mã có hiệu lực ngay sau khi thêm; bạn cũng có thể bỏ qua.`)}</p>${pwCard(pwCopy("绑定代码仓库","Liên kết kho mã"),pwCopy("粘贴仓库地址，自动识别名称","Dán địa chỉ kho mã để tự nhận diện tên"),pwPill(repos.length?pwCopy(`已绑定 ${repos.length} 个`,`Đã liên kết ${repos.length} kho mã`):pwCopy("未绑定","Chưa liên kết"),repos.length?'ok':''),body)}</div>`;
 }
 function projectWizardPeoplePill(d){const count=projectPeopleIds(d).length;return pwPill(pwCopy(`${count} 位`,`${count} người`),count>1?'ok':'',' data-pw-people-pill')}
@@ -283,7 +300,7 @@ function projectWizardSummary(project,repos){
   const sop=projectWorkflowName(p.workflowId)||p.workflowId||'';
   return [
     {key:'project',ok:true,label:pwCopy("项目","Dự án"),value:`${pwData(p.name||'')} · <code>${escapeHTML(p.id||'')}</code> · <code>${escapeHTML(p.key||'')}</code>`},
-    {key:'sop',ok:!!sop,label:pwCopy("默认 SOP","SOP mặc định"),value:sop?pwData(sop):pwCopy("未配置","Chưa cấu hình")},
+    {key:'sop',ok:!!sop,label:pwCopy("默认 LOOP","LOOP mặc định"),value:sop?pwData(sop):pwCopy("未配置","Chưa cấu hình")},
     {key:'repos',ok:repos.length>0,label:pwCopy("代码仓库","Kho mã"),value:repos.length?pwCopy(`${repos.length} 个，默认 ${escapeHTML(def?.name||def?.gongfengProjectId||'未设置')}`,`${repos.length} kho mã, mặc định: ${pwData(def?.name||def?.gongfengProjectId||'Chưa thiết lập')}`):pwCopy("未配置，可稍后在项目设置补充","Chưa cấu hình; có thể bổ sung trong cài đặt dự án")},
     {key:'members',ok:others>0,label:pwCopy("项目成员","Thành viên dự án"),value:others?pwCopy(`${others+1} 位（含 Owner）`,`${others+1} người (gồm chủ dự án)`):pwCopy("仅 Owner，可稍后邀请成员","Chỉ có chủ dự án; có thể mời thêm thành viên")},
     {key:'tapd',ok:!!p.tapdWorkspaceId,label:'TAPD',value:p.tapdWorkspaceId?`${pwCopy('Workspace','Không gian làm việc')} <code>${escapeHTML(p.tapdWorkspaceId)}</code>${p.tapdIterationId?` · ${pwCopy('Iteration','Vòng lặp')} <code>${escapeHTML(p.tapdIterationId)}</code>`:''}`:pwCopy("未配置，可稍后在项目设置补充","Chưa cấu hình; có thể bổ sung trong cài đặt dự án")},
@@ -292,7 +309,7 @@ function projectWizardSummary(project,repos){
 function projectWizardDoneHTML(){
   const project=projectWizardProject()||{},items=projectWizardSummary(project,projectWizardRepos());
   const list=items.map(i=>`<li class="${i.ok?'is-ok':'is-warn'}" data-pw-summary="${i.key}">${pwIcon(i.ok?'check':'warn',13,i.ok?2.6:2.2)}<span><b>${i.label}</b> · ${i.value}</span></li>`).join('');
-  return `<div class="pw-success-mark">${pwIcon('check',24,2.4)}</div><h3 class="pw-title" id="projectWizardTitle" tabindex="-1"${pwProtected()}>${pwCopy(`项目「${escapeHTML(project.name||'')}」已创建`,`Đã tạo dự án “${escapeHTML(project.name||'')}”`)}</h3><p class="pw-lede">${pwCopy("默认 SOP 已就绪，现在就可以开始第一条需求。跳过的配置随时可以在项目设置里补充。","SOP mặc định đã sẵn sàng. Bạn có thể tạo yêu cầu đầu tiên ngay; các cấu hình đã bỏ qua có thể bổ sung bất cứ lúc nào.")}</p>
+  return `<div class="pw-success-mark">${pwIcon('check',24,2.4)}</div><h3 class="pw-title" id="projectWizardTitle" tabindex="-1"${pwProtected()}>${pwCopy(`项目「${escapeHTML(project.name||'')}」已创建`,`Đã tạo dự án “${escapeHTML(project.name||'')}”`)}</h3><p class="pw-lede">${pwCopy("默认 LOOP 已就绪，现在就可以开始第一条需求。跳过的配置随时可以在项目设置里补充。","LOOP mặc định đã sẵn sàng. Bạn có thể tạo yêu cầu đầu tiên ngay; các cấu hình đã bỏ qua có thể bổ sung bất cứ lúc nào.")}</p>
     <section class="pw-summary"><div class="pw-summary-title">${pwCopy("已生效配置","Cấu hình đang áp dụng")}</div><ul class="pw-status-list">${list}</ul></section>
     <div class="pw-actions"><button type="button" class="pw-action is-primary" data-pw-action="start"><span class="pw-action-icon">${pwIcon('play',16)}</span><span><strong>${pwCopy("开始第一条需求","Tạo yêu cầu đầu tiên")}</strong><small>${pwCopy("切换到该项目，去需求列表新建或导入需求","Chuyển sang dự án để tạo hoặc nhập yêu cầu")}</small></span>${pwIcon('next',14,2.2)}</button><button type="button" class="pw-action" data-pw-action="settings"><span class="pw-action-icon">${pwIcon('gear',16,1.9)}</span><span><strong>${pwCopy("进入项目设置","Mở cài đặt dự án")}</strong><small>${pwCopy("修改基本信息，补充仓库、成员和 TAPD","Sửa thông tin cơ bản, bổ sung kho mã, thành viên và TAPD")}</small></span>${pwIcon('next',14,2.2)}</button></div>`;
 }
