@@ -1,3 +1,4 @@
+import { chatT, chatLocale } from "./locale.js";
 // Personal credentials configured under 个人配置 → 个人凭证. Field names match
 // the inputs there so the parent page can scroll to and focus the right card.
 // Keep the rules in sync with credentialHint in web/app/access.js.
@@ -6,8 +7,8 @@ export const CREDENTIALS = {
   codexApiKey: "Codex API Key",
   claudeCodeApiKey: "Claude Code API Key",
   gitToken: "GitHub Git Token",
-  gitSshKey: "Git SSH 密钥",
-  gitHttpCredentials: "Git 访问令牌",
+  gitSshKey: chatT("Git SSH 密钥", "Khóa SSH Git"),
+  gitHttpCredentials: chatT("Git 访问令牌", "Token truy cập Git"),
 };
 
 // A CodeBuddy key only works on the edition that issued it, and the CLI
@@ -17,13 +18,13 @@ export const CREDENTIALS = {
 export const CODEBUDDY_ENVIRONMENTS = [
   {
     value: "",
-    label: "国际站",
+    label: chatT("国际站", "Quốc tế"),
     site: "codebuddy.ai",
     keyUrl: "https://www.codebuddy.ai/profile/keys",
   },
   {
     value: "internal",
-    label: "国内站",
+    label: chatT("国内站", "Nội địa Trung Quốc"),
     site: "copilot.tencent.com",
     keyUrl: "https://copilot.tencent.com/profile/",
   },
@@ -80,8 +81,8 @@ export function codeBuddyKeyWarning(key) {
   const text = String(key || "").trim();
   if (!text || text.startsWith("ck_")) return "";
   return /^sk-/i.test(text)
-    ? "这像是 DeepSeek、OpenAI 等第三方模型的 Key，CodeBuddy 会拒绝；第三方 Key 请在个人配置中改填到 Claude Code 或 Codex 凭证并设置 Base URL"
-    : "CodeBuddy API Key 通常以 ck_ 开头，请确认复制的是 CodeBuddy 的 Key";
+    ? chatT("这像是 DeepSeek、OpenAI 等第三方模型的 Key，CodeBuddy 会拒绝；第三方 Key 请在个人配置中改填到 Claude Code 或 Codex 凭证并设置 Base URL", "Đây có vẻ là key của mô hình bên thứ ba như DeepSeek hoặc OpenAI; CodeBuddy sẽ từ chối. Trong cấu hình cá nhân, nhập key bên thứ ba vào thông tin xác thực Claude Code hoặc Codex và đặt Base URL.")
+    : chatT("CodeBuddy API Key 通常以 ck_ 开头，请确认复制的是 CodeBuddy 的 Key", "CodeBuddy API Key thường bắt đầu bằng ck_; hãy kiểm tra đã sao chép đúng key CodeBuddy.");
 }
 
 // Where and how to get each credential. Keep in sync with
@@ -89,47 +90,47 @@ export function codeBuddyKeyWarning(key) {
 export const CREDENTIAL_GUIDES = {
   gitSshKey: {
     steps: [
-      "把专用公钥添加到代码托管账号，并按需授予仓库写权限",
-      "到「个人配置 → Git SSH 密钥」为该主机添加无口令私钥，同一主机的仓库自动共用；请平台管理员在「平台管理 → Git 主机信任」登记主机公钥",
-      "回到这里重试",
+      chatT("把专用公钥添加到代码托管账号，并按需授予仓库写权限", "Thêm khóa công khai chuyên dụng vào tài khoản lưu trữ mã và cấp quyền ghi kho mã nếu cần."),
+      chatT("到「个人配置 → Git SSH 密钥」为该主机添加无口令私钥，同一主机的仓库自动共用；请平台管理员在「平台管理 → Git 主机信任」登记主机公钥", "Trong «Cấu hình cá nhân → Khóa SSH Git», thêm khóa riêng không có mật khẩu cho máy chủ này; các kho cùng máy chủ tự dùng chung. Yêu cầu quản trị viên đăng ký khóa công khai máy chủ trong «Quản trị nền tảng → Tin cậy máy chủ Git»."),
+      chatT("回到这里重试", "Quay lại đây để thử lại."),
     ],
   },
   gitHttpCredentials: {
     steps: [
-      "在代码托管平台创建仓库级、最小权限的个人访问令牌",
-      "到「个人配置 → Git 访问令牌」为该 HTTPS 主机添加令牌，并开启「提供给工作区」",
-      "回到这里重试",
+      chatT("在代码托管平台创建仓库级、最小权限的个人访问令牌", "Tạo token truy cập cá nhân cấp kho mã với quyền tối thiểu trên nền tảng lưu trữ mã."),
+      chatT("到「个人配置 → Git 访问令牌」为该 HTTPS 主机添加令牌，并开启「提供给工作区」", "Trong «Cấu hình cá nhân → Token truy cập Git», thêm token cho máy chủ HTTPS này và bật «Cung cấp cho workspace»."),
+      chatT("回到这里重试", "Quay lại đây để thử lại."),
     ],
   },
   gitToken: {
     url: "/#/settings",
-    link: "连接 GitHub",
+    link: chatT("连接 GitHub", "Kết nối GitHub"),
     steps: [
-      "到「个人配置」点击「连接 GitHub」，复制设备码后前往 GitHub 授权",
-      "添加仓库时点击「选择我的 GitHub 仓库」，选择仓库与主分支",
-      "管理员尚未配置 GitHub 授权时，也可以手动填写有 Contents 和 Pull requests 读写权限的 PAT",
-      "回到这里点「重试节点」",
+      chatT("到「个人配置」点击「连接 GitHub」，复制设备码后前往 GitHub 授权", "Trong «Cấu hình cá nhân», nhấp «Kết nối GitHub», sao chép mã thiết bị rồi đến GitHub cấp quyền."),
+      chatT("添加仓库时点击「选择我的 GitHub 仓库」，选择仓库与主分支", "Khi thêm kho mã, nhấp «Chọn kho GitHub của tôi», chọn kho và nhánh chính."),
+      chatT("管理员尚未配置 GitHub 授权时，也可以手动填写有 Contents 和 Pull requests 读写权限的 PAT", "Nếu quản trị viên chưa cấu hình cấp quyền GitHub, có thể nhập PAT thủ công có quyền đọc/ghi Contents và Pull requests."),
+      chatT("回到这里点「重试节点」", "Quay lại đây và nhấp «Thử lại nút»."),
     ],
   },
   codeBuddyApiKey: {
     url: CODEBUDDY_ENVIRONMENTS[0].keyUrl,
-    link: "打开 CodeBuddy 创建 Key",
+    link: chatT("打开 CodeBuddy 创建 Key", "Mở CodeBuddy để tạo key"),
     steps: [
-      "在 CodeBuddy 账号所在站点（国际站、国内站或 iOA）创建 API Key 并复制",
-      "到「个人配置 → CodeBuddy API Key」选择同一网络环境，粘贴 Key 并保存；DeepSeek 等第三方模型的 Key 不能用在这里",
-      "回到这里点「重试节点」",
+      chatT("在 CodeBuddy 账号所在站点（国际站、国内站或 iOA）创建 API Key 并复制", "Tạo và sao chép API Key tại trang tương ứng với tài khoản CodeBuddy (quốc tế, nội địa Trung Quốc hoặc iOA)."),
+      chatT("到「个人配置 → CodeBuddy API Key」选择同一网络环境，粘贴 Key 并保存；DeepSeek 等第三方模型的 Key 不能用在这里", "Trong «Cấu hình cá nhân → CodeBuddy API Key», chọn cùng môi trường mạng, dán key và lưu; key mô hình bên thứ ba như DeepSeek không dùng được tại đây."),
+      chatT("回到这里点「重试节点」", "Quay lại đây và nhấp «Thử lại nút»."),
     ],
   },
   codexApiKey: {
     steps: [
-      "到「个人配置 → Codex API Key」填写 Key（及 Base URL）并保存，或把执行机器的认证方式切回本机登录",
-      "回到这里点「重试节点」",
+      chatT("到「个人配置 → Codex API Key」填写 Key（及 Base URL）并保存，或把执行机器的认证方式切回本机登录", "Trong «Cấu hình cá nhân → Codex API Key», nhập key (và Base URL) rồi lưu, hoặc chuyển xác thực máy thực thi về đăng nhập cục bộ."),
+      chatT("回到这里点「重试节点」", "Quay lại đây và nhấp «Thử lại nút»."),
     ],
   },
   claudeCodeApiKey: {
     steps: [
-      "到「个人配置 → Claude Code API Key」填写 Key（及 Base URL）并保存，或把执行机器的认证方式切回本机登录",
-      "回到这里点「重试节点」",
+      chatT("到「个人配置 → Claude Code API Key」填写 Key（及 Base URL）并保存，或把执行机器的认证方式切回本机登录", "Trong «Cấu hình cá nhân → Claude Code API Key», nhập key (và Base URL) rồi lưu, hoặc chuyển xác thực máy thực thi về đăng nhập cục bộ."),
+      chatT("回到这里点「重试节点」", "Quay lại đây và nhấp «Thử lại nút»."),
     ],
   },
 };
@@ -142,7 +143,7 @@ export function credentialGuide(field, owner) {
   const env =
     codeBuddyEnvironmentIntent(owner?.codeBuddyInternetEnvironment) ||
     CODEBUDDY_ENVIRONMENTS[0];
-  return { ...guide, url: env.keyUrl, link: `打开 CodeBuddy ${env.label}创建 Key` };
+  return { ...guide, url: env.keyUrl, link: chatT(`打开 CodeBuddy ${env.label}创建 Key`, `Mở CodeBuddy ${env.label} để tạo key`) };
 }
 
 const RULES = [
