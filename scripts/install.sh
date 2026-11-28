@@ -186,7 +186,17 @@ else
   # Download MySQL while the platform image builds instead of afterwards.
   docker_access compose pull --quiet --policy missing mysql >/dev/null 2>&1 &
   mysql_pull=$!
-  docker_access compose --profile platform build platform
+  # The source tree also contains private runtime directories such as
+  # .data/conversations, sometimes owned by containers. A direct Compose build
+  # walks that tree even though .dockerignore excludes it on some Docker versions.
+  # Stream a Git-selected tar context: preserve edited/untracked source files,
+  # but never traverse local data or credentials. Compose only starts the image.
+  bash scripts/build-source-context.sh | docker_access build \
+    --progress=plain \
+    --build-arg "LOOPFORGE_COMMIT=${LOOPFORGE_COMMIT}" \
+    --build-arg "LOOPFORGE_BUILD_JOBS=${LOOPFORGE_BUILD_JOBS:-}" \
+    --build-arg "CODEBUDDY_PACKAGE=${CODEBUDDY_PACKAGE-@tencent-ai/codebuddy-code@2.167.0}" \
+    -t loopforge-platform:local -
   wait "$mysql_pull" || true
   step 'Starting LoopForge'
   docker_access compose --profile platform up -d --no-build --wait --wait-timeout 180

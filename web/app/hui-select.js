@@ -140,11 +140,11 @@
     const search = el('input');
     search.type = 'search';
     search.placeholder = '搜索…';
-    search.setAttribute('aria-label', '搜索选项');
+    search.setAttribute('aria-label', window.lfLang?.()==='vi'?'Tìm tùy chọn':'搜索选项');
     searchBar.appendChild(icon('search'));
     searchBar.appendChild(search);
     const list = el('div', 'hui-select-options');
-    const empty = el('div', 'hui-select-empty', '没有匹配的选项');
+    const empty = el('div', 'hui-select-empty', window.lfLang?.()==='vi'?'Không có tùy chọn phù hợp':'没有匹配的选项');
     empty.hidden = true;
     panel.appendChild(searchBar);
     panel.appendChild(list);
@@ -194,6 +194,7 @@
           }
         }
         const button = el('button', 'hui-select-option');
+        if(option.hasAttribute?.('data-i18n-skip'))button.setAttribute?.('data-i18n-skip','');
         button.type = 'button';
         button.tabIndex = -1;
         button.setAttribute('role', 'option');
@@ -383,6 +384,10 @@
 
     function sync() {
       const current = select.options[Math.max(0, select.selectedIndex)];
+      if(value.setAttribute && value.removeAttribute){
+        if(current?.hasAttribute?.('data-i18n-skip'))value.setAttribute('data-i18n-skip','');
+        else value.removeAttribute('data-i18n-skip');
+      }
       value.textContent = current ? current.text : '';
       trigger.classList.toggle('is-filtered', select.selectedIndex > 0);
       trigger.disabled = !!select.disabled;

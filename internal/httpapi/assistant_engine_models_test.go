@@ -51,3 +51,42 @@ func TestAssistantEngineModelsKeepPersonalCatalogOnOfficialKey(t *testing.T) {
 		t.Fatalf("base url catalog: %v discovered %v", got, discovered)
 	}
 }
+
+func TestClaudeGatewaySavedEndpointDiscoveryUsesRootURL(t *testing.T) {
+	previous := assistantEngineDiscover
+	t.Cleanup(func() { assistantEngineDiscover = previous })
+	var called bool
+	assistantEngineDiscover = func(_ context.Context, anthropic bool, key, baseURL string) ([]assistantDiscoveredModel, error) {
+		called = true
+		if !anthropic || key != "omniroute-fixture-key" || baseURL != "https://gateway.example/anthropic" {
+			t.Errorf("unexpected Claude model discovery: anthropic=%v endpoint=%q", anthropic, baseURL)
+		}
+		return []assistantDiscoveredModel{{ID: "omniroute/model", Name: "OmniRoute Model"}}, nil
+	}
+	user := domain.User{
+		ClaudeCodeAPIKey: "omniroute-fixture-key",
+		ClaudeCodeBaseURL: "https://gateway.example/anthropic/v1",
+	}
+	listed, _ := assistantDiscoveredModelsFor(context.Background(), user, assistantEngineClaude)
+	if !called || !slices.ContainsFunc(listed, func(m assistantDiscoveredModel) bool { return m.ID == "omniroute/model" }) {
+		t.Fatalf("Claude gateway catalog: %+v (discovery called=%v)", listed, called)
+	}
+}
+
+func TestClaudeGatewayDoesNotOfferUnverifiedOfficialModelIDs(t *testing.T) {
+	previous := assistantEngineDiscover
+	t.Cleanup(func() { assistantEngineDiscover = previous })
+	assistantEngineDiscover = func(_ context.Context, anthropic bool, key, endpoint string) ([]assistantDiscoveredModel, error) {
+		return nil, nil
+	}
+	user := domain.User{
+		ClaudeCodeAPIKey: "fixture-empty-gateway-key",
+		ClaudeCodeBaseURL: "https://gateway.invalid/v1",
+	}
+	models, _ := assistantEngineModels(context.Background(), user, nil)
+	for _, model := range models {
+		if model.Engine == assistantEngineClaude {
+			t.Fatalf("unverified native Claude model offered for custom gateway: %+v", model)
+		}
+	}
+}

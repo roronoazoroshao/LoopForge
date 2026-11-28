@@ -1,3 +1,4 @@
+import { chatT, chatLocale } from "./locale.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { modelEffort } from "./effort.js";
 import { createLocalConversations } from "./local-conversation-fixtures.js";
@@ -9,13 +10,13 @@ const emptyLive = { answer: "", thinking: "", tools: [], activity: [] };
 const timestamp = () => new Date().toISOString();
 
 function localReply(text, title) {
-  if (/什么模型|哪个模型|什么AI|什么 AI|你是谁/i.test(text))
-    return "这是保存在浏览器里的本地示例会话。这里的回复由前端生成，方便体验完整的会话操作；新建对话会使用你实际选择的模型。";
-  if (/总结|汇总|清单|列出来/.test(text))
-    return `围绕「${title}」，可以把下一步整理成三项：\n\n1. 确认这次补充涉及的范围与目标\n2. 列出具体调整和需要确认的问题\n3. 检查完成标准，保留后续跟进记录\n\n你刚才的补充已保存在这条本地会话中。`;
-  if (/颜色|hover|动效|动画/.test(text))
-    return "可以继续按浅灰、深灰的层级统一交互：悬停用轻微的灰色扩散，选中保持固定浅灰底，图标播放自身动效。\n\n按钮本身保持位置稳定，鼠标移开后颜色自然收回。";
-  return `已记下这条补充。我们继续围绕「${title}」推进：\n\n- 先确认这次调整的具体目标\n- 保留现有流程，列出需要修改的细节\n- 用清晰的验收项检查结果\n\n你可以继续补充要求，或把希望优先处理的部分告诉我。`;
+  if (/什么模型|哪个模型|什么AI|什么 AI|你是谁/i.test(text) || (chatLocale() === "vi" && /mô hình nào|mô hình gì|bạn là ai/i.test(text)))
+    return chatT("这是保存在浏览器里的本地示例会话。这里的回复由前端生成，方便体验完整的会话操作；新建对话会使用你实际选择的模型。","Đây là cuộc trò chuyện mẫu lưu trong trình duyệt. Phản hồi do giao diện tạo để bạn trải nghiệm thao tác trò chuyện; cuộc trò chuyện mới sẽ sử dụng mô hình bạn thực sự chọn.");
+  if (/总结|汇总|清单|列出来/.test(text) || (chatLocale() === "vi" && /tóm tắt|tổng hợp|danh sách|liệt kê/i.test(text)))
+    return chatT(`围绕「${title}」，可以把下一步整理成三项：\n\n1. 确认这次补充涉及的范围与目标\n2. 列出具体调整和需要确认的问题\n3. 检查完成标准，保留后续跟进记录\n\n你刚才的补充已保存在这条本地会话中。`, `Có thể chia bước tiếp theo của “${title}” thành ba mục:\n\n1. Xác nhận phạm vi và mục tiêu bổ sung\n2. Liệt kê các điều chỉnh và vấn đề cần xác nhận\n3. Kiểm tra tiêu chí hoàn thành và lưu nội dung cần theo dõi\n\nNội dung bạn vừa bổ sung đã được lưu trong cuộc trò chuyện cục bộ này.`);
+  if (/颜色|hover|动效|动画/.test(text) || (chatLocale() === "vi" && /màu sắc|hiệu ứng|hoạt ảnh/i.test(text)))
+    return chatT("可以继续按浅灰、深灰的层级统一交互：悬停用轻微的灰色扩散，选中保持固定浅灰底，图标播放自身动效。\n\n按钮本身保持位置稳定，鼠标移开后颜色自然收回。","Có thể tiếp tục thống nhất tương tác bằng các sắc độ xám: khi rê chuột, màu xám hiện nhẹ; khi chọn, giữ nền xám nhạt và chỉ chạy hiệu ứng bên trong biểu tượng.\n\nNút giữ nguyên vị trí, màu trở về bình thường khi rời chuột.");
+  return chatT(`已记下这条补充。我们继续围绕「${title}」推进：\n\n- 先确认这次调整的具体目标\n- 保留现有流程，列出需要修改的细节\n- 用清晰的验收项检查结果\n\n你可以继续补充要求，或把希望优先处理的部分告诉我。`, `Đã ghi nhận nội dung bổ sung. Các bước tiếp theo cho “${title}”:\n\n- Xác nhận mục tiêu cụ thể của lần điều chỉnh này\n- Giữ nguyên quy trình hiện có và liệt kê các chi tiết cần sửa\n- Kiểm tra kết quả theo tiêu chí nghiệm thu rõ ràng\n\nBạn có thể bổ sung yêu cầu hoặc chỉ định phần cần ưu tiên.`);
 }
 
 /** Use the normal conversation UI with browser-local fixtures when the server is empty.
@@ -62,7 +63,7 @@ export function useLocalConversations(real) {
     try {
       if (next.key) localStorage.setItem(next.key, JSON.stringify(sessions));
     } catch {
-      setLocalError("浏览器存储空间不足，当前内容仍保留在页面中；移除较大的附件后可以继续保存。");
+      setLocalError(chatT("浏览器存储空间不足，当前内容仍保留在页面中；移除较大的附件后可以继续保存。","Bộ nhớ trình duyệt không đủ. Nội dung hiện tại vẫn còn trên trang; hãy gỡ các tệp đính kèm lớn để tiếp tục lưu."));
     }
     return sessions;
   }, []);
@@ -90,7 +91,7 @@ export function useLocalConversations(real) {
     try {
       localStorage.setItem(key, JSON.stringify(sessions));
     } catch {
-      setLocalError("浏览器存储空间不足，当前内容仍保留在页面中；移除较大的附件后可以继续保存。");
+      setLocalError(chatT("浏览器存储空间不足，当前内容仍保留在页面中；移除较大的附件后可以继续保存。","Bộ nhớ trình duyệt không đủ. Nội dung hiện tại vẫn còn trên trang; hãy gỡ các tệp đính kèm lớn để tiếp tục lưu."));
     }
     if (available) {
       try {
@@ -144,7 +145,7 @@ export function useLocalConversations(real) {
     const id = stored.id;
     const running = generationsRef.current[id];
     if (running?.status === "running") {
-      setLocalError("当前回复仍在生成，可以先停止再发送。");
+      setLocalError(chatT("当前回复仍在生成，可以先停止再发送。","Phản hồi đang được tạo. Hãy dừng trước khi gửi tiếp."));
       return false;
     }
     const startedAt = timestamp();
@@ -155,7 +156,7 @@ export function useLocalConversations(real) {
     const timer = setTimeout(() => {
       timers.current.delete(id);
       const finishedAt = timestamp();
-      const activity = [{ kind: "status", text: "整理当前会话", at: startedAt }];
+      const activity = [{ kind: "status", text: chatT("整理当前会话","Sắp xếp cuộc trò chuyện hiện tại"), at: startedAt }];
       update(id, (row) => ({ ...row, generationStatus: "completed", messages: [...row.messages, { role: "assistant", content: response, createdAt: finishedAt, startedAt, activity }] }));
       setGeneration(id, { ...generation, status: "completed", updatedAt: finishedAt });
     }, 650);
@@ -233,11 +234,11 @@ export function useLocalConversations(real) {
       if (!current) return isLocalConversation(localIdRef.current) ? false : real.send(options);
       if (!options.text.trim() && !options.attachments?.length) return false;
       if (generationsRef.current[current.id]?.status === "running") {
-        setLocalError("当前回复仍在生成，可以先停止再发送。");
+        setLocalError(chatT("当前回复仍在生成，可以先停止再发送。","Phản hồi đang được tạo. Hãy dừng trước khi gửi tiếp."));
         return false;
       }
       setLocalError("");
-      const message = { role: "user", content: options.text.trim() || "请阅读本轮附件并回答。", authorId: real.user?.id, authorName: real.user?.chineseName || real.user?.loginName, createdAt: timestamp(), ...(options.attachments?.length ? { attachments: options.attachments } : {}), ...(options.references?.length ? { references: options.references } : {}) };
+      const message = { role: "user", content: options.text.trim() || chatT("请阅读本轮附件并回答。","Hãy đọc tệp đính kèm của lượt này và trả lời."), authorId: real.user?.id, authorName: real.user?.chineseName || real.user?.loginName, createdAt: timestamp(), ...(options.attachments?.length ? { attachments: options.attachments } : {}), ...(options.references?.length ? { references: options.references } : {}) };
       const stored = update(current.id, (row) => ({ ...row, messages: [...(options.messagesOverride || row.messages), message] }));
       return complete(stored, message.content);
     },
@@ -275,7 +276,7 @@ export function useLocalConversations(real) {
       const messages = current.messages.slice(0, index + 1).map((message, messageIndex) => messageIndex === index ? { ...message, content: content.trim() } : message);
       if (!fork) return update(current.id, (row) => ({ ...row, messages, generationStatus: "completed" }));
       const id = newLocalId("local-preview");
-      const forked = { ...current, id, title: `${current.title}（分支）`, messages, generationStatus: "completed", createdAt: timestamp(), updatedAt: timestamp() };
+      const forked = { ...current, id, title: chatT(`${current.title}（分支）`, `${current.title} (nhánh)`), messages, generationStatus: "completed", createdAt: timestamp(), updatedAt: timestamp() };
       save((sessions) => [forked, ...sessions]);
       selectLocal(id);
       return forked;
@@ -299,7 +300,7 @@ export function useLocalConversations(real) {
     },
     async applyDraft(...args) {
       if (!selected() && !isLocalConversation(localIdRef.current)) return real.applyDraft(...args);
-      throw Error("当前本地会话中没有待保存的配置草稿。");
+      throw Error(chatT("当前本地会话中没有待保存的配置草稿。","Cuộc trò chuyện cục bộ này không có bản nháp cấu hình chờ lưu."));
     },
     async refresh() {
       if (!selected()) return real.refresh();

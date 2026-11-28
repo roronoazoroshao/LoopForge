@@ -29,7 +29,8 @@ jobs:
           - {os: ubuntu-24.04, python-version: "3.8", node-version: "22"}
           - {os: ubuntu-latest, python-version: "3.12", node-version: "22"}
           - {os: ubuntu-latest, python-version: "3.12", node-version: "20"}
-          - {os: macos-latest, python-version: "3.12", node-version: "22"}
+          # Use an Intel macOS pool while Apple Silicon hosted runner allocation is unreliable.
+          - {os: macos-15-intel, python-version: "3.12", node-version: "22"}
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: actions/setup-python@v5.6.0

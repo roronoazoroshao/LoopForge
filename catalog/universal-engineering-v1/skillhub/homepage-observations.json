@@ -1,0 +1,26 @@
+{
+  "source": "https://skillhub.cn/",
+  "retrievedDate": "2026-11-24",
+  "sourceType": "indexed public homepage, recent trending (近期飙升), not official /api/skills/top response",
+  "rankScope": "homepage trending across categories",
+  "metrics": "rounded display values; not exact downloads; no verified slug/version",
+  "entries": [
+    {
+      "position": 7,
+      "displayName": "编程专家.Skill",
+      "publisher": "user_613b33ea",
+      "category": "Development",
+      "displayCount": "90.0 万",
+      "status": "discovery-only"
+    },
+    {
+      "position": 8,
+      "displayName": "flm-expert",
+      "publisher": "user_28275a78",
+      "category": "Development",
+      "displayCount": "55.1 万",
+      "status": "discovery-only"
+    }
+  ],
+  "limitations": "No package identity confirmed, no category rank, no selection; index crawl today; count metric not unambiguously documented in rendered listing."
+}

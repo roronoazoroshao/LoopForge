@@ -1,0 +1,81 @@
+{
+  "id": "lf-pipeline-operations",
+  "name": "Production Operations",
+  "version": 1,
+  "revision": 1,
+  "status": "draft",
+  "description": "Pipeline dự thảo; kiểm thử SOP lồng nhau và artifact handoff trên staging trước khi publish.",
+  "sandboxProfileId": "generic-docker",
+  "tags": [
+    "lf-universal-v1",
+    "pipeline"
+  ],
+  "nodes": [
+    {
+      "id": "stage-1",
+      "name": "Incident Response",
+      "type": "sop",
+      "sopWorkflowId": "lf-sop-incident-response",
+      "maxAttempts": 1,
+      "position": {
+        "x": 100,
+        "y": 150
+      }
+    },
+    {
+      "id": "stage-2",
+      "name": "CI/CD Setup",
+      "type": "sop",
+      "sopWorkflowId": "lf-sop-cicd",
+      "maxAttempts": 1,
+      "position": {
+        "x": 345,
+        "y": 150
+      }
+    },
+    {
+      "id": "stage-3",
+      "name": "Production Release",
+      "type": "sop",
+      "sopWorkflowId": "lf-sop-production-release",
+      "maxAttempts": 1,
+      "position": {
+        "x": 590,
+        "y": 150
+      }
+    },
+    {
+      "id": "accept",
+      "name": "Phê duyệt tổng thể",
+      "type": "approval",
+      "taskPrompt": "Kiểm tra artifacts đúng revision, findings và bằng chứng thực tế. Chỉ chấp thuận khi tiêu chí đạt, không có blocker và quyền đúng phạm vi; nếu không, reject kèm finding. Không chấp thuận tự động.",
+      "maxAttempts": 1,
+      "maxReworks": 2,
+      "rejectTo": "stage-1",
+      "position": {
+        "x": 835,
+        "y": 150
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-1",
+      "source": "stage-1",
+      "target": "stage-2",
+      "when": "success"
+    },
+    {
+      "id": "e-2",
+      "source": "stage-2",
+      "target": "stage-3",
+      "when": "success"
+    },
+    {
+      "id": "e-3",
+      "source": "stage-3",
+      "target": "accept",
+      "when": "success"
+    }
+  ]
+}

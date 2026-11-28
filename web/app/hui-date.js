@@ -9,8 +9,9 @@
   const doc = typeof document !== 'undefined' ? document : null;
   const supported = !!(doc && typeof doc.createElement === 'function' && typeof MutationObserver === 'function');
   const instances = new WeakMap();
-  const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'];
-  const PLACEHOLDER = '选择日期';
+  const vi=window.lfLang?.()==='vi';
+  const WEEKDAYS=vi?['T2','T3','T4','T5','T6','T7','CN']:['一','二','三','四','五','六','日'];
+  const PLACEHOLDER=vi?'Chọn ngày':'选择日期';
   let serial = 0;
 
   const pad = n => String(n).padStart(2, '0');
@@ -98,14 +99,14 @@
     const panel = el('div', 'hui-date-panel');
     panel.id = id + 'Panel';
     panel.setAttribute('role', 'dialog');
-    panel.setAttribute('aria-label', '选择日期');
+    panel.setAttribute('aria-label', vi?'Chọn ngày':'选择日期');
     panel.inert = true;
     const head = el('div', 'hui-date-head');
-    const prev = button('hui-date-nav', null, '上个月');
+    const prev = button('hui-date-nav', null, vi?'Tháng trước':'上个月');
     prev.appendChild(icon('chevron-left'));
     const title = el('b', 'hui-date-title');
     title.setAttribute('aria-live', 'polite');
-    const next = button('hui-date-nav', null, '下个月');
+    const next = button('hui-date-nav', null, vi?'Tháng sau':'下个月');
     next.appendChild(icon('chevron-right'));
     head.appendChild(prev);
     head.appendChild(title);

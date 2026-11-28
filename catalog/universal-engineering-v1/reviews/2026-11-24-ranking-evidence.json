@@ -1,0 +1,67 @@
+{
+  "sourceRevision": "99bd3c3bce52942bae92d780ef94a9ae27414b75",
+  "environment": "isolated V8",
+  "fixtureOnly": true,
+  "tests": [
+    {
+      "name": "overall is independent of category scope",
+      "pass": true
+    },
+    {
+      "name": "all 50 targets have two metric queries",
+      "pass": true
+    },
+    {
+      "name": "category scopes query two metrics",
+      "pass": true
+    },
+    {
+      "name": "inactive category not submitted",
+      "pass": true
+    },
+    {
+      "name": "namespace collision remains separate",
+      "pass": true
+    },
+    {
+      "name": "missing namespace and duplicate quarantined as warnings",
+      "pass": true
+    },
+    {
+      "name": "position preserves source order",
+      "pass": true
+    },
+    {
+      "name": "observed version is not verified pin",
+      "pass": true
+    },
+    {
+      "name": "missing metric is unknown rather than zero",
+      "pass": true
+    },
+    {
+      "name": "no automatic selection or promotion",
+      "pass": true
+    },
+    {
+      "name": "malformed response rejected",
+      "pass": true
+    },
+    {
+      "name": "missing queries cannot create candidates",
+      "pass": true
+    },
+    {
+      "name": "keyword rank is not category rank",
+      "pass": true
+    },
+    {
+      "name": "category match has separately attributed evidence",
+      "pass": true
+    }
+  ],
+  "officialApiQueriesCompleted": 0,
+  "networkStatus": "DNS resolution failed in container, web open unavailable",
+  "livePackages": 0,
+  "independentReview": 0
+}

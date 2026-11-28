@@ -1,4 +1,6 @@
 import React from "react";
+import { chatLocale, chatT } from "./locale.js";
+
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import SopDesigner from "./SopDesigner";
@@ -22,14 +24,21 @@ class Boundary extends React.Component {
   render() {
     return this.state.error ? (
       <div className="fatal-error">
-        <h1>工作台暂时无法打开</h1>
+        <h1>{chatT("工作台暂时无法打开", "Tạm thời không thể mở không gian làm việc", "The workspace is temporarily unavailable")}</h1>
         <p>{this.state.error.message}</p>
-        <button onClick={() => location.reload()}>重新加载</button>
+        <button onClick={() => location.reload()}>{chatT("重新加载", "Tải lại", "Reload")}</button>
       </div>
     ) : (
       this.props.children
     );
   }
+}
+if (chatLocale() === "vi") {
+  document.documentElement.lang = "vi-VN";
+  document.title = "LoopForge · Không gian làm việc";
+} else if (chatLocale() === "en") {
+  document.documentElement.lang = "en";
+  document.title = "LoopForge · Workspace";
 }
 createRoot(document.getElementById("root")).render(
   <Boundary>

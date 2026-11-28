@@ -16,7 +16,7 @@ func TestProviderCredentialBindingIsolation(t *testing.T) {
 	t.Setenv("CODEBUDDY_API_KEY", "host-codebuddy")
 	t.Setenv("CODEX_HOME", t.TempDir())
 	t.Setenv("CLAUDE_CONFIG_DIR", t.TempDir())
-	creds := RunCredentials{CodeBuddy: CodeBuddyCredential{APIKey: "codebuddy-user-secret", InternetEnvironment: "ioa"}, Codex: ProviderCredential{APIKey: "codex-user-secret", BaseURL: "https://codex.example/v1"}, ClaudeCode: ProviderCredential{APIKey: "claude-user-secret", BaseURL: "https://claude.example"}}
+	creds := RunCredentials{CodeBuddy: CodeBuddyCredential{APIKey: "codebuddy-user-secret", InternetEnvironment: "ioa"}, Codex: ProviderCredential{APIKey: "codex-user-secret", BaseURL: "https://codex.example/v1"}, ClaudeCode: ProviderCredential{APIKey: "claude-user-secret", BaseURL: "https://claude.example/v1"}}
 	for _, kind := range []string{"codebuddy", "codex", "claude-code"} {
 		t.Run(kind, func(t *testing.T) {
 			workspace := t.TempDir()
@@ -32,7 +32,7 @@ func TestProviderCredentialBindingIsolation(t *testing.T) {
 			if strings.Contains(strings.Join(bound.Argv, " "), "user-secret") {
 				t.Fatal("key leaked into command arguments")
 			}
-			if bound.environment["OPENAI_API_KEY"] != "" || bound.environment["ANTHROPIC_AUTH_TOKEN"] != "" {
+			if bound.environment["OPENAI_API_KEY"] != "" || (kind != "claude-code" && bound.environment["ANTHROPIC_AUTH_TOKEN"] != "") {
 				t.Fatal("host credentials not cleared")
 			}
 			home := bound.environment["HOME"]
@@ -56,10 +56,10 @@ func TestProviderCredentialBindingIsolation(t *testing.T) {
 				}
 				bound.Argv = []string{"sh", "-c", `test "$CODEX_API_KEY" = codex-user-secret && test -z "$ANTHROPIC_API_KEY" && test -z "$OPENAI_API_KEY" && printf ok`}
 			} else {
-				if bound.environment["ANTHROPIC_API_KEY"] != "claude-user-secret" || bound.environment["ANTHROPIC_BASE_URL"] != "https://claude.example" || bound.environment["CODEX_API_KEY"] != "" || bound.environment["CLAUDE_CONFIG_DIR"] != filepath.Join(home, ".claude") {
+				if bound.environment["ANTHROPIC_API_KEY"] != "" || bound.environment["ANTHROPIC_BASE_URL"] != "https://claude.example" || bound.environment["ANTHROPIC_AUTH_TOKEN"] != "claude-user-secret" || bound.environment["CODEX_API_KEY"] != "" || bound.environment["CLAUDE_CONFIG_DIR"] != filepath.Join(home, ".claude") {
 					t.Fatal("Claude credential routing failed")
 				}
-				bound.Argv = []string{"sh", "-c", `test "$ANTHROPIC_API_KEY" = claude-user-secret && test -z "$CODEX_API_KEY" && test -z "$ANTHROPIC_AUTH_TOKEN" && printf ok`}
+				bound.Argv = []string{"sh", "-c", `test -z "$ANTHROPIC_API_KEY" && test -z "$CODEX_API_KEY" && test "$ANTHROPIC_AUTH_TOKEN" = claude-user-secret && printf ok`}
 			}
 			output, err := sb.Exec(context.Background(), bound, nil)
 			if err != nil || strings.TrimSpace(output) != "ok" {
@@ -84,6 +84,29 @@ func TestProviderCredentialBindingIsolation(t *testing.T) {
 	redacted := compactCommand([]string{"docker", "exec", "-e", "CODEX_API_KEY=codex-user-secret", "-e", "ANTHROPIC_API_KEY=claude-user-secret"})
 	if strings.Contains(redacted, "user-secret") {
 		t.Fatal("process telemetry leaked provider credentials")
+	}
+}
+
+func TestOfficialClaudeKeyDoesNotSetGatewayBearerToken(t *testing.T) {
+	workspace := t.TempDir()
+	sb := &localSandbox{workspace: workspace}
+	command, err := providerForKind("claude-code").Prepare(providerInvocation{
+		Executor: domain.ExecutorDefinition{Binary: "claude"},
+		Prompt:   "test", Driver: "local",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	bound, err := bindCommand(t.Context(), sb, workspace, command, RunCredentials{
+		ClaudeCode: ProviderCredential{APIKey: "official-fixture-key"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bound.environment["ANTHROPIC_API_KEY"] != "official-fixture-key" ||
+		bound.environment["ANTHROPIC_AUTH_TOKEN"] != "" ||
+		bound.environment["ANTHROPIC_BASE_URL"] != "https://api.anthropic.com" {
+		t.Fatal("official Claude credentials must use the API key, not a gateway bearer token")
 	}
 }
 

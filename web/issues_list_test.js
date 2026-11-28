@@ -12,6 +12,7 @@ function slice(from, to) {
 }
 
 const ctx = {
+  issuesCopy: zh=>zh,
   escapeHTML: v => String(v ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c])),
   issuePriorityLabel: v => ({ urgent: '紧急', high: '高', medium: '中', low: '低' }[v] || v),
   issueAssigneeName: i => i.name || '',

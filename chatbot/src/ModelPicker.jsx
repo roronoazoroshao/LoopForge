@@ -1,3 +1,4 @@
+import { chatT } from "./locale";
 import React, { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import HarnessIcon from "./HarnessIcon";
@@ -158,7 +159,7 @@ export default function ModelPicker({ models, value, label, open: requestedOpen,
         ref={trigger}
         type="button"
         className="model-picker grasp-model-picker"
-        aria-label="选择模型"
+        aria-label={chatT("选择模型", "Chọn mô hình")}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={presence.mounted ? identity : undefined}
@@ -172,7 +173,7 @@ export default function ModelPicker({ models, value, label, open: requestedOpen,
         }}
       >
         <ModelProviderIcon model={current || value} size={20} />
-        <span className="model-picker-label">{label || current?.name || "模型"}</span>
+        <span className="model-picker-label">{label || current?.name || chatT("模型", "Mô hình")}</span>
         <HarnessIcon name="chevron-down" size={12} />
       </button>
       {presence.mounted ? createPortal(
@@ -181,7 +182,7 @@ export default function ModelPicker({ models, value, label, open: requestedOpen,
           id={identity}
           className="grasp-model-menu"
           role="menu"
-          aria-label="模型"
+          aria-label={chatT("模型", "Mô hình")}
           aria-hidden={!open || undefined}
           inert={!open}
           data-phase={presence.phase}
@@ -191,8 +192,8 @@ export default function ModelPicker({ models, value, label, open: requestedOpen,
         >
           <label className="grasp-model-search" data-icon-motion-host="">
             <HarnessIcon name="search" size={16} />
-            <input ref={search} type="text" aria-label="搜索模型" placeholder="搜索模型" value={query} onChange={(event) => setQuery(event.target.value)} />
-            {query ? <button type="button" className="model-search-clear" aria-label="清空搜索" onClick={() => { setQuery(""); search.current?.focus(); }}><HarnessIcon name="close" size={13} /></button> : null}
+            <input ref={search} type="text" aria-label={chatT("搜索模型", "Tìm mô hình")} placeholder={chatT("搜索模型", "Tìm mô hình")} value={query} onChange={(event) => setQuery(event.target.value)} />
+            {query ? <button type="button" className="model-search-clear" aria-label={chatT("清空搜索", "Xóa tìm kiếm")} onClick={() => { setQuery(""); search.current?.focus(); }}><HarnessIcon name="close" size={13} /></button> : null}
           </label>
           <div className="grasp-model-options">
             {filtered.length ? filtered.map((model) => (
@@ -213,7 +214,7 @@ export default function ModelPicker({ models, value, label, open: requestedOpen,
                 </span>
                 <span className="model-option-check">{model.id === value ? <HarnessIcon name="check" size={14} motion="once" /> : null}</span>
               </button>
-            )) : <p className="model-picker-empty" role="status">没有匹配的模型</p>}
+            )) : <p className="model-picker-empty" role="status">{chatT("没有匹配的模型", "Không có mô hình phù hợp")}</p>}
           </div>
         </div>, document.body,
       ) : null}

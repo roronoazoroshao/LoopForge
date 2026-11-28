@@ -1,3 +1,4 @@
+import { chatT } from "./locale";
 import React, { useEffect, useRef } from "react";
 import { confirmationCaption } from "./api";
 const MAX_FACES = 3;
@@ -15,7 +16,7 @@ export function authorFor(message, session, users = []) {
       user?.chineseName ||
       user?.loginName ||
       message.authorName ||
-      (id ? `用户 ${id}` : "历史发言人未记录"),
+      (id ? chatT(`用户 ${id}`, `Người dùng ${id}`) : chatT("历史发言人未记录", "Không có bản ghi người gửi trong lịch sử")),
   };
 }
 export function Avatar({ person, className = "" }) {
@@ -98,7 +99,7 @@ export default function Participants({ session, users, compact = false }) {
     };
   }, [compact, session?.id, hasPeople]);
   if (!hasPeople) return null;
-  const label = `${people.length} 人发过言${unknown ? "，部分历史发言人未记录" : ""}`;
+  const label = chatT(`${people.length} 人发过言${unknown ? "，部分历史发言人未记录" : ""}`, `${people.length} người đã nhắn${unknown ? ", một số người gửi trong lịch sử không được ghi nhận" : ""}`);
   const shown = people.length
     ? people.slice(0, MAX_FACES)
     : [{ id: 0, name: "?" }];
@@ -129,7 +130,7 @@ export default function Participants({ session, users, compact = false }) {
     );
   return (
     <details ref={popover} className="conversation-people">
-      <summary aria-label={`查看会话参与人，${label}`} title={label}>
+      <summary aria-label={chatT(`查看会话参与人，${label}`, `Xem người tham gia cuộc trò chuyện, ${label}`)} title={label}>
         {faces}
       </summary>
       <div className="people-popover">
@@ -145,7 +146,7 @@ export default function Participants({ session, users, compact = false }) {
             </span>
           </div>
         ))}
-        {unknown ? <p>部分历史消息没有记录发言人。</p> : null}
+        {unknown ? <p>{chatT("部分历史消息没有记录发言人。", "Một số tin nhắn lịch sử không ghi người gửi.")}</p> : null}
       </div>
     </details>
   );

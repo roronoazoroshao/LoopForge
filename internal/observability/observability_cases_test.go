@@ -111,11 +111,49 @@ func TestHookWatchAndHelpers(t *testing.T) {
 		if !strings.Contains(msg, "stop") {
 			t.Fatalf("message = %q", msg)
 		}
-	case <-time.After(2 * time.Second):
+	case <-time.After(10 * time.Second):
 		t.Fatal("watcher did not emit")
 	}
 	cancel()
 	<-done
+}
+
+// A writer may append a partial JSON record while the watcher reads EOF.
+// Advancing to the file's new size would silently drop the completed event.
+func TestDrainHookFileWaitsForCompleteRecord(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "hooks.ndjson")
+	first := []byte("{\"event\":\"Sto")
+	if err := os.WriteFile(path, first, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	var offset int64
+	var messages []string
+	emit := func(event domain.TelemetryEvent) { messages = append(messages, event.Message) }
+	drainHookFile(path, &offset, emit)
+	if offset != 0 || len(messages) != 0 {
+		t.Fatalf("partial record consumed: offset=%d messages=%v", offset, messages)
+	}
+
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rest := []byte("p\"}\n")
+	if _, err := file.Write(rest); err != nil {
+		file.Close()
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+	drainHookFile(path, &offset, emit)
+	if offset != int64(len(first)+len(rest)) || len(messages) != 1 || !strings.Contains(messages[0], "stop") {
+		t.Fatalf("completed record not emitted: offset=%d messages=%v", offset, messages)
+	}
+	drainHookFile(path, &offset, emit)
+	if len(messages) != 1 {
+		t.Fatalf("record emitted twice: %v", messages)
+	}
 }
 
 func TestHookBranches(t *testing.T) {

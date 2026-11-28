@@ -23,7 +23,7 @@ func TestSkillhubMarketMarkup(t *testing.T) {
 		t.Fatal(err)
 	}
 	page := string(html)
-	assets, market := strings.Index(page, `<script src="/app/assets.js"></script>`), strings.Index(page, `<script src="/app/skillhub.js"></script>`)
+	assets, market := strings.Index(page, `<script src="/app/assets.js`), strings.Index(page, `<script src="/app/skillhub.js`)
 	if assets < 0 || market < assets {
 		t.Fatalf("/app/skillhub.js must load after /app/assets.js (got %d, %d)", assets, market)
 	}

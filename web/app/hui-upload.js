@@ -10,6 +10,8 @@
   const supported = !!(doc && typeof doc.createElement === 'function' && typeof MutationObserver === 'function');
   const instances = new WeakMap();
   const LIST_LIMIT = 5;
+  const uploadVI=()=>window.lfLang?.()==='vi';
+  const uploadCopy=(zh,vi)=>uploadVI()?vi:zh;
 
   function el(tag, className, text) {
     const node = doc.createElement(tag);
@@ -80,17 +82,19 @@
     const zone = el('div', 'hui-upload');
     zone.appendChild(icon('paperclip'));
     const line = el('div', 'hui-upload-line');
-    line.appendChild(doc.createTextNode ? doc.createTextNode(folder ? '选择要上传的文件夹 ' : '拖拽文件到此处，或 ') : el('span', null, folder ? '选择要上传的文件夹 ' : '拖拽文件到此处，或 '));
-    const pick = el('button', 'hui-upload-pick', folder ? '选择文件夹' : '选择文件');
+    const instruction=folder?uploadCopy('选择要上传的文件夹 ','Chọn thư mục cần tải lên '):uploadCopy('拖拽文件到此处，或 ','Kéo thả tệp vào đây hoặc ');
+    line.appendChild(doc.createTextNode ? doc.createTextNode(instruction) : el('span', null, instruction));
+    const pick = el('button', 'hui-upload-pick', folder ? uploadCopy('选择文件夹','Chọn thư mục') : uploadCopy('选择文件','Chọn tệp'));
     pick.type = 'button';
     const own = input.getAttribute('aria-label') || ownText(input.labels?.[0]);
-    if (own) pick.setAttribute('aria-label', own + '：' + pick.textContent);
+    if (own) pick.setAttribute('aria-label', own + uploadCopy('：',': ') + pick.textContent);
     line.appendChild(pick);
     zone.appendChild(line);
-    const hintText = [input.accept ? '支持 ' + input.accept.split(',').map(s => s.trim()).filter(Boolean).join(' / ') : '', input.multiple || folder ? '' : '单个文件'].filter(Boolean).join('，');
+    const hintText = [input.accept ? uploadCopy('支持 ','Hỗ trợ: ') + input.accept.split(',').map(s => s.trim()).filter(Boolean).join(' / ') : '', input.multiple || folder ? '' : uploadCopy('单个文件','Một tệp')].filter(Boolean).join(uploadCopy('，',', '));
     const hint = el('small', 'hui-upload-hint', hintText);
     hint.hidden = !hintText;
     const error = el('small', 'hui-upload-error');
+    if(uploadVI())error.setAttribute('data-i18n-skip','');
     error.setAttribute('role', 'alert');
     error.hidden = true;
     const list = el('ul', 'hui-upload-files');
@@ -114,11 +118,13 @@
       const items = files.slice(0, LIST_LIMIT).map(file => {
         const item = el('li');
         item.appendChild(icon('doc'));
-        item.appendChild(el('span', null, file.webkitRelativePath || file.name));
+        const userFileName=el('span', null, file.webkitRelativePath || file.name);
+        userFileName.setAttribute('data-i18n-skip','');
+        item.appendChild(userFileName);
         item.appendChild(el('small', null, size(file.size)));
         return item;
       });
-      if (files.length > LIST_LIMIT) items.push(el('li', 'hui-upload-more', '等 ' + files.length + ' 个文件'));
+      if (files.length > LIST_LIMIT) items.push(el('li', 'hui-upload-more', uploadCopy('等 ' + files.length + ' 个文件','và '+(files.length-LIST_LIMIT)+' tệp khác')));
       list.replaceChildren(...items);
       list.hidden = !files.length;
       const disabled = !!input.disabled;
@@ -129,12 +135,12 @@
     }
     function take(files) {
       if (input.disabled) return false;
-      if (folder) { fail('文件夹请点击「选择文件夹」上传'); return false; }
+      if (folder) { fail(uploadCopy('文件夹请点击「选择文件夹」上传','Để tải thư mục, hãy bấm “Chọn thư mục”.')); return false; }
       if (!files.length) return false;
-      if (!input.multiple && files.length > 1) { fail('只能选择一个文件'); return false; }
+      if (!input.multiple && files.length > 1) { fail(uploadCopy('只能选择一个文件','Chỉ được chọn một tệp.')); return false; }
       const rejected = files.filter(file => !accepts(input.accept, file));
-      if (rejected.length) { fail('不支持的文件类型：' + rejected.map(file => file.name).join('、')); return false; }
-      if (typeof DataTransfer !== 'function') { fail('当前浏览器不支持拖放，请点击选择'); return false; }
+      if (rejected.length) { fail(uploadCopy('不支持的文件类型：','Loại tệp không được hỗ trợ: ') + rejected.map(file => file.name).join(uploadCopy('、',', '))); return false; }
+      if (typeof DataTransfer !== 'function') { fail(uploadCopy('当前浏览器不支持拖放，请点击选择','Trình duyệt không hỗ trợ kéo thả; hãy bấm chọn tệp.')); return false; }
       const transfer = new DataTransfer();
       files.forEach(file => transfer.items.add(file));
       input.files = transfer.files;

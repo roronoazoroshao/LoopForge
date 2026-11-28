@@ -1,3 +1,6 @@
+import { chatLocale, chatT } from "./locale.js";
+import { vietnameseConversations } from "./local-conversation-fixtures.vi.js";
+
 const conversations = [
   {
     id: "home",
@@ -133,8 +136,9 @@ export function createLocalConversations(user, model) {
   yesterday.setDate(yesterday.getDate() - 1);
   const elapsedToday = now - today.getTime();
   const userId = user?.id ?? 0;
-  const authorName = user?.chineseName || user?.loginName || "我";
-  return conversations.map((fixture, index) => {
+  const authorName = user?.chineseName || user?.loginName || chatT("我", "Tôi");
+  const source = chatLocale() === "vi" ? vietnameseConversations : conversations;
+  return source.map((fixture, index) => {
     const updated = index < 6
       ? today.getTime() + elapsedToday * (12 - index) / 12
       : yesterday.getTime() + (today.getTime() - yesterday.getTime()) * (18 - index) / 24;

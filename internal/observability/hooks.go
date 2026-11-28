@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -269,49 +270,81 @@ func hookToolDetail(input any) string {
 	return ""
 }
 
+// drainHookFile advances only past records that have actually been read.
+// File size is not a safe offset: a writer can append after EOF but before Stat.
+func drainHookFile(path string, offset *int64, emit func(domain.TelemetryEvent)) {
+	f, err := os.Open(path)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	if info, err := f.Stat(); err == nil && *offset > info.Size() {
+		*offset = 0
+	}
+	if _, err := f.Seek(*offset, io.SeekStart); err != nil {
+		*offset = 0
+		if _, err := f.Seek(0, io.SeekStart); err != nil {
+			return
+		}
+	}
+
+	reader := bufio.NewReaderSize(f, 64*1024)
+	const maxLineBytes = 1024 * 1024
+	var line []byte
+	var readBytes int64
+	tooLong := false
+	for {
+		fragment, err := reader.ReadSlice('\n')
+		readBytes += int64(len(fragment))
+		if !tooLong {
+			if len(line)+len(fragment) > maxLineBytes {
+				line = nil
+				tooLong = true
+			} else {
+				line = append(line, fragment...)
+			}
+		}
+		if err == bufio.ErrBufferFull {
+			continue
+		}
+		if err == nil {
+			*offset += readBytes
+			if !tooLong {
+				if event, ok := HookEvent([]byte(strings.TrimSpace(string(line)))); ok {
+					emit(event)
+				}
+			}
+			line, readBytes, tooLong = nil, 0, false
+			continue
+		}
+		// A write may stop mid-record. Retry that fragment on the next tick
+		// rather than skipping it; a complete final JSON record is still valid.
+		if err == io.EOF && !tooLong {
+			if event, ok := HookEvent([]byte(strings.TrimSpace(string(line)))); ok {
+				*offset += readBytes
+				emit(event)
+			}
+		}
+		return
+	}
+}
+
 func WatchHookFile(ctx context.Context, path string, emit func(domain.TelemetryEvent)) {
 	if path == "" || emit == nil {
 		return
 	}
 	_ = os.MkdirAll(filepath.Dir(path), 0o755)
 	var offset int64
-	drain := func() {
-		f, err := os.Open(path)
-		if err != nil {
-			return
-		}
-		defer f.Close()
-		if offset > 0 {
-			if _, err := f.Seek(offset, 0); err != nil {
-				offset = 0
-				_, _ = f.Seek(0, 0)
-			}
-		}
-		scanner := bufio.NewScanner(f)
-		scanner.Buffer(make([]byte, 64*1024), 1024*1024)
-		for scanner.Scan() {
-			line := strings.TrimSpace(scanner.Text())
-			if line == "" {
-				continue
-			}
-			if event, ok := HookEvent([]byte(line)); ok {
-				emit(event)
-			}
-		}
-		if info, err := f.Stat(); err == nil {
-			offset = info.Size()
-		}
-	}
 	ticker := time.NewTicker(250 * time.Millisecond)
 	defer ticker.Stop()
-	drain()
+	drainHookFile(path, &offset, emit)
 	for {
 		select {
 		case <-ctx.Done():
-			drain()
+			drainHookFile(path, &offset, emit)
 			return
 		case <-ticker.C:
-			drain()
+			drainHookFile(path, &offset, emit)
 		}
 	}
 }

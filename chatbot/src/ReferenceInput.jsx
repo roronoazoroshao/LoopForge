@@ -8,6 +8,7 @@ import MentionPicker from "./MentionPicker";
 import HarnessIcon from "./HarnessIcon";
 import { insertMention, mentionAt } from "./mentions.js";
 import { elementTitle } from "./element-context.js";
+import { chatT } from "./locale.js";
 
 // Shared by ordinary conversations and scheduled prompts. The parent owns the
 // draft; picking an asset always changes its text and structured references together.
@@ -77,7 +78,7 @@ export default forwardRef(function ReferenceInput(
       (item) => item.type === asset.type && item.id === asset.id,
     );
     if (!exists && references.length >= 12) {
-      onError?.("每次最多引用 12 个对象。");
+      onError?.(chatT("每次最多引用 12 个对象。", "Mỗi lượt chỉ được tham chiếu tối đa 12 đối tượng."));
       return;
     }
     const next = textareaProps.readOnly
@@ -129,7 +130,7 @@ export default forwardRef(function ReferenceInput(
               {!referencesReadOnly ? (
                 <button
                   type="button"
-                  aria-label={`移除引用 ${asset.name || asset.id}`}
+                  aria-label={chatT(`移除引用 ${asset.name || asset.id}`, `Xóa tham chiếu ${asset.name || asset.id}`)}
                   onClick={() => {
                     onChange({
                       text: textareaProps.readOnly

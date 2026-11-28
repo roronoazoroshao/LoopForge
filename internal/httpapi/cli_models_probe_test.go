@@ -168,3 +168,23 @@ gemini-4-argon-high - Gemini 4 Argon High
 		t.Fatalf("families:\n got %v\nwant %v", got, want)
 	}
 }
+
+func TestProbeClaudeGatewayNormalizesV1URLAndUsesBearer(t *testing.T) {
+	h, owner := workbenchFixture(t)
+	gateway := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/models" || r.Header.Get("Authorization") != "Bearer fixture-gateway-token" {
+			t.Errorf("wrong gateway probe: path=%q bearer=%t", r.URL.Path, r.Header.Get("Authorization") == "Bearer fixture-gateway-token")
+			http.Error(w, "invalid probe", http.StatusBadRequest)
+			return
+		}
+		_, _ = io.WriteString(w, `{"data":[{"id":"omniroute/auto","display_name":"OmniRoute Auto"}]}`)
+	}))
+	t.Cleanup(gateway.Close)
+	body := bytes.NewBufferString(`{"engine":"claude-code","apiKey":"fixture-gateway-token","baseUrl":"` + gateway.URL + `/v1"}`)
+	c, w := workbenchContext(owner, http.MethodPost, "/", body)
+	c.Params = gin.Params{{Key: "id", Value: strconv.FormatInt(owner.ID, 10)}}
+	(&usersHandlers{deps: h.deps}).probeCLIModels(c)
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), `"id":"omniroute/auto"`) {
+		t.Fatalf("Claude gateway model discovery: %d %s", w.Code, w.Body.String())
+	}
+}

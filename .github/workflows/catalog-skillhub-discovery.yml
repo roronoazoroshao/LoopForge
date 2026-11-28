@@ -1,0 +1,39 @@
+name: Catalog SkillHub discovery
+on:
+  pull_request:
+    paths:
+      - 'catalog/universal-engineering-v1/skillhub/ranking-*.json'
+      - 'catalog/universal-engineering-v1/skillhub/ranking-*.mjs'
+      - 'catalog/universal-engineering-v1/skillhub/collect-rankings.mjs'
+      - 'catalog/universal-engineering-v1/tests/ranking-core.test.mjs'
+      - '.github/workflows/catalog-skillhub-discovery.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22'
+      - name: Offline catalog checks
+        run: |
+          node --test catalog/universal-engineering-v1/tests/ranking-core.test.mjs catalog/universal-engineering-v1/tests/evidence-gate.test.mjs
+          node catalog/universal-engineering-v1/tests/validate.mjs
+          cd catalog/universal-engineering-v1/skillhub
+          python3 -m unittest -v test_audit_zip.py
+      - name: Collect public ranking metadata (no package execution)
+        run: node catalog/universal-engineering-v1/skillhub/collect-rankings.mjs "$RUNNER_TEMP/skillhub-ranking"
+      - name: Preserve public ranking evidence including incomplete runs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skillhub-ranking
+          path: ${{ runner.temp }}/skillhub-ranking
+          if-no-files-found: warn
+          retention-days: 7

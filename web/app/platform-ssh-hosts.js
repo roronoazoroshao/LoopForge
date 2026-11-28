@@ -1,4 +1,9 @@
 const platformSSHHostsEndpoint='/api/platform/git-ssh-hosts';
+function platformSSHHostRemovalMessage(hostname){
+  const zh=`移除 ${hostname} 的登记记录？`;
+  return window.lfLang?.()==='vi'?`Gỡ đăng ký máy chủ SSH “${hostname}”?`:lfT(zh,`Remove the registration for ${hostname}?`);
+}
+
 
 function platformSSHHostTrustHTML(){
   return `
@@ -143,7 +148,7 @@ async function loadPlatformSSHHosts(host){
         lfT('请与 Git 服务方提供的指纹核对。确认后，全平台将信任这些公钥。','Compare these fingerprints with the Git provider before trusting these keys across the platform.'),
         editing&&lfT('保存会替换这条记录原有的公钥。','Saving replaces the public keys in this registration.'),
       ].filter(Boolean).join('\n\n');
-      if(!await afConfirm({title:lfT('确认 SSH 主机指纹','Confirm SSH host fingerprints'),message,confirmText:lfT('确认信任','Trust host')}))return;
+      if(!await afConfirm({title:lfT('确认 SSH 主机指纹','Confirm SSH host fingerprints'),message,messageLocalized:window.lfLang?.()==='vi',confirmText:lfT('确认信任','Trust host')}))return;
       const endpoint=editing?`${platformSSHHostsEndpoint}/${encodeURIComponent(editing.host)}`:platformSSHHostsEndpoint;
       const body=JSON.stringify({host:preview.host,publicKeys:preview.publicKeys});
       const options={method:editing?'PUT':'POST',body};
@@ -178,7 +183,8 @@ async function loadPlatformSSHHosts(host){
     try{
       const confirmed=await afConfirm({
         title:lfT('移除 SSH 主机信任','Remove SSH host trust'),
-        message:lfT(`移除 ${hostname} 的登记记录？`,`Remove the registration for ${hostname}?`),
+        message:platformSSHHostRemovalMessage(hostname),
+        messageLocalized:window.lfLang?.()==='vi',
         confirmText:lfT('移除','Remove'),
         danger:true,
       });

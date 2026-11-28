@@ -36,6 +36,8 @@
 :is(#mcpView, #aiSchedulesView) .hui-select-trigger,
 :is(#mcpView, #aiSchedulesView) .hui-select-trigger.is-filtered { min-width: 0; max-width: none; gap: 6px; border-color: var(--hui-border); background: var(--hui-surface); color: var(--hui-text); font-weight: 500; }
 :is(#mcpView, #aiSchedulesView) .hui-select-trigger::before { content: "范围"; color: var(--hui-tertiary); font-weight: 400; }
+html[data-lang="en"] :is(#mcpView, #aiSchedulesView) .hui-select-trigger::before { content: "Scope"; }
+html[data-lang="vi"] :is(#mcpView, #aiSchedulesView) .hui-select-trigger::before { content: "Phạm vi"; }
 :is(#mcpView, #aiSchedulesView) .hui-select-chevron,
 :is(#mcpView, #aiSchedulesView) .hui-select-trigger.is-filtered .hui-select-chevron { margin-left: 2px; color: var(--hui-tertiary); }
 

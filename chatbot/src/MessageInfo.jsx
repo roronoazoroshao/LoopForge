@@ -1,3 +1,4 @@
+import { chatT } from "./locale";
 import React, {
   useCallback,
   useEffect,
@@ -43,7 +44,7 @@ function InfoCard({ id, message, sessionExecutor, cardRef, onPointerEnter, onPoi
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
     >
-      <strong className="message-info-title">统计信息</strong>
+      <strong className="message-info-title">{chatT("统计信息", "Thông tin thống kê")}</strong>
       <dl className="message-info-rows">
         {info.rows.map((row) => (
           <div key={row.key} data-key={row.key}>
@@ -154,7 +155,7 @@ export default function MessageInfo({ message, sessionExecutor }) {
         ref={trigger}
         type="button"
         className="icon-button message-info-trigger"
-        aria-label="统计信息"
+        aria-label={chatT("统计信息", "Thông tin thống kê")}
         aria-expanded={open}
         aria-describedby={open ? id.current : undefined}
         onPointerEnter={(e) => {

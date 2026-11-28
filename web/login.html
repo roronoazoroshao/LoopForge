@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/preferences.css">
   <script src="/boot.js"></script>
   <script src="/i18n-en.js"></script>
+  <script src="/i18n-vi.js"></script>
   <script src="/i18n.js"></script>
   <script defer src="/login.js"></script>
 </head>
@@ -31,9 +32,10 @@
     <p class="login-help" id="loginSwitch" hidden><span id="switchText">还没有账号？</span> <button type="button" id="switchMode" class="login-link">注册</button></p>
     <p class="login-help" id="loginContact" hidden>请联系部署管理员创建账号。</p>
     <div class="login-preferences">
-      <div id="loginLang" class="lang-switch" role="radiogroup" aria-label="中文 / English" data-i18n-skip>
+      <div id="loginLang" class="lang-switch" role="radiogroup" aria-label="中文 / English / Tiếng Việt" data-i18n-skip>
         <button type="button" role="radio" data-lang-value="zh" aria-checked="true">中</button>
         <button type="button" role="radio" data-lang-value="en" aria-checked="false">EN</button>
+        <button type="button" role="radio" data-lang-value="vi" aria-checked="false" lang="vi" aria-label="Tiếng Việt (bản xem trước)">VI</button>
       </div>
       <button id="loginTheme" type="button">切换主题</button>
       <a href="https://github.com/Tencent/LoopForge">GitHub ↗</a>

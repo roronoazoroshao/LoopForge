@@ -38,7 +38,7 @@ func TestBotTabsListAndGuidedSteps(t *testing.T) {
 	}
 	script := `
 const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
-const ctx={escapeHTML:x=>String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]),isPlatformAdmin:()=>false,currentProject:()=>ctx.project,project:{name:'AgentFlow',ownerId:9,members:[]},state:{authRequired:false}};
+const ctx={window:{lfLang:()=> 'zh'},escapeHTML:x=>String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]),isPlatformAdmin:()=>false,currentProject:()=>ctx.project,project:{name:'AgentFlow',ownerId:9,members:[]},state:{authRequired:false}};
 vm.createContext(ctx);vm.runInContext(fs.readFileSync('app/bots.js','utf8'),ctx);
 
 assert.equal(ctx.botStepAllowed({name:''},1),true);

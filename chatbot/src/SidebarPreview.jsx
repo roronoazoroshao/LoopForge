@@ -1,5 +1,8 @@
 import React from "react";
 import HarnessIcon from "./HarnessIcon";
+import { chatT } from "./locale.js";
+
+const sidebarSectionAriaLabel = title => chatT(`${title}的会话`, `Hội thoại của ${title}`);
 
 export function SidebarSection({
   title,
@@ -13,7 +16,7 @@ export function SidebarSection({
   return (
     <section
       className={`sidebar-project-section ${className}`.trim()}
-      aria-label={`${title}的会话`}
+      aria-label={sidebarSectionAriaLabel(title)}
     >
       <button
         type="button"

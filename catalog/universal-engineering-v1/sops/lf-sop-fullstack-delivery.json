@@ -1,0 +1,205 @@
+{
+  "id": "lf-sop-fullstack-delivery",
+  "name": "Full-stack Delivery",
+  "version": 1,
+  "revision": 1,
+  "status": "draft",
+  "description": "SOP Full-stack Delivery. Dùng đúng role, kiểm chứng artifacts và human gate; không tự deploy/merge.",
+  "sandboxProfileId": "generic-docker",
+  "tags": [
+    "lf-universal-v1",
+    "sop"
+  ],
+  "nodes": [
+    {
+      "id": "business-analyst",
+      "name": "Business Analyst",
+      "type": "agent",
+      "agentId": "lf-role-business-analyst",
+      "maxAttempts": 2,
+      "metricStage": "clarification",
+      "position": {
+        "x": 100,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Yêu cầu và nghiệp vụ",
+          "path": "lf-requirements.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "solution-architect",
+      "name": "Solution Architect",
+      "type": "agent",
+      "agentId": "lf-role-solution-architect",
+      "maxAttempts": 2,
+      "metricStage": "clarification",
+      "position": {
+        "x": 345,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Kiến trúc tổng thể và ADR",
+          "path": "lf-architecture.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "approve-plan",
+      "name": "Phê duyệt kế hoạch",
+      "type": "approval",
+      "taskPrompt": "Kiểm tra artifacts đúng revision, findings và bằng chứng thực tế. Chỉ chấp thuận khi tiêu chí đạt, không có blocker và quyền đúng phạm vi; nếu không, reject kèm finding. Không chấp thuận tự động.",
+      "maxAttempts": 1,
+      "maxReworks": 2,
+      "rejectTo": "business-analyst",
+      "position": {
+        "x": 590,
+        "y": 150
+      }
+    },
+    {
+      "id": "fullstack-engineer",
+      "name": "Full-stack Engineer",
+      "type": "agent",
+      "agentId": "lf-role-fullstack-engineer",
+      "maxAttempts": 2,
+      "metricStage": "development",
+      "position": {
+        "x": 835,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Tích hợp đầu-cuối",
+          "path": "lf-fullstack-report.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "senior-code-reviewer",
+      "name": "Senior Code Reviewer",
+      "type": "agent",
+      "agentId": "lf-role-senior-code-reviewer",
+      "maxAttempts": 2,
+      "metricStage": "testing",
+      "position": {
+        "x": 1080,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Review mã độc lập",
+          "path": "lf-code-review.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "test-automation-engineer",
+      "name": "Test Automation Engineer",
+      "type": "agent",
+      "agentId": "lf-role-test-automation-engineer",
+      "maxAttempts": 2,
+      "metricStage": "testing",
+      "position": {
+        "x": 1325,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Kiểm thử tự động",
+          "path": "lf-test-report.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "security-auditor",
+      "name": "Security Auditor",
+      "type": "agent",
+      "agentId": "lf-role-security-auditor",
+      "maxAttempts": 2,
+      "metricStage": "testing",
+      "position": {
+        "x": 1570,
+        "y": 150
+      },
+      "artifactOutputs": [
+        {
+          "name": "Audit độc lập",
+          "path": "lf-security-review.md",
+          "mediaType": "text/markdown",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "accept",
+      "name": "Nghiệm thu độc lập",
+      "type": "approval",
+      "taskPrompt": "Kiểm tra artifacts đúng revision, findings và bằng chứng thực tế. Chỉ chấp thuận khi tiêu chí đạt, không có blocker và quyền đúng phạm vi; nếu không, reject kèm finding. Không chấp thuận tự động.",
+      "maxAttempts": 1,
+      "maxReworks": 2,
+      "rejectTo": "fullstack-engineer",
+      "position": {
+        "x": 1815,
+        "y": 150
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-1",
+      "source": "business-analyst",
+      "target": "solution-architect",
+      "when": "success"
+    },
+    {
+      "id": "e-2",
+      "source": "solution-architect",
+      "target": "approve-plan",
+      "when": "success"
+    },
+    {
+      "id": "e-3",
+      "source": "approve-plan",
+      "target": "fullstack-engineer",
+      "when": "success"
+    },
+    {
+      "id": "e-4",
+      "source": "fullstack-engineer",
+      "target": "senior-code-reviewer",
+      "when": "success"
+    },
+    {
+      "id": "e-5",
+      "source": "senior-code-reviewer",
+      "target": "test-automation-engineer",
+      "when": "success"
+    },
+    {
+      "id": "e-6",
+      "source": "test-automation-engineer",
+      "target": "security-auditor",
+      "when": "success"
+    },
+    {
+      "id": "e-7",
+      "source": "security-auditor",
+      "target": "accept",
+      "when": "success"
+    }
+  ]
+}
