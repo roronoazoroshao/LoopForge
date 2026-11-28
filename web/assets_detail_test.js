@@ -65,12 +65,10 @@ let vietnameseFields = ctx.assetBasicFieldsHTML({}, { creating: true });
 assert.ok(vietnameseFields.includes('Đặt tên cho sandbox') && !vietnameseFields.includes('给沙箱起个名字'), vietnameseFields);
 let vietnamesePane = ctx.assetMainPanesHTML({}, { creating: true, readonly: false });
 assert.ok(vietnamesePane.includes('không lưu thông tin xác thực'), vietnamesePane);
-reset('environments');
-vietnameseHeader = ctx.assetDetailHeadHTML({}, { creating: true, dirty: false });
-assert.ok(vietnameseHeader.includes('Tập lệnh cài đặt mới'), vietnameseHeader);
-reset('dockerfiles');
-vietnameseHeader = ctx.assetDetailHeadHTML({}, { creating: true, dirty: false });
-assert.ok(vietnameseHeader.includes('Dockerfile mới'), vietnameseHeader);
+// Upstream stores Dockerfile and environment configuration inside the sandbox.
+assert.ok(vietnamesePane.includes('name="dockerfileContent"'), vietnamesePane);
+assert.ok(vietnamesePane.includes('name="environment"'), vietnamesePane);
+assert.ok(vietnamesePane.includes('name="privileged"'), vietnamesePane);
 delete ctx.window;
 
 // ---------- Cards: three share states, no actions on the card ----------

@@ -1104,6 +1104,7 @@ function obsUsageKpis(view){
   const rangeName=obsRangeCaption();
   const total=view.total||0,succeeded=view.succeeded||0,failed=view.failed||0,reworked=view.reworked;
   const totalTokens=view.tokens||0,totalCost=view.cost||0;
+  const tokenTotal=formatTokens(totalTokens);
   const d=metric=>all?null:obsPeriodDelta(trend,metric);
   const dl=(delta,invert)=>delta?obsDelta(delta.current,delta.previous,invert):'';
   const prevLabel=d('tokens')?.previousLabel||'';
@@ -1115,7 +1116,7 @@ function obsUsageKpis(view){
     :view.period
       ?lfT(`该${obsGrainCaption()} ${tokenTotal}`,`${tokenTotal} this ${obsTrendGrain()}`,`Kỳ ${obsGrainCaption()}: ${tokenTotal}`)
       :lfT(`累计 ${tokenTotal}`,`${tokenTotal} all time`,`Lũy kế ${tokenTotal}`);
-  const successFoot=`${succeeded} 成功 / ${failed} 失败${view.firstPass!=null?` · 一次通过 ${total?percent(view.firstPass):'—'}`:''}`;
+  const successFoot=obsUi(`${succeeded} 成功 / ${failed} 失败${view.firstPass!=null?` · 一次通过 ${total?percent(view.firstPass):'—'}`:''}`,`${succeeded} thành công / ${failed} thất bại${view.firstPass!=null?` · Thành công lần đầu ${total?percent(view.firstPass):'—'}`:''}`);
   const costFoot=lfT('人民币 · 上报优先，缺失按公价估算','CNY · reported first, public rates when missing','CNY · ưu tiên chi phí được báo cáo, thiếu thì ước tính theo giá công khai');
   const costTip=lfT('优先使用执行器有效上报的美元费用（含明确的 0），按 1 USD = 7 CNY 折算。CodeBuddy 的兼容占位 0 按缺失处理。未上报时才按模型公开价估算；无法估算时标为未识别。积分不当作美元或人民币。','Prefer valid executor-reported USD amounts, including explicit zero, at 1 USD = 7 CNY. CodeBuddy’s compatibility zero is treated as missing. Missing reports use public model rates; unavailable estimates remain unknown. Credits are not currency.');
   const deltaTip=prevLabel?[`环比对象：${escapeHTML(prevLabel)}`]:[];

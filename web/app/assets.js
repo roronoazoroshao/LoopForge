@@ -346,7 +346,7 @@ function assetPaneHint(type=state.assetType){return ({rules:lfT('支持 Markdown
 function assetFieldLabel(text,help,forId=''){return `<div class="asset-field-label">${forId?`<label for="${forId}">${escapeHTML(text)}</label>`:`<span>${escapeHTML(text)}</span>`}${help?`<button type="button" class="field-help" aria-label="${escapeHTML(/说明$/.test(text)?text:`${text}说明`)}" title="${escapeHTML(help)}">?</button>`:''}</div>`}
 function sandboxSetupHTML(a){
   const driver=sandboxDriverOption(a.driver);
-  const privilegeHelp=lfT('执行机器须允许特权沙箱。容器内进程可访问宿主机设备，并可能控制执行机器。','The execution machine must allow privileged sandboxes. Processes in the container can access host devices and may take control of the machine.');
+  const privilegeHelp=lfT('执行机器须允许特权沙箱。容器内进程可访问宿主机设备，并可能控制执行机器。','The execution machine must allow privileged sandboxes. Processes in the container can access host devices and may take control of the machine.','Máy thực thi phải cho phép sandbox đặc quyền. Tiến trình trong container có thể truy cập thiết bị máy chủ và có khả năng kiểm soát máy thực thi.');
   return `<div class="sandbox-setup">
   <section class="sandbox-card">
     <div class="sandbox-card-head">
@@ -417,7 +417,7 @@ function sandboxSetupHTML(a){
   </section>
   <section class="sandbox-card">
     <div class="sandbox-field">
-      ${assetFieldLabel('环境变量','JSON 对象，叠加到沙箱基础环境并随资产保存；不要在这里保存凭证。平台凭证、HOME/TMPDIR 和遥测变量优先级更高。','assetSandboxEnv')}
+      ${assetFieldLabel('环境变量',assetUICopy('JSON 对象，叠加到沙箱基础环境并随资产保存；不要在这里保存凭证。平台凭证、HOME/TMPDIR 和遥测变量优先级更高。','Đối tượng JSON bổ sung vào môi trường cơ sở của sandbox và lưu cùng tài nguyên; không lưu thông tin xác thực ở đây. Thông tin xác thực nền tảng, HOME/TMPDIR và biến đo từ xa có độ ưu tiên cao hơn.'),'assetSandboxEnv')}
       <textarea id="assetSandboxEnv" name="environment" class="asset-editor is-env" rows="4" spellcheck="false" placeholder='{"NAME":"value"}'>${escapeHTML(JSON.stringify(a.environment||{},null,2))}</textarea>
     </div>
   </section>
