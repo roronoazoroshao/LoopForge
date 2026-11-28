@@ -21,10 +21,12 @@ const approvalReviewModels = new Map([
   ["规则快路径", ["Quy tắc xử lý nhanh", "Rule fast path"]],
   ["熔断保护", ["Bảo vệ ngắt mạch", "Circuit-breaker protection"]],
 ]);
+export function isApprovalReviewStatus(value) {
+  return typeof value === "string" && value.startsWith("帮我批准：") && approvalReviewStates.has(value.slice("帮我批准：".length));
+}
 export function approvalReviewStatusText(value) {
-  if (typeof value !== "string" || !value.startsWith("帮我批准：")) return value;
-  const state = value.slice("帮我批准：".length);
-  const labels = approvalReviewStates.get(state);
+  if (!isApprovalReviewStatus(value)) return value;
+  const labels = approvalReviewStates.get(value.slice("帮我批准：".length));
   return labels ? chatT(value, "Phê duyệt tự động: " + labels[0], "Auto-approval: " + labels[1]) : value;
 }
 export function approvalReviewDetailText(value) {
