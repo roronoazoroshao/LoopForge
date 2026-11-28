@@ -1,4 +1,4 @@
-import { chatT, chatLocale, approvalReviewStatusText } from "./locale.js";
+import { chatT, chatLocale, approvalReviewStatusText, isApprovalReviewStatus } from "./locale.js";
 // Both the live stream and saved message metadata use this reducer. Tool updates
 // retain their original position; completion events never create duplicate rows.
 export function mergeActivity(previous = [], events = []) {
@@ -148,13 +148,23 @@ export function mergeActivity(previous = [], events = []) {
         });
     }
     if (event.kind === "status" && event.text) {
+      const approval = isApprovalReviewStatus(event.text);
+      const last = steps.at(-1);
+      // Keep distinct approval decisions/model attempts; ordinary connection
+      // status events retain their previous text-only deduplication.
+      if (approval && last?.kind === "status" && last.text === event.text &&
+          last.detail === (event.detail || "")) continue;
       closeThinking(at);
-      if (steps.at(-1)?.kind !== "status" || steps.at(-1)?.text !== event.text)
+      if (approval || last?.kind !== "status" || last?.text !== event.text)
         steps.push({
           id: `status-${sequence ?? steps.length}`,
           kind: "status",
           text: event.text,
           startedAt: at,
+          ...(approval ? {
+            detail: event.detail || "",
+            ...(event.text === "帮我批准：正在审查操作" ? {} : { finishedAt: at || "done" }),
+          } : {}),
         });
     }
   }
@@ -251,7 +261,7 @@ export function finalReply(full, steps = []) {
   }
   return last;
 }
-// Paragraphs and the tool rounds between them, without connection status and
+// Paragraphs and tool rounds, retaining approval review but hiding connection status and
 // empty finished thoughts.
 function visibleBlocks(steps, live) {
   return replyBlocks(steps)
@@ -259,7 +269,7 @@ function visibleBlocks(steps, live) {
       if (block.type !== "activity") return block;
       const kept = block.steps.filter(
         (step) =>
-          step.kind !== "status" &&
+          (step.kind !== "status" || isApprovalReviewStatus(step.text)) &&
           (step.kind !== "thinking" ||
             step.text ||
             (live && !step.finishedAt)),
@@ -373,6 +383,9 @@ const groupNouns = {
   查看: "查看文件",
 };
 export function activityGroupSummary(steps = [], { active = false } = {}) {
+  const review = steps.findLast(step => step.kind === "status" && isApprovalReviewStatus(step.text));
+  if (review && !steps.some(step => step.kind !== "thinking" && step.kind !== "status"))
+    return approvalReviewStatusText(review.text);
   if (chatLocale() === "vi") {
     const nouns = { "chạy": "chạy lệnh", "đọc": "đọc tệp", "chỉnh sửa": "chỉnh sửa tệp", "tìm kiếm": "tìm kiếm mã", "xem": "xem tệp" };
     const parts = [...new Set(steps.filter(step => step.kind !== "thinking" && step.kind !== "status").map(step => {
@@ -403,7 +416,7 @@ export function activityGroupKind(steps = []) {
     counts[kind] = (counts[kind] || 0) + 1;
   }
   const [kind] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0] || [
-    "thinking",
+    steps.some(step => step.kind === "status" && isApprovalReviewStatus(step.text)) ? "status" : "thinking",
   ];
   return kind;
 }
