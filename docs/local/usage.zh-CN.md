@@ -1,6 +1,6 @@
 # LoopForge Local 使用指南
 
-[English](usage.md) | 简体中文
+[English](usage.md) | 简体中文 | [Tiếng Việt](usage.vi-VN.md)
 
 > **旧版（Legacy）。** LoopForge Local 在编码 Agent 中独立运行内置的 Classic 和 Portable 工作流，无需启动 LoopForge 服务端。已有项目可以继续使用已发布的版本。
 

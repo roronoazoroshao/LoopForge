@@ -1,6 +1,6 @@
 # LoopForge Local usage
 
-English | [简体中文](usage.zh-CN.md)
+English | [简体中文](usage.zh-CN.md) | [Tiếng Việt](usage.vi-VN.md)
 
 > **Legacy.** LoopForge Local runs built-in Classic and Portable workflows inside your coding assistant without a LoopForge server. You can keep using a published version for existing projects.
 
