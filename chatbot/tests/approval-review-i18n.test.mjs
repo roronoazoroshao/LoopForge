@@ -16,11 +16,12 @@ test("approval review events retain original values while UI labels follow local
     for (const [locale, status, detail] of cases) {
       localStorage.setItem("loopforge.lang", locale);
       assert.equal(approvalReviewStatusText(steps[0].text), status);
-      assert.equal(approvalReviewDetailText(event.detail), detail);
+      assert.equal(approvalReviewDetailText(steps[0].detail), detail);
       assert.equal(activityFace(steps[0]).busy, status);
     }
-    // Status events are transport-only in the current trace renderer.
-    assert.deepEqual(traceBlocks(steps, { live: true }), []);
+    assert.equal(traceBlocks(steps, { live: true })[0].steps[0].text, event.text);
+    assert.equal(traceBlocks(steps)[0].steps[0].detail, event.detail);
+    assert.equal(steps[0].detail, event.detail);
     assert.equal(steps[0].text, event.text);
     assert.equal(event.detail, "规则快路径 · 原始审查说明");
   } finally {
@@ -40,6 +41,31 @@ test("other review statuses are localized and unknown messages remain raw", () =
     assert.equal(approvalReviewStatusText("帮我批准：未知状态"), "帮我批准：未知状态");
     assert.equal(approvalReviewDetailText("custom-model · explanation"), "custom-model · explanation");
     assert.equal(approvalReviewStatusText(null), null);
+  } finally {
+    if (prior === null) localStorage.removeItem("loopforge.lang");
+    else localStorage.setItem("loopforge.lang", prior);
+  }
+});
+
+test("approval trace keeps distinct reviews, hides ordinary transport statuses, and retains model IDs", () => {
+  const prior = localStorage.getItem("loopforge.lang");
+  try {
+    localStorage.setItem("loopforge.lang", "vi");
+    const events = [
+      {kind:"status", text:"connecting"},
+      {kind:"status", text:"帮我批准：正在审查操作", detail:"审查模型：model/a"},
+      {kind:"status", text:"帮我批准：正在审查操作", detail:"审查模型：model/b"},
+      {kind:"status", text:"帮我批准：正在审查操作", detail:"审查模型：model/b"},
+      {kind:"status", text:"帮我批准：已批准", detail:"规则快路径 · raw rationale"},
+      {kind:"status", text:"帮我批准：已批准", detail:"熔断保护 · other rationale"},
+    ].map((data, sequence) => ({data, sequence}));
+    const steps = mergeActivity([], events);
+    const visible = traceBlocks(steps, {live:true}).flatMap(block => block.steps || []);
+    assert.equal(visible.length, 4);
+    assert.equal(approvalReviewDetailText(visible[0].detail), "Mô hình rà soát: model/a");
+    assert.equal(approvalReviewDetailText(visible[1].detail), "Mô hình rà soát: model/b");
+    assert.equal(visible[3].detail, "熔断保护 · other rationale");
+    assert.equal(steps[0].text, "connecting");
   } finally {
     if (prior === null) localStorage.removeItem("loopforge.lang");
     else localStorage.setItem("loopforge.lang", prior);
