@@ -7657,3 +7657,31 @@ Object.assign(window.LF_I18N_VI, {
   "最近一次执行": "Lần thực thi gần nhất",
   "搜索需求、运行、LOOP、Agent，或输入页面名称…": "Tìm yêu cầu, lượt chạy, LOOP, tác tử hoặc nhập tên trang…"
 });
+
+// Explicit UI fallback translations.
+Object.assign(window.LF_I18N_VI, {
+  "正在选择沙箱…": "Đang chọn sandbox…",
+  "运行时按项目和任务选择沙箱": "Chọn sandbox theo dự án và tác vụ khi chạy",
+  "请选择运行沙箱。": "Hãy chọn sandbox thực thi.",
+  "每次运行时按项目和任务选择沙箱。": "Mỗi lượt chạy chọn sandbox theo dự án và tác vụ.",
+  "选择此 LOOP 使用的运行环境，创建后仍可在流程设置中修改。": "Chọn môi trường thực thi cho LOOP này; có thể sửa trong cài đặt quy trình sau khi tạo.",
+  "检查仓库访问": "Kiểm tra quyền truy cập kho mã",
+  "HTTP 仓库克隆地址": "Địa chỉ clone kho mã HTTP",
+  "检查": "Kiểm tra",
+  "仓库可读": "Có thể đọc kho mã",
+  "统计数据加载失败": "Không tải được dữ liệu thống kê",
+  "统计加载失败": "Không tải được thống kê",
+  "正在加载统计数据…": "Đang tải dữ liệu thống kê…",
+  "优先使用执行器有效上报的美元费用（含明确的 0），按 1 USD = 7 CNY 折算。CodeBuddy 的兼容占位 0 按缺失处理。未上报时才按模型公开价估算；无法估算时标为未识别。积分不当作美元或人民币。": "Ưu tiên chi phí USD hợp lệ do trình thực thi báo cáo (kể cả 0 rõ ràng), quy đổi theo 1 USD = 7 CNY. Giá trị 0 tương thích của CodeBuddy được coi là thiếu. Chỉ khi không báo cáo mới ước tính theo giá mô hình công khai; nếu không thể ước tính thì đánh dấu chưa xác định. Điểm tín dụng không được coi là USD hoặc CNY.",
+  "统计范围已切换，请重新导出": "Phạm vi thống kê đã thay đổi, hãy xuất lại.",
+  "Git HTTP 主机授权": "Cấp quyền máy chủ Git HTTP",
+  "HTTP 会明文传输 Git 令牌。": "HTTP truyền token Git dưới dạng văn bản rõ.",
+  "添加 HTTP 主机": "Thêm máy chủ HTTP",
+  "HTTP 实例地址": "Địa chỉ phiên bản HTTP",
+  "填写域名或 IP，可附带端口。IPv6 带端口时用 [fd00::2]:8080。": "Nhập tên miền hoặc IP, có thể kèm cổng. Với IPv6 có cổng, dùng [fd00::2]:8080.",
+  "授权": "Cấp quyền",
+  "尚未授权 Git HTTP 主机。": "Chưa có máy chủ Git HTTP được cấp quyền.",
+  "已授权 HTTP 主机": "Đã cấp quyền máy chủ HTTP",
+  "撤销 HTTP 主机授权": "Thu hồi quyền máy chủ HTTP",
+  "已撤销 HTTP 主机授权": "Đã thu hồi quyền máy chủ HTTP"
+});

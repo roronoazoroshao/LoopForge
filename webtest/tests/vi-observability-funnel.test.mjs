@@ -8,7 +8,7 @@ test('Vietnamese observability chart labels preserve keys and counts',()=>{
  const c=vm.createContext({window:{lfLang:()=>'vi'},state});
  vm.runInContext(source,c);
  const stages=vm.runInContext('obsDeliveryStages()',c);
- assert.deepEqual(Array.from(stages,s=>s.name),['Yêu cầu có lượt chạy','SOP thành công','Yêu cầu có PR','Yêu cầu có PR đã hợp nhất','Đã bàn giao']);
+ assert.deepEqual(Array.from(stages,s=>s.name),['Yêu cầu có lượt chạy','LOOP thành công','Yêu cầu có PR','Yêu cầu có PR đã hợp nhất','Đã bàn giao']);
  assert.equal(stages[0].value,10);
  assert.equal(vm.runInContext("obsCategoryLabel('bugfix')",c),'Sửa lỗi');
 });

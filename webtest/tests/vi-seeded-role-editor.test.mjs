@@ -194,14 +194,14 @@ test('runtime summary uses Vietnamese units, including nonzero counts',()=>{
 });
 
 test('saving an untouched translated editor preserves raw payload, while edits are intentional',async()=>{
-  for(const edited of [false,true]){
+  for(const {edited,admin} of [{edited:false,admin:true},{edited:true,admin:true},{edited:true,admin:false}]){
     const role={...seedRole};
     const f={elements:{
       id:{value:role.id},name:{value:edited?'Tên vai trò mới':'Tác tử đồng bộ baseline'},
       description:{value:''},shared:{checked:true},executorId:{value:'codebuddy'},
       effort:{value:''},platformMcp:{checked:false},knowledgeBase:{checked:false}
     },querySelectorAll:()=>[]};
-    const context={f,window:locale('vi'),result:null,
+    const context={f,window:locale('vi'),result:null,isPlatformAdmin:()=>admin,
       state:{data:{agents:[role],rules:[],skills:[]},projectFilter:'',
         workflow:{generic:false},selectedAgent:role.id,
         agentSeedNameOriginal:role.name,agentSeedNameEdited:edited},
@@ -215,10 +215,11 @@ test('saving an untouched translated editor preserves raw payload, while edits a
         context.saved=JSON.parse(options.body);
         return context.saved;
       }};
-    runInNewContext(pick(agents,'function agentVI(){','function renderAgentsLegacy(){')+
+    runInNewContext(pick(read('web/app.js'),'function agentPlatformLocked(','function agentWizardForeign(')+pick(agents,'function agentVI(){','function renderAgentsLegacy(){')+
       pick(agents,'async function persistAgentRequest(f,creating){','async function deleteAgent(id){')+
       '\nresult=persistAgentRequest(f,false);',context);
     await context.result;
+    if(!admin){assert.equal(context.saved,null,'non-admin must not modify a platform role');continue;}
     assert.equal(context.saved.id,role.id);
     assert.equal(context.saved.name,edited?'Tên vai trò mới':role.name);
     assert.equal(context.saved.prompt,edited?'Prompt tiếng Việt mới':role.prompt);

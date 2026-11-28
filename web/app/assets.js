@@ -42,13 +42,13 @@ const ASSET_SEED_NAMES={
 };
 function assetDisplayName(a,type=state.assetType){
   const seed=ASSET_SEED_NAMES[`${type}:${a?.id||''}`];
-  return seed&&!a?.projectId&&a?.name===seed[0]?window.lfT(...seed):(a?.name||a?.id||'');
+  return seed&&(!a?.projectId||a.projectId==='platform')&&a?.name===seed[0]?window.lfT(...seed):(a?.name||a?.id||'');
 }
 
 function assetIsBuiltin(a,type=state.assetType){return type==='sandboxes'&&a?.id==='generic-docker'}
 function assetStatusHTML(a){
-  if(!catalogOwned(a.projectId))return `<span class="asset-status is-from"><i></i>${assetUICopy('来自','Từ')} ${assetProjectNameHTML(a)}</span>`;
-  return `<span class="asset-status ${a.shared?'is-on':''}"><i></i>${a.shared?'已共享':'未共享'}</span>`;
+  if(!catalogOwned(a.projectId))return `<span class="asset-status is-from"><i></i>${assetVI()?assetOwnerProjectName(a)?'Từ dự án '+assetProjectNameHTML(a):'Từ nền tảng':'来自 '+assetProjectNameHTML(a)}</span>`;
+  return `<span class="asset-status ${a.shared?'is-on':''}"><i></i>${a.shared?assetUICopy('已共享','Đã chia sẻ'):assetUICopy('未共享','Chưa chia sẻ')}</span>`;
 }
 function assetMetaHTML(a){
   const item=(icon,text)=>`<span${assetVI()?' data-i18n-skip':''}>${huiIcon(icon)}${escapeHTML(text)}</span>`;const meta=[];
@@ -59,17 +59,17 @@ function assetMetaHTML(a){
     if(src){const latest=assetSkillLatest(src);meta.push(latest&&latest!==src.version?`<span class="hui-badge" data-tone="warn" data-size="sm"><span class="hui-lamp"><i></i></span><span class="hui-badge-label">SkillHub v${escapeHTML(src.version)} · 可更新</span></span>`:`<span class="hui-badge" data-tone="accent" data-size="sm">${huiIcon('sparkles')}<span class="hui-badge-label">SkillHub v${escapeHTML(src.version)}</span></span>`)}
   }
   if(state.assetType==='sandboxes'){
-    const driver=sandboxDriverOption(a.driver);meta.push(item('server',sandboxDriverLabel(driver)));
+    const driver=sandboxDriverOption(a.driver);meta.push(item('server',lfT(sandboxDriverLabel(driver),driver==='native'?'Lightweight system isolation':'Docker',driver==='native'?'Cô lập nhẹ ở cấp hệ điều hành':'Docker')));
     if(driver==='docker'&&a.dockerfile?.content){const lines=a.dockerfile.content.trimEnd().split('\n').length;meta.push(item('layers',lfT(`Dockerfile ${lines} 行`,`Dockerfile · ${lines} ${lines===1?'line':'lines'}`,`Dockerfile · ${lines} dòng`)))}
   }
   const refs=assetReferenceNames(a).length;
-  meta.push(item(assetRefIconName(),refs?lfT(`${refs} 个${assetRefKindLabel()}引用`,`Used by ${refs} ${assetRefKindLabelEn(refs)}`,`${refs} lượt tham chiếu ${assetUILabel(assetRefKindLabel())}`):'未被引用'));
+  meta.push(item(assetRefIconName(),refs?lfT(`${refs} 个${assetRefKindLabel()}引用`,`Used by ${refs} ${assetRefKindLabelEn(refs)}`,`${refs} lượt tham chiếu ${assetUILabel(assetRefKindLabel())}`):assetUICopy('未被引用','Chưa được tham chiếu')));
   return meta.join('');
 }
 function assetCardHTML(a){
   const readonly=!catalogOwned(a.projectId);const go=readonly?'查看':'编辑';
   const name=assetDisplayName(a),label=lfT(`${go}${assetKindLabel()}「${name}」`,`${readonly?'View':'Edit'} ${assetKindLabelEn()} "${name}"`,`${readonly?'Xem':'Sửa'} ${assetUILabel(assetKindLabel())} “${name}”`);
-  return `<article class="asset-card" role="link" tabindex="0" data-asset-id="${escapeHTML(a.id)}" aria-label="${escapeHTML(label)}" data-i18n-data-attrs="aria-label"><div class="asset-card-top"><span class="asset-tile">${huiIcon(assetIconName())}</span><div class="asset-card-name"><h3 data-i18n-skip>${escapeHTML(name)}</h3><code class="asset-mono">${escapeHTML(a.id)}</code></div></div><p class="asset-card-desc"${assetUserDataAttr(a.description)}>${escapeHTML(a.description||'暂无说明')}</p><div class="asset-meta">${assetMetaHTML(a)}</div><div class="asset-card-foot">${assetStatusHTML(a)}<span class="asset-card-go">${go}${huiIcon('chevron-right')}</span></div></article>`;
+  return `<article class="asset-card" role="link" tabindex="0" data-asset-id="${escapeHTML(a.id)}" aria-label="${escapeHTML(label)}" data-i18n-data-attrs="aria-label" data-i18n-aria-skip><div class="asset-card-top"><span class="asset-tile">${huiIcon(assetIconName())}</span><div class="asset-card-name"><h3 data-i18n-skip>${escapeHTML(name)}</h3><code class="asset-mono">${escapeHTML(a.id)}</code></div></div><p class="asset-card-desc"${assetUserDataAttr(a.description)}>${escapeHTML(a.description||'暂无说明')}</p><div class="asset-meta">${assetMetaHTML(a)}</div><div class="asset-card-foot">${assetStatusHTML(a)}<span class="asset-card-go">${lfT(go,readonly?'View':'Edit',readonly?'Xem':'Sửa')}${huiIcon('chevron-right')}</span></div></article>`;
 }
 function assetGridEmptyHTML(){
   const kind=assetKindLabel(),copy=assetPageCopy();

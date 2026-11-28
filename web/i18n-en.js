@@ -3303,3 +3303,31 @@ Object.assign(window.LF_I18N_EN, {
   "最近一次执行": "Last execution",
   "搜索需求、运行、LOOP、Agent，或输入页面名称…": "Search requirements, runs, LOOPs, agents, or enter a page name…"
 });
+
+// Explicit UI fallback translations.
+Object.assign(window.LF_I18N_EN, {
+  "正在选择沙箱…": "Selecting sandbox…",
+  "运行时按项目和任务选择沙箱": "Choose sandbox for project and task at runtime",
+  "请选择运行沙箱。": "Select a sandbox.",
+  "每次运行时按项目和任务选择沙箱。": "Choose a sandbox for the project and task at run time.",
+  "选择此 LOOP 使用的运行环境，创建后仍可在流程设置中修改。": "Choose the execution environment for this LOOP. You can change it in LOOP settings later.",
+  "检查仓库访问": "Check repository access",
+  "HTTP 仓库克隆地址": "HTTP clone URL",
+  "检查": "Check",
+  "仓库可读": "Repository is readable",
+  "统计数据加载失败": "Unable to load analytics",
+  "统计加载失败": "Unable to load analytics",
+  "正在加载统计数据…": "Loading analytics…",
+  "优先使用执行器有效上报的美元费用（含明确的 0），按 1 USD = 7 CNY 折算。CodeBuddy 的兼容占位 0 按缺失处理。未上报时才按模型公开价估算；无法估算时标为未识别。积分不当作美元或人民币。": "Prefer valid executor-reported USD amounts, including explicit zero, at 1 USD = 7 CNY. CodeBuddy’s compatibility zero is treated as missing. Missing reports use public model rates; unavailable estimates remain unknown. Credits are not currency.",
+  "统计范围已切换，请重新导出": "The analytics scope changed. Export again.",
+  "Git HTTP 主机授权": "Git HTTP host authorization",
+  "HTTP 会明文传输 Git 令牌。": "HTTP sends Git tokens in cleartext.",
+  "添加 HTTP 主机": "Add HTTP host",
+  "HTTP 实例地址": "HTTP instance address",
+  "填写域名或 IP，可附带端口。IPv6 带端口时用 [fd00::2]:8080。": "Enter a hostname or IP with an optional port. Use [fd00::2]:8080 for IPv6 with a port.",
+  "授权": "Authorize",
+  "尚未授权 Git HTTP 主机。": "No Git HTTP hosts are authorized.",
+  "已授权 HTTP 主机": "HTTP host authorized",
+  "撤销 HTTP 主机授权": "Revoke HTTP host authorization",
+  "已撤销 HTTP 主机授权": "HTTP host authorization revoked"
+});

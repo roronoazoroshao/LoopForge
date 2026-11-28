@@ -80,9 +80,9 @@ function runnerRunLimitHTML(runner,platform=false){
   if(platform?!runner.canEditLimit:!(Number(runner?.ownerUserId)>0))return '';
   const limit=Number(runner?.runLimit)||0;
   const scope=platform
-    ?lfT('默认 10 条，平台所有项目共用此名额。按顶层 LOOP 计数。','Defaults to 10, shared by every project on the platform. Counts top-level LOOPs. ')
-    :lfT('新绑定机器默认 10 条。按顶层 LOOP 计数，共享项目共用机器名额。','Newly bound machines default to 10. Counts top-level LOOPs; shared projects share the machine\'s slots. ');
-  const tip=scope+lfT('超出名额后排队。失败、暂停、待确认的 LOOP 空闲 1 小时后自动归档并回收工作区，释放名额。继续或重试时自动恢复工作区。输入 0 或留空表示不限。','Runs over the limit queue. Failed, paused and awaiting-confirmation LOOPs idle for 1 hour are archived and their workspaces reclaimed to free slots; continuing or retrying restores the workspace. Enter 0 or leave blank for no limit.');
+    ?lfT('默认 10 条，平台所有项目共用此名额。按顶层 LOOP 计数。','Defaults to 10, shared by every project on the platform. Counts top-level LOOPs. ','Mặc định 10, dùng chung giữa mọi dự án trên nền tảng. Tính LOOP cấp cao nhất. ')
+    :lfT('新绑定机器默认 10 条。按顶层 LOOP 计数，共享项目共用机器名额。','Newly bound machines default to 10. Counts top-level LOOPs; shared projects share the machine\'s slots. ','Máy mới liên kết mặc định 10. Tính LOOP cấp cao nhất; các dự án chia sẻ dùng chung suất máy. ');
+  const tip=scope+lfT('超出名额后排队。失败、暂停、待确认的 LOOP 空闲 1 小时后自动归档并回收工作区，释放名额。继续或重试时自动恢复工作区。输入 0 或留空表示不限。','Runs over the limit queue. Failed, paused and awaiting-confirmation LOOPs idle for 1 hour are archived and their workspaces reclaimed to free slots; continuing or retrying restores the workspace. Enter 0 or leave blank for no limit.','Lượt chạy vượt hạn mức sẽ xếp hàng. LOOP thất bại, tạm dừng hoặc chờ xác nhận không hoạt động trong 1 giờ sẽ tự lưu trữ và thu hồi workspace để giải phóng suất; tiếp tục hoặc thử lại sẽ khôi phục workspace. Nhập 0 hoặc để trống nếu không giới hạn.');
   const id=platform?'runLimit-platform-runner':`runLimit-${escapeHTML(runner.id)}`;
   const control=platform?'data-platform-run-limit':`data-runner-run-limit="${escapeHTML(runner.id)}"`;
   return `<div class="runner-run-limit"><label for="${id}">${lfT('最多同时运行','Max concurrent','Tối đa chạy đồng thời')}<input id="${id}" type="number" inputmode="numeric" min="0" step="1" placeholder="${lfT('不限','Unlimited','Không giới hạn')}" value="${limit>0?limit:''}" ${control} data-i18n-data aria-label="${escapeHTML(platform?platformRunnerLabel():runner.name||runner.id)} ${lfT('最多同时运行条数','max concurrent runs')}">${lfT('条','runs','lượt')}</label><span class="runner-tip" tabindex="0" role="note" aria-label="${tip}" data-tip="${tip}">?</span></div>`;
@@ -320,15 +320,15 @@ function renderRunnersView(){
     let text='',warn=false;
     if(projectMode==='auto'){
       const usable=runners.filter(r=>r.canUseInProject&&!runnerDefaultBlocker(r)).length+(platform?.status==='online'?1:0);
-      text=lfT(`此项目 LOOP 自动分配 · ${usable} 台在线机器可用`,`Project LOOPs auto-assigned · ${usable} online ${usable===1?'runner':'runners'} available`);
+      text=lfT(`此项目 LOOP 自动分配 · ${usable} 台在线机器可用`,`Project LOOPs auto-assigned · ${usable} online ${usable===1?'runner':'runners'} available`,`Tự phân bổ LOOP của dự án · ${usable} máy trực tuyến khả dụng`);
       warn=usable===0;
     }else if(projectMode==='platform'){
-      text=`${lfT('此项目默认','Project default')} · ${platformRunnerLabel()}`;
+      text=`${lfT('此项目默认','Project default','Mặc định dự án')} · ${platformRunnerLabel()}`;
       warn=platform?.status==='offline';
     }else if(def){
       warn=def.status!=='online';
       const label=projectDefaultId?lfT('此项目默认','Project default','Mặc định dự án'):lfT('个人默认','Personal default','Mặc định cá nhân');
-      text=warn?lfT(`${label}执行机器已离线，请启动机器或更改默认`,`${label} runner is offline; start it or change the default`):`${label} · ${def.name||def.id}`;
+      text=warn?lfT(`${label}执行机器已离线，请启动机器或更改默认`,`${label} runner is offline; start it or change the default`,`Máy mặc định đã ngoại tuyến (${label}); hãy khởi động máy hoặc đổi mặc định`):`${label} · ${def.name||def.id}`;
     }else if(platform){
       warn=platform.status!=='online';
       text=warn?lfT('平台执行机器离线','Platform runner offline','Máy thực thi nền tảng ngoại tuyến'):lfT('在平台云端执行','Runs in the platform cloud','Thực thi trên đám mây nền tảng');

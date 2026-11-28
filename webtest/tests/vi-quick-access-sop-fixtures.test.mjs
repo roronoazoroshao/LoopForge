@@ -22,7 +22,7 @@ test('fresh Vietnamese fallback SOPs contain localized role prompts and preserve
   assert.match(roles[i].body.prompt,/{{input}}$/);
  }
  const workflow=vi.find(x=>x.url==='/api/workflows').body,original=zh.find(x=>x.url==='/api/workflows').body;
- assert.equal(workflow.name,'SOP bàn giao backend');
+ assert.equal(workflow.name,'LOOP bàn giao backend');
  assert.deepEqual(Array.from(workflow.nodes,n=>n.id),Array.from(original.nodes,n=>n.id));
  assert.deepEqual(JSON.parse(JSON.stringify(workflow.nodes.map(n=>n.artifactOutputs))),JSON.parse(JSON.stringify(original.nodes.map(n=>n.artifactOutputs))));
  assert.equal(workflow.tags[1],'generic-source:generic-backend-delivery');

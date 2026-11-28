@@ -1549,9 +1549,9 @@ function obsReportScope(){
 }
 const OBS_REPORT_COPY={
   '用量分析报告':'Báo cáo phân tích mức sử dụng',
-  'SOP 一览':'Tổng quan SOP','各模型用量':'Mức sử dụng theo mô hình',
+  'SOP 一览':'Tổng quan SOP','LOOP 一览':'Tổng quan LOOP','各模型用量':'Mức sử dụng theo mô hình',
   '成员汇总':'Tổng hợp thành viên','每人每日用量':'Mức sử dụng hằng ngày theo người',
-  '需求类型分布':'Phân bố loại yêu cầu','SOP 版本对比':'So sánh phiên bản SOP',
+  '需求类型分布':'Phân bố loại yêu cầu','SOP 版本对比':'So sánh phiên bản SOP','LOOP 版本对比':'So sánh phiên bản LOOP',
   '各项目用量':'Mức sử dụng theo dự án','交付明细':'Chi tiết bàn giao',
   '周期':'Kỳ','运行':'Lượt chạy','成功率':'Tỷ lệ thành công',
   '返工率':'Tỷ lệ làm lại','取消率':'Tỷ lệ hủy','成本':'Chi phí',
@@ -1559,12 +1559,12 @@ const OBS_REPORT_COPY={
   '输入 / 输出':'Đầu vào / Đầu ra','Token 占比':'Tỷ trọng token',
   '成员':'Thành viên','成功':'Thành công','失败':'Thất bại',
   '日期':'Ngày','来源':'Nguồn','关联执行':'Lượt thực thi liên quan',
-  'SOP 成功':'SOP thành công','已交付需求':'Yêu cầu đã bàn giao',
+  'SOP 成功':'SOP thành công','LOOP 成功':'LOOP thành công','已交付需求':'Yêu cầu đã bàn giao',
   '版本':'Phiên bản','需求':'Yêu cầu','执行耗时':'Thời gian thực thi',
   '项目':'Dự án','单号':'Mã yêu cầu','标题':'Tiêu đề',
   '流程':'Quy trình','责任人':'Người phụ trách','交付':'Bàn giao',
   '会话数':'Số cuộc trò chuyện','创建需求':'Yêu cầu đã tạo',
-  '需求 SOP':'SOP theo yêu cầu','多人协作会话':'Hội thoại cộng tác',
+  '需求 SOP':'SOP theo yêu cầu','需求 LOOP':'LOOP theo yêu cầu','多人协作会话':'Hội thoại cộng tác',
   '一次通过':'Thành công lần đầu','缓存命中':'Tỷ lệ trúng cache',
   'P95 执行':'Thực thi P95','对话改代码':'Sửa mã qua hội thoại',
   '已交付':'Đã bàn giao','未交付':'Chưa bàn giao','PR 已合入':'PR đã hợp nhất'
@@ -1572,7 +1572,7 @@ const OBS_REPORT_COPY={
 function obsReportText(zh){return obsUi(zh,OBS_REPORT_COPY[zh]||zh)}
 function obsReportTable(title,headers,rows){
   if(!rows)return `<section class="block"><h2>${obsReportText(title)}</h2><p class="empty">${obsUi('暂无数据','Chưa có dữ liệu')}</p></section>`;
-  return `<section class="block"><h2>${title}</h2><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></section>`;
+  return `<section class="block"><h2>${obsReportText(title)}</h2><table><thead><tr>${headers.map(h=>`<th>${obsReportText(h)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></section>`;
 }
 async function exportObsReport(){
   ensureObsUserFilter();
@@ -1626,7 +1626,7 @@ function buildObsReportHTML(){
     ['成本',obsPlain(costLabel(summary.totalCostCny,obsCostKnown(summary))),obsCostUnknown(summary)?obsUi(`${obsCostUnknown(summary)} 次未识别`,`${obsCostUnknown(summary)} lượt chưa xác định`):obsUi('已识别','Đã xác định')],
     ['缓存命中',(Number(summary.inputTokens||0)+Number(summary.cacheReadTokens||0))?Number(summary.cacheHitRate||0).toFixed(0)+'%':'—',obsUi(`缓存读 ${formatTokens(summary.cacheReadTokens||0)}`,`Đọc cache ${formatTokens(summary.cacheReadTokens||0)}`)],
     ['P95 执行',summary.executionP95DurationMs?duration(summary.executionP95DurationMs):'—',summary.executionAverageDurationMs?obsUi(`平均 ${duration(summary.executionAverageDurationMs)}`,`Trung bình ${duration(summary.executionAverageDurationMs)}`):'—'],
-    ['对话改代码',obsUi(`${summary.conversationIssues||0} 个需求`,`${summary.conversationIssues||0} yêu cầu`),obsUi(`${summary.conversationWorkspaces||0} 个工作区 · ${formatTokens(summary.conversationTokens||0)} · ${obsPlain(costLabel(summary.conversationCostCny||0,true))}`,`${summary.conversationWorkspaces||0} workspace · ${formatTokens(summary.conversationTokens||0)} · ${obsPlain(costLabel(summary.conversationCostCny||0,true))}`)],
+    ['对话改代码',obsUi(`${summary.conversationIssues||0} 个需求`,`${summary.conversationIssues||0} yêu cầu`),obsUi(`${summary.conversationWorkspaces||0} 个工作区 · ${formatTokens(summary.conversationTokens||0)} · ${obsPlain(costLabel(summary.conversationCostCny||0,!summary.conversationCostUnknownWorkspaces))}`,`${summary.conversationWorkspaces||0} workspace · ${formatTokens(summary.conversationTokens||0)} · ${obsPlain(costLabel(summary.conversationCostCny||0,!summary.conversationCostUnknownWorkspaces))}`)],
     ['已交付',d.delivered||0,obsUi(`${d.issues||0} 个有执行的单`,`${d.issues||0} yêu cầu có lượt chạy`)],
     ['PR 已合入',d.mrMerged||0,obsUi(`${d.mrIntegrated||0} 已合入基线`,`${d.mrIntegrated||0} PR đã hợp nhất vào baseline`)],
   ].map(([l,v,f])=>`<article><span>${obsReportText(l)}</span><b>${v}</b><small>${f}</small></article>`).join('');

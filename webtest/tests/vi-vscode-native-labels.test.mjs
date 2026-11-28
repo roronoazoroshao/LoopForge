@@ -26,7 +26,7 @@ function options(lang, readOnly) {
 test("VS Code internal tooltips and registered commands use Vietnamese, not DOM translation", () => {
   const { options: ui, actions } = options("vi", true);
   assert.equal(ui.windowIndicator.tooltip, "Không gian làm việc tác vụ · chỉ đọc");
-  assert.equal(ui.windowIndicator.label, "$(remote) SOP 123456789012");
+  assert.equal(ui.windowIndicator.label, "$(remote) LOOP 123456789012");
   assert.deepEqual(Array.from(ui.commands, command => command.id), ["agentflow.popout", "agentflow.maximize"]);
   assert.deepEqual(Array.from(ui.commands, command => command.label), ["Mở VS Code trong cửa sổ mới", "Chế độ tập trung"]);
   ui.commands[0].handler();
